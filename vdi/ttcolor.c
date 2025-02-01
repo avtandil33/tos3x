@@ -74,8 +74,8 @@ VOID tt_vs_color(NOTHING)
 VOID vs_color(NOTHING)
 #endif
 {
-	register short *ptr = LV(INTIN);
-	register short *rgb;
+	register int16_t *ptr = LV(INTIN);
+	register int16_t *rgb;
 	register short j, pen;
 	register short mode = (VIDINFO >> 8) & 7;	/* get video info     */
 	register short temp;
@@ -192,9 +192,9 @@ VOID vq_color(NOTHING)
 #endif
 {
 	register short i, j;
-	register short *ptr = LV(INTIN);		/* col index val      */
-	register short *rgb;
-	register short *out = LV(INTOUT);
+	register int16_t *ptr = LV(INTIN);		/* col index val      */
+	register int16_t *rgb;
+	register int16_t *out = LV(INTOUT);
 	register short mode = (VIDINFO >> 8) & 7;	/* get video mode     */
 	register short pen;
 	register short temp;

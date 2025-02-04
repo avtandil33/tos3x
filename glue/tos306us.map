@@ -2190,7 +2190,7 @@
 00e0738c t vq_chcel
 00e073ac t esc_exit
 00e073ac t v_esc_no
-00e073ae t vq_hardc
+00e073ae t v_hardcopy
 00e073b8 t v_enter_
 00e073be t v_exit_c
 00e073c2 t escE

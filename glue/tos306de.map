@@ -2193,7 +2193,7 @@
 00e073e6 t vq_chcel
 00e07406 t esc_exit
 00e07406 t v_esc_no
-00e07408 t vq_hardc
+00e07408 t v_hardcopy
 00e07412 t v_enter_
 00e07418 t v_exit_c
 00e0741c t escE

@@ -2102,7 +2102,7 @@
 00e06204 t vq_chcel
 00e06224 t esc_exit
 00e06224 t v_esc_no
-00e06226 t vq_hardc
+00e06226 t v_hardcopy
 00e06230 t v_enter_
 00e06236 t v_exit_c
 00e0623a t escE

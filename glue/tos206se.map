@@ -2106,7 +2106,7 @@
 00e0627c t vq_chcel
 00e0629c t esc_exit
 00e0629c t v_esc_no
-00e0629e t vq_hardc
+00e0629e t v_hardcopy
 00e062a8 t v_enter_
 00e062ae t v_exit_c
 00e062b2 t escE

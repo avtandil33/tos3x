@@ -2194,7 +2194,7 @@
 00e073f4 t vq_chcel
 00e07414 t esc_exit
 00e07414 t v_esc_no
-00e07416 t vq_hardc
+00e07416 t v_hardcopy
 00e07420 t v_enter_
 00e07426 t v_exit_c
 00e0742a t escE

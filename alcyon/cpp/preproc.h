@@ -76,7 +76,7 @@
 
 /* General Defines */
 #define	SOH			'\01'
-#define	SSIZE		8
+#define	SSIZE		22
 #define	LINESIZE	2048
 #define	MAXARGS		60
 #define	ARGBSIZE	1000

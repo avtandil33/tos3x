@@ -22,12 +22,19 @@ static short const regmsk[] = {
 /* directive to define an opcode */
 VOID hopd(NOTHING)
 {
+	int islong;
+
 	if (!lbt[0])
 	{
 		xerr(4);						/* no label */
 		return;
 	}
-	setname();							/* move label into main table */
+	islong = setname();							/* move label into main table */
+	if (islong)
+	{
+		xerr(6);
+		return;
+	}
 	if ((lblpt = lemt(TRUE, oirt)) != lmte)
 	{
 		xerr(5, lbt);					/* opcode redefined */
@@ -60,12 +67,14 @@ VOID hopd(NOTHING)
 /* equate directive */
 VOID hequ(NOTHING)
 {
+	int islong;
+
 	if (lbt[0] == 0)
 	{
 		xerr(4);						/* no label */
 		return;
 	}
-	setname();
+	islong = setname();
 	if ((lblpt = lemt(FALSE, sirt)) != lmte)
 	{									/* aready there */
 		if (lbt[0] == '~')
@@ -83,6 +92,8 @@ VOID hequ(NOTHING)
 		return;
 	}
 	lblpt->flags |= SYDF | SYEQ;		/* defined & equate */
+	if (islong)
+		lblpt->flags |= A_LNAM;
 	equflg = 1;
 	modelen = LONGSIZ;
 	expr(p1gi);
@@ -273,8 +284,11 @@ PP(struct symtab *p;)
 		rpterr(_("overflow of external table"));
 		asabort();
 	}
-	p->vextno = extindx;
+	p->vextno = vextno;
 	extbl[extindx++] = p;						/* save external in external table */
+	vextno++;
+	if (p->flags & A_LNAM)
+		vextno++;
 }
 
 
@@ -468,16 +482,22 @@ static int mkmask(NOTHING)
 VOID hreg(NOTHING)
 {
 	short mask;
+	int islong;
 
 	if (lbt[0] == 0)
 	{
 		xerr(4);						/* no label */
 		return;
 	}
-	setname();							/* move label into main table */
+	islong = setname();							/* move label into main table */
 	if ((lblpt = lemt(FALSE, sirt)) != lmte)
 	{
 		xerr(5, lbt);					/* opcode redefined */
+		return;
+	}
+	if (islong)
+	{
+		xerr(6);
 		return;
 	}
 	if (inoffset)

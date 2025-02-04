@@ -163,7 +163,7 @@ PP(char **argv;)
 	unsigned short flags;
 	int optioncount, argc_old;
 
-	char symbol[SYNAMLEN + 1];
+	char symbol[SYNAMLEN + OSTSIZE + 1];
 
 #ifdef __ALCYON__
 	/* symbols etoa and ftoa are unresolved */
@@ -274,12 +274,28 @@ PP(char **argv;)
 				if ((c = getc(ifp)) > 0)
 					*p++ = c;
 			}
-			*p = '\0';
 			lgetw(&flags, ifp);
 			lgetl(&value, ifp);
+			if ((flags & A_LNAM) != 0)
+			{
+				if (symsize >= OSTSIZE)
+				{
+					for (i = OSTSIZE; --i >= 0;)
+					{
+						if ((c = getc(ifp)) > 0)
+							*p++ = c;
+					}
+					symsize -= OSTSIZE;
+				} else
+				{
+					/* last entry can't have extension slot */
+					flags &= ~A_LNAM;
+				}
+			}
+			*p = '\0';
 			if (accept(flags, optioncount))
 			{
-				printf("%-*s", SYNAMLEN + 3, symbol);
+				printf("%-*s", SYNAMLEN + OSTSIZE + 3, symbol);
 				printf("%8lx", (long)value);
 				prtflags(flags);
 			}

@@ -464,17 +464,31 @@ PP(char **argv;)
 					
 					m->numsyms = l;
 					m->symtab = (struct symbol *)malloc(m->numsyms * sizeof(struct symbol));
-					for (i = 0; i < l; i++)
+					for (i = 0; i < l; )
 					{
 						struct symbol *sym = &m->symtab[i];
 						int32_t value;
 						
 						for (n = 0; n < SYNAMLEN; n++)
 							sym->name[n] = getc(ifp);
-						sym->name[n] = '\0';
 						lgetw(&sym->flags, ifp);
 						lgetl(&value, ifp);
 						sym->value = value;
+						++i;
+						if ((sym->flags & A_LNAM) != 0)
+						{
+							if (i < l)
+							{
+								for (; n < SYNAMLEN + OSTSIZE; n++)
+									sym->name[n] = getc(ifp);
+								i++;
+							} else
+							{
+								/* last entry can't have extension slot */
+								sym->flags &= ~A_LNAM;
+							}
+						}
+						sym->name[n] = '\0';
 					}
 				}
 				fseek(ifp, pos + couthd.ch_ssize, SEEK_SET);
@@ -554,7 +568,7 @@ PP(char **argv;)
 				size_t i;
 				struct symbol *sym;
 				
-				for (i = 0; i < m->numsyms; i++)
+				for (i = 0; i < m->numsyms; )
 				{
 					sym = &m->symtab[i];
 					if ((sym->flags & SYTX) && !(sym->flags & SYXR) && (sym->flags & SYGL))

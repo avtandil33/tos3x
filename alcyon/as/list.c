@@ -47,13 +47,15 @@ PP(register struct symtab *osypt;)
 {
 	register char *p;					/* -> Name field            */
 	register int i;						/* Count register           */
+	register int n;
 
 	/* Do we need to print it?  */
 	if ((osypt->flags & SYER) != 0 || (osypt->flags & SYIN))
 		return 0;
 	
 	p = &(osypt->name[0]);				/* p -> Symbol name field   */
-	for (i = 0; i < SYNAMLEN; i++)
+	n = SYEXTNAMLEN;
+	for (i = 0; i < n; i++)
 	{
 		/* Print name */
 		if (*p)
@@ -62,7 +64,6 @@ PP(register struct symtab *osypt;)
 			putchar(' ');
 		p++;
 	}
-	
 	/* Align descriptor */
 	printf("  ");
 	/* External Reference? */
@@ -112,7 +113,7 @@ PP(register const VOIDPTR b;)										/* -> Elts to compare       */
 	register const struct symtab *s1 = *((const struct symtab *const *)a);
 	register const struct symtab *s2 = *((const struct symtab *const *)b);
 	
-	return strncmp(s1->name, s2->name, SYNAMLEN);
+	return strncmp(s1->name, s2->name, SYEXTNAMLEN);
 }
 
 

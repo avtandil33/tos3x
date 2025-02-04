@@ -258,12 +258,12 @@ static char *tfchar;					/* -> changeable character */
 static char tfilname[80];				/* first temp file name */
 
 #define TFCHAR *tfchar					/* Name to simplify assignments */
-static char const etexstr[] = "_etext\0\0";
-static char const edatstr[] = "_edata\0\0";
-static char const erootstr[] = "_eroot\0\0";
-static char const eendstr[] = "_end\0\0\0\0";
-static char const ovhstr[] = "_ovhdlr\0";
-static char const stksstr[] = "__stksiz";
+static char const etexstr[SYEXTNAMLEN] = "_etext";
+static char const edatstr[SYEXTNAMLEN] = "_edata";
+static char const erootstr[SYEXTNAMLEN] = "_eroot";
+static char const eendstr[SYEXTNAMLEN] = "_end";
+static char const ovhstr[SYEXTNAMLEN] = "_ovhdlr";
+static char const stksstr[SYEXTNAMLEN] = "__stksiz";
 
 static int32_t rtxsize;					/* size of root's text */
 static int32_t rdtsize;					/* size of root's data */
@@ -428,7 +428,7 @@ PP(char *apkptr;)
 
 	pkstr = (const short *)apkstr;
 	pkptr = (short *)apkptr;
-	for (i = 0; i < (int)(SYNAMLEN / (sizeof (*pkstr))); i++)
+	for (i = 0; i < (int)(SYEXTNAMLEN / (sizeof (*pkstr))); i++)
 		*pkptr++ = *pkstr++;
 }
 
@@ -485,7 +485,7 @@ static int hash(NOTHING)
 
 	ht1 = 0;
 	p = lmte->name;
-	for (i = 0; i < SYNAMLEN; i++)
+	for (i = 0; i < SYEXTNAMLEN; i++)
 		ht1 += *p++;
 	return ht1 & (SZIRT - 1);			/* make hash code even and between 0 and 62 */
 }
@@ -503,7 +503,7 @@ PP(struct symtab *amtpt;)
   lemtl:
 	p1 = (short *)mtpt->name;
 	p2 = (short *)lmte->name;
-	for (i = 0; i < (int)(SYNAMLEN / (sizeof (*p1))); i++)
+	for (i = 0; i < (int)(SYEXTNAMLEN / (sizeof (*p1))); i++)
 	{
 		if (*p1++ != *p2++)
 		{
@@ -551,7 +551,7 @@ PP(const struct symtab *ap;)
 	register const char *p;
 
 	p = ap->name;
-	for (i = 0; i < SYNAMLEN && *p != '\0'; i++)
+	for (i = 0; i < SYEXTNAMLEN && *p != '\0'; i++)
 	{
 		fputc(*p++, fp);
 	}
@@ -570,6 +570,11 @@ PP(register unsigned int extno;)
 	while (i && p)
 	{
 		--i;
+		/*
+		 * a long name occupies 2 slots
+		 */
+		if (i && (p->flags & A_LNAM))
+			i--;
 		p = p->next;
 	}
 	if (p == NULL)
@@ -869,7 +874,18 @@ static VOID getsym(NOTHING)
 	for (i = 0; i < SYNAMLEN; i++)
 		stpt->name[i] = getc(ibuf);
 	stpt->ovlnum = ovpath[ovpathtp];	/* mark which module it's in */
-	if (chnflg && (strncmp(stpt->name, CBMAIN, SYNAMLEN) == 0))	/* main CBASIC entry point? */
+	stpt->flags = get16be(ibuf);				/* flags */
+	stpt->vl1 = get32be(ibuf);
+	if (stpt->flags & A_LNAM)
+	{
+		for (; i < SYEXTNAMLEN; i++)
+			stpt->name[i] = getc(ibuf);
+	} else
+	{
+		for (; i < SYEXTNAMLEN; i++)
+			stpt->name[i] = 0;
+	}
+	if (chnflg && (strncmp(stpt->name, CBMAIN, SYEXTNAMLEN) == 0))	/* main CBASIC entry point? */
 	{
 		i = stpt->ovlnum;
 		if (i < 0 || i >= 1000)
@@ -881,8 +897,6 @@ static VOID getsym(NOTHING)
 			strcpy(stpt->name, lfname);
 		}
 	}
-	stpt->flags = get16be(ibuf);				/* flags */
-	stpt->vl1 = get32be(ibuf);
 }
 
 
@@ -909,7 +923,7 @@ static VOID relocsym(NOTHING)
 			return;						/* abs */
 		if (lmte->flags == SYDF)		/* Pure-C generates this for abs symbols */
 			return;
-		fatalx(FALSE, _("invalid symbol flag %04x in %s, symbol: \"%.*s\"\n"), lmte->flags, ifilname, SYNAMLEN, lmte->name);
+		fatalx(FALSE, _("invalid symbol flag %04x in %s, symbol: \"%.*s\"\n"), lmte->flags, ifilname, SYEXTNAMLEN, lmte->name);
 	}
 	lmte->vl1 += l;
 }
@@ -918,7 +932,7 @@ static VOID relocsym(NOTHING)
 static VOID prdup(P(const char *) p)
 PP(const char *p;)
 {
-	errorx(_("\"%.*s\" doubly defined in %s\n"), SYNAMLEN, p, ifilname);
+	errorx(_("\"%.*s\" doubly defined in %s\n"), SYEXTNAMLEN, p, ifilname);
 }
 
 
@@ -1174,13 +1188,15 @@ PP(int lflg;)
 	{
 		/* read one symbol entry */
 		getsym();
+		i -= OSTSIZE;
+		if (lmte->flags & A_LNAM)
+			i -= OSTSIZE;
 		/* if (lmte->flags == 0xa800)
 			lmte->vl1 = 0; */
 		/* fix its address */
 		relocsym();
 		/* add to symbol table */
 		addsym();
-		i -= OSTSIZE;
 	}
 }
 
@@ -1445,14 +1461,14 @@ PP(register struct symtab *spt;)
 			return 0;					/* no jump block    */
 	if (!(gpt->flags & SYTX))
 	{
-		errorx(_("illegal reference to overlay symbol %.*s from module %s\n"), SYNAMLEN, spt->name, ovtree[spt->ovlnum]->ovfname);
+		errorx(_("illegal reference to overlay symbol %.*s from module %s\n"), SYEXTNAMLEN, spt->name, ovtree[spt->ovlnum]->ovfname);
 		return 0;
 	}
 	i = ovpath[ovpathtp];				/* current overlay number */
 	ovpt = ovtree[i];
 	if (!(inkid(gpt->ovlnum, i)))
 	{
-		errorx(_("illegal reference to overlay symbol %.*s from module %s\n"), SYNAMLEN, spt->name, ovtree[spt->ovlnum]->ovfname);
+		errorx(_("illegal reference to overlay symbol %.*s from module %s\n"), SYEXTNAMLEN, spt->name, ovtree[spt->ovlnum]->ovfname);
 		return 0;
 	}
 	jpt = newjblk();					/* put a new jump block in  */
@@ -1612,7 +1628,7 @@ PP(const char *ap2;)
 
 	p1 = ap1;
 	p2 = ap2;
-	for (i = 0; i < SYNAMLEN; i++)
+	for (i = 0; i < SYEXTNAMLEN; i++)
 	{
 		if (*p1++ != *p2++)
 		{
@@ -2151,6 +2167,14 @@ PP(struct symtab *aosypt;)
 
 	put16be(osypt->flags, obuf);		/* output symbol flags */
 	put32be(osypt->vl1, obuf);			/* output symbol value */
+	if (osypt->flags & A_LNAM)
+	{
+		for (; i < SYEXTNAMLEN; i++)
+		{									/* output symbol name */
+			putc(osypt->name[i], obuf);
+		}
+		stlen += OSTSIZE;					/* one more symbol out */
+	}
 }
 
 
@@ -2453,7 +2477,7 @@ static VOID dumpsyms(NOTHING)
 	{
 		if (p->name[0] == '\0')
 			continue;
-		printf("NAME:    %.*s\n", SYNAMLEN, p->name);
+		printf("NAME:    %.*s\n", SYEXTNAMLEN, p->name);
 		printf("FLAGS:   ");
 		if (p->flags & SYDF)
 			printf("DEF ");
@@ -2585,7 +2609,7 @@ static VOID dumpmap(NOTHING)
 			if (!ext)
 				c |= 0x20;
 		}
-		printf("%-*.*s %c %08lx", SYNAMLEN, SYNAMLEN, p->name, c, p->vl1);
+		printf("%-*.*s %c %08lx", SYEXTNAMLEN, SYEXTNAMLEN, p->name, c, p->vl1);
 #if 0
 		if (p->flags & SYDF)
 			printf(" DEF");

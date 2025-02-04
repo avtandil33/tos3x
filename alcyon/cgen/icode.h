@@ -196,7 +196,7 @@
 #define LONGSIZE    4
 #define INTSIZE     2
 #define CHARSIZE    1
-#define SSIZE       8               /* chars per symbol */
+#define SSIZE       22              /* chars per symbol */
 #define TABC        '\t'            /* tab character */
 #define EOLC        '\n'            /* end of line character */
 #define BITSPBYTE   8

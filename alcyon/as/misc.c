@@ -445,7 +445,7 @@ PP(struct symtab *udspt;)
 		udfct = 0;						/* no symbols on this line */
 	}
 
-	fprintf(stderr, "%-*.*s  ", SYNAMLEN, SYNAMLEN, udspt->name);
+	fprintf(stderr, "%-*.*s  ", SYEXTNAMLEN, SYEXTNAMLEN, udspt->name);
 	if (udfct++ > 6)
 	{
 		fputc('\n', stderr);
@@ -482,9 +482,15 @@ PP(struct symtab *aosypt;)
 	lputw(&osypt->flags, lfil);			/* output symbol flags */
 #ifdef DEBUG
 	if (debug)							/* prints symbol table entries */
-		printf("> %-*.*s* %o\n", SYNAMLEN, SYNAMLEN, osypt->name, osypt->flags);
+		printf("> %-*.*s* %o\n", SYEXTNAMLEN, SYEXTNAMLEN, osypt->name, osypt->flags);
 #endif
 	lputl(&osypt->vl1, lfil);			/* symbol value */
+	if (osypt->flags & A_LNAM)
+	{
+		for (i = 0; i < OSTSIZE; i++)		/* output symbol name */
+			putc(*p1++, lfil);
+		stlen += OSTSIZE;					/* one more symbol out */
+	}
 }
 
 

@@ -715,7 +715,7 @@ _winxvars equ _D+$50  /* near the bottom of the SCRENMGR supervisor stack */
 	INT(_gl_dcindex)
 	INT(_q_change)
 	PTR(_gh_buffer)
-	INT(_back_up)
+	INT(_back_update)
 	PTR(_ad_fsdta)
 	V(_dr,b,32)
 	V(_gl_cmform,w,37) /* MFORM */

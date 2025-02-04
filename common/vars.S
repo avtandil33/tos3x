@@ -549,7 +549,7 @@ _endvdibss: ds.b 0
 	PTR(_ad_stdesk)
 	INT(_used_acc)
 	INT(_cbit_save)
-	INT(_back_up)
+	INT(_back_update)
 	INT(_gl_wchar)
 	PTR(_ad_fsdta)
 	V(_dr,b,32)

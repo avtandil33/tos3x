@@ -854,7 +854,7 @@ sei2:       move.l    #just_rte,(a1)+           /* level #1 ... level #6 to RTE 
             move.l    #int_vbl,(_lvl4vec).w       /* vblank handler */
             move.l    #int_hbl,(_lvl2vec).w       /* hblank handler */
             move.l    a3,(_trap2vec).w            /* (empty) trap#2 handler */
-            move.l    #_biostrap,(_trap13ve).w    /* trap #13 handler */
+            move.l    #_biostrap,(_trap13vec).w   /* trap #13 handler */
             move.l    #_xbiostrap,(_trap14vec).w  /* trap #14 handler */
             move.l    #line1010,(_lineatrap).w    /* line 1010 handler */
             move.l    a4,(_etv_timer).w           /* default timer-tick vector -> rts */

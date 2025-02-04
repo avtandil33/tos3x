@@ -37,7 +37,7 @@ struct it *pitw;        /* ptr to it buffer next entry */
 short itype;            /* type of item */
 union iival ival;       /* value of item */
 struct symtab *lblpt;   /* label pointer */
-char lbt[SYNAMLEN + 1]; /* holds label name */
+char lbt[SYEXTNAMLEN + 1]; /* holds label name */
 int32_t loctr;          /* location counter */
 int32_t savelc[4];      /* save relocation counters for 3 bases */
 short nite;             /* number of entries in stbuf */
@@ -444,8 +444,8 @@ static VOID cisit(NOTHING)
 	register char *p1, *p2;
 	register adirect dirop;
 	register short i, col1;		/* col1 labels in col 1... */
-	char str[SYNAMLEN], *l;
-	char tlab1[SYNAMLEN];
+	char str[SYEXTNAMLEN], *l;
+	char tlab1[SYEXTNAMLEN];
 
   ciss1:
 	immed[0] = immed[1] =
@@ -504,7 +504,7 @@ static VOID cisit(NOTHING)
 		} else
 		{
 			p2 = lmte->name;
-			for (p1 = lbt; p1 < &lbt[SYNAMLEN];)
+			for (p1 = lbt; p1 < &lbt[SYEXTNAMLEN];)
 			{
 				*p1++ = *p2++;
 			}
@@ -525,7 +525,7 @@ static VOID cisit(NOTHING)
 		{								/* another label */
 			if (lbt[0])
 			{
-				mystrncpy(tlab1, lmte->name, SYNAMLEN);	/* save current label */
+				mystrncpy(tlab1, lmte->name, SYEXTNAMLEN);	/* save current label */
 				dlabl();				/* define the last one */
 				pack(tlab1, lmte);		/* restore the old label */
 			}
@@ -552,13 +552,13 @@ static VOID cisit(NOTHING)
 	if (col1)
 	{									/* could be a label save as is... */
 		l = str;
-		mystrncpy(l, lmte->name, SYNAMLEN);
+		mystrncpy(l, lmte->name, SYEXTNAMLEN);
 	}
 	if ((opcpt = lemt(TRUE, oirt)) == lmte)
 	{									/* not in opcode table */
 		if (col1)
 		{								/* it's a label... */
-			mystrncpy(lmte->name, l, SYNAMLEN);
+			mystrncpy(lmte->name, l, SYEXTNAMLEN);
 			goto label;
 		}
 	  cisi3:
@@ -1300,7 +1300,7 @@ PP(char **argv;)
 	bsrptr = mkopd("bsr",    6, 0060400);
 	mkopd("btst",    7, 0000000);
 	mkopd("chk",    26, 0040600);
-	mkopd("clr",    24, 0041000);
+	mkopd("clr",    CLRFOR, CLRVAL);
 	cmpptr = mkopd("cmp",    26, 0130000);
 	cmpaptr = mkopd("cmpa",    15, 0130000);
 	cmpiptr = mkopd("cmpi",    2, 0006000);
@@ -1405,6 +1405,7 @@ PP(char **argv;)
 	loctr = 0;							/* no generated code */
 	ca = 0;								/* depth of conditional assembly */
 	extindx = 0;						/* no external symbols yet */
+	vextno = 0;
 	p2flg = 0;							/* pass 1 */
 	ca_true = 1;						/* true unless in side false case */
 	absln = 1;

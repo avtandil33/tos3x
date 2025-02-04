@@ -16,12 +16,13 @@
 #define SYNAMLEN	8
 #define OSTSIZE	14	/* symbol table entry length on object file */
 					/* without table link */
+#define SYEXTNAMLEN (SYNAMLEN + OSTSIZE)
 #endif
 
 #define STESIZE	18	/* byte length of symbol table entry */
 
 struct symtab {
-	char name[SYNAMLEN];		/* symbol name */
+	char name[SYEXTNAMLEN];		/* symbol name */
 	unsigned short flags;		/* bit flags */
 	long  vl1;					/* symbol value */
 #ifdef LINK68

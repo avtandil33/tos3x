@@ -378,11 +378,11 @@ PP(int flags;)								/* flags (IMMED,LOFFSET,...) */
 			break;
 
 		case EXTERNAL:
-			oprintf("_%.8s", tp->t_symbol);
+			oprintf("_%.*s", SSIZE, tp->t_symbol);
 			break;
 
 		case EXTOFF:
-			oprintf("_%.8s(R%d)", tp->t_symbol, reg);
+			oprintf("_%.*s(R%d)", SSIZE, tp->t_symbol, reg);
 			break;
 
 		case STATIC:

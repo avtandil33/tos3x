@@ -22,6 +22,7 @@ struct irts sirt[SZIRT];
 struct irts oirt[SZIRT];
 struct symtab *extbl[EXTSZ];
 int extindx;            /* index to external symbol table */
+int vextno;
 int absln;              /* absolute line number */
 int p2absln;            /* pass 2 line number */
 short fcflg;            /* 0=>passed an item.  1=>first char */
@@ -31,7 +32,7 @@ static int spcnt = 0;							/* Fill counter             */
 
 
 static const char *const ermsg[] = {
-    N_("label %.8s redefined"),             /*  1 */
+    N_("label %.22s redefined"),            /*  1 */
     N_("invalid label"),                    /*  2 */
     N_("invalid opcode"),                   /*  3 */
     N_("no label for operand"),             /*  4 */
@@ -474,7 +475,7 @@ static short hash(NOTHING)
 
 	ht1 = 0;
 	p = &lmte->name[0];
-	for (i = 0; i < SYNAMLEN; i++)
+	for (i = 0; i < SYEXTNAMLEN; i++)
 		ht1 += *p++;
 	return ht1 & (SZIRT - 1);			/* make hash code even and between 0 & SZIRT-2 */
 }
@@ -498,7 +499,7 @@ PP(struct irts *airt;)
 		{
 			j = 0;
 		}
-		for (i = 0; j < SYNAMLEN; i++, j++)
+		for (i = 0; j < SYEXTNAMLEN; i++, j++)
 			lmte->name[i] = tolower(lmte->name[j]);
 	}
 	pirt = airt + hash();				/* hashed ptr to irt */
@@ -514,7 +515,7 @@ PP(struct irts *airt;)
   lemtl:
 	p1 = mtpt->name;
 	p2 = lmte->name;
-	i = SYNAMLEN;
+	i = SYEXTNAMLEN;
 	while (i)
 	{
 		if (*p1++ != *p2++)
@@ -602,24 +603,35 @@ PP(int dirnum;)
  *      pointer to the string
  *      pointer to desired entry in the main table
  */
-VOID pack(P(const char *) apkstr, P(struct symtab *) apkptr)
+int pack(P(const char *) apkstr, P(struct symtab *) apkptr)
 PP(const char *apkstr;)
 PP(struct symtab *apkptr;)
 {
 	register short i;
 	register const char *pkstr;
 	register char *pkptr;
+	register int islong;
 
 	pkstr = apkstr;
 	pkptr = apkptr->name;
-	i = SYNAMLEN;
+	i = SYEXTNAMLEN;
 	while (i && *pkstr)
 	{
 		*pkptr++ = *pkstr++;
 		i--;
 	}
+	if (i < (SYEXTNAMLEN - SYNAMLEN))
+	{
+		islong = TRUE;
+		apkptr->flags |= A_LNAM;
+	} else
+	{
+		islong = FALSE;
+		apkptr->flags &= ~A_LNAM;
+	}
 	while (i--)
 		*pkptr++ = '\0';				/* pad with zeroes */
+	return islong;
 }
 
 
@@ -719,7 +731,7 @@ PP(int cnt;)
 			printf("(stmt)");
 			break;
 		case ITSY:
-			printf("%-.*s", SYNAMLEN, its[i].itop.ptrw2 ? its[i].itop.ptrw2->name : "(nil)");
+			printf("%-.*s", SYEXTNAMLEN, its[i].itop.ptrw2 ? its[i].itop.ptrw2->name : "(nil)");
 			break;
 		case ITCN:
 			printf("$%lx", (long)its[i].itop.l);
@@ -753,9 +765,9 @@ PP(const char *tag;)
 	{
 		printf("    [%08lx:%02x] ", (long)stbuf[3].itop.l, stbuf[1].itrl);
 		if (stbuf[1].itop.ptrw2)
-			printf("%-*.*s:   ", SYNAMLEN, SYNAMLEN, stbuf[1].itop.ptrw2->name);
+			printf("%-*.*s:   ", SYEXTNAMLEN, SYEXTNAMLEN, stbuf[1].itop.ptrw2->name);
 		else
-			printf("%-*.*s    ", SYNAMLEN, SYNAMLEN, "");
+			printf("%-*.*s    ", SYEXTNAMLEN, SYEXTNAMLEN, "");
 		printf("%s%s    ", stbuf[2].itop.ptrw2->name,
 			stbuf[2].itrl == 0 ? "" :
 			stbuf[2].itrl == BYTESIZ ? ".b" :
@@ -950,16 +962,17 @@ PP(const char *m;)
 
 
 /* move label name from lbt to main table entry pointed to by lmte */
-VOID setname(NOTHING)
+int setname(NOTHING)
 {
 	register char *p1, *p2;
 
 	p1 = &lmte->name[0];
-	for (p2 = &lbt[0]; p2 < &lbt[SYNAMLEN];)
+	for (p2 = &lbt[0]; p2 < &lbt[SYEXTNAMLEN];)
 	{
 		*p1++ = *p2;
 		*p2++ = 0;
 	}
+	return lmte->name[SYNAMLEN] != '\0';
 }
 
 

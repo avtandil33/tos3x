@@ -55,6 +55,7 @@ struct hdr2
 #ifndef SYNAMLEN
 #define SYNAMLEN	8
 #define OSTSIZE    14      /* symbol table entry length on object file */
+#define SYEXTNAMLEN (SYNAMLEN + OSTSIZE)
 #endif
 
 struct nlist {

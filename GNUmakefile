@@ -44,6 +44,17 @@ check::
 	for i in $(SUBDIRS); do $(MAKE) --no-print-directory -C $$i $(FLAGSTOPASS) all; done
 	for i in $(SUBDIRS); do $(MAKE) --no-print-directory -C $$i $(FLAGSTOPASS) $@; done
 
+checkall::
+	status=0; \
+	for version in 306 206; do \
+		for lang in us de fr es it se sf sg; do \
+			$(MAKE) clean; \
+			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} || status=1; \
+		done; \
+	done; \
+	$(MAKE) clean; \
+	exit $$status
+
 rsync::
 	for i in $(SUBDIRS) include GNUmakefile GNUmakefile.cmn config.mak; do sudo rsync -vzrlpt $$i $(LOCAL_WWWDIR); done
 	sudo chown -R wwwrun:www $(LOCAL_WWWDIR)

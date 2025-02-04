@@ -5,7 +5,7 @@
 
 struct aestab {
 	unsigned short opcode;
-	char name[SYNAMLEN + 1];
+	char name[SYEXTNAMLEN + 1];
 	short from;
 	short unused;
 };
@@ -57,7 +57,7 @@ VOID readlineftab(NOTHING)
 					ch = fgetc(fp);
 				if (ch == EOF || ch == 0x0a || ch == ' ')
 					break;
-				if (i < SYNAMLEN)
+				if (i < SYEXTNAMLEN)
 				{
 					aesfuncs[numfuncs].name[i] = ch;
 				}
@@ -96,7 +96,7 @@ PP(register const char *name;)
 		return FALSE;
 	name++;
 	
-	len = SYNAMLEN - 1;
+	len = SYEXTNAMLEN - 1;
 	end = &aesfuncs[numfuncs];
 	for (tab = aesfuncs; tab < end; tab++)
 		if (!tab->unused && nameeq(tab->name, name, len))

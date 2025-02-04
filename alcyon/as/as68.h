@@ -28,6 +28,11 @@
 #define SYPC    0x0040     /* equated using star '*' expression */
 #define SYRM    0x0020     /* register mask equate */
 
+#define A_LNAM   0x0048      /* GST compatible long name.  If the a_type
+                                member of struct asym/xsym && A_LNAM is
+                                non-zero it is a long name.  A maximum
+                                of 14 bytes follow a_value. */
+
 /* flags for opcodes and directives */
 #define OPDR   0x8000      /* 0=>opcode, 1=>directive */
 #define OPFF   0x1f        /* type of instruction (used as mask) */
@@ -182,7 +187,7 @@
 
 /* format of a symbol entry in the main table */
 struct symtab {
-    char name[SYNAMLEN]; /* symbol name */
+    char name[SYEXTNAMLEN]; /* symbol name */
     unsigned short flags;
 	int32_t vl1;         /* symbol value */
 	short vextno;		 /* external symbol reference # */
@@ -253,6 +258,7 @@ extern struct irts oirt[SZIRT];
 /* external symbol table */
 extern struct symtab *extbl[EXTSZ];
 extern int extindx;            /* index to external symbol table */
+extern int vextno;
 
 extern int absln;              /* absolute line number */
 extern int p2absln;            /* pass 2 line number */
@@ -265,7 +271,7 @@ extern struct it *pitw;        /* ptr to it buffer next entry */
 extern short itype;            /* type of item */
 extern union iival ival;       /* value of item */
 extern struct symtab *lblpt;   /* label pointer */
-extern char lbt[SYNAMLEN + 1]; /* holds label name */
+extern char lbt[SYEXTNAMLEN + 1]; /* holds label name */
 extern int32_t loctr;          /* location counter */
 extern int32_t savelc[4];      /* save relocation counters for 3 bases */
 extern short nite;             /* number of entries in stbuf */
@@ -545,7 +551,7 @@ VOID gterm PROTO((int constpc));
 struct symtab *lemt PROTO((int oplook, struct irts *airt));
 VOID mmte PROTO((NOTHING));
 struct symtab *mdemt PROTO((const char *mdstr, int dirnum));
-VOID pack PROTO((const char *apkstr, struct symtab *apkptr));
+int pack PROTO((const char *apkstr, struct symtab *apkptr));
 int gchr PROTO((NOTHING));
 int nameeq PROTO((const char *name1, const char *name2, int len));
 VOID wostb PROTO((NOTHING));
@@ -555,7 +561,7 @@ VOID asabort PROTO((NOTHING)) __attribute__((noreturn));
 VOID ligblk PROTO((NOTHING));
 VOID igrst PROTO((NOTHING));
 VOID endit PROTO((NOTHING)) __attribute__((noreturn));
-VOID setname PROTO((NOTHING));
+int setname PROTO((NOTHING));
 VOID rpterr PROTO((const char *ptch, ...)) __attribute__((format(__printf__, 1, 2)));
 VOID setldfn PROTO((const char *ap));
 FILE *openfi PROTO((const char *pname, const char *mode));

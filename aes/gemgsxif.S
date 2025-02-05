@@ -151,7 +151,7 @@ _gsx_mfree:
 	beq	g1
 #endif
 	move.l	_gl_tmp,-(sp)		; Fix 1/20/87
-	jsr	_dos_ffree
+	jsr	_dos_free
 	addq.l	#4,sp
 g1:
 	rts
@@ -199,11 +199,6 @@ VOID gsx_ncode(WORD code, WORD n, WORD m)
 /* 404: 00e33f34 */
 	xdef _gsx_ncode
 _gsx_ncode: ds.b 0
-gsx_ncode: ds.b 0
-#if LINEF_HACK
-	xdef _gsx_acode
-_gsx_acode: ds.b 0
-#endif
 
 	lea	4(sp),a0
 	lea	_contrl,a1
@@ -230,17 +225,12 @@ VOID gsx_1code(WORD code, WORD value)
 /* 106de: 00e23a98 */
 	xdef _gsx_1code
 _gsx_1code: ds.b 0
-#if LINEF_HACK
-	xdef _gsx_1acode
-_gsx_1acode: ds.b 0
-#endif
-gsx_1code: ds.b 0
 
 	move.w  6(sp),_intin
 
 	move.l	#$00000001,-(sp)	; Fix 1/20/87
 	move.w	4+4(sp),-(sp)
-	bsr	gsx_ncode
+	bsr	_gsx_ncode
 
 	addq.l	#6,sp
 	rts
@@ -498,7 +488,7 @@ _ratinit:
 
 	clr.w	     -(sp)
 	move.w	#122,-(sp)		; show cursor: force show
-	bsr	gsx_1code
+	bsr	_gsx_1code
 	addq.l	#4,sp
 
 	clr.w	_gl_moff
@@ -587,14 +577,14 @@ _bb_set:
 	move.l	(a0)+,-(sp)		; pfd -> space for MFDB
 	jsr	_gsx_fix		; build MFDB
 
-	bsr	gsx_moff		; hide mouse cursor
+	bsr	_gsx_moff		; hide mouse cursor
 
 	lea	12+28(sp),a0		; a0 -> pdst pointer
 	move.l	 (a0),-(sp)		; push *pdst
 	move.l	-(a0),-(sp)		; push *psrc
 	pea	_ptsin			; push *ptsin
 	move.w	#3,-(sp)		; replace mode (S_ONLY)
-	bsr	vro_cpyfm
+	bsr	_avro_cpyfm
 
 	lea	26(sp),sp		; clean the stack up from earlier calls
 
@@ -750,7 +740,7 @@ _gsx_tick:
 /* 106de: 00e23ce8 */
 	xdef _gsx_mfset
 _gsx_mfset:
-	bsr.s     ig_moff
+	bsr.s     _gsx_moff
 	moveq.l   #37-1,d0
 	movea.l   4(a7),a0
 	movea.l   _ad_intin,a1
@@ -775,10 +765,6 @@ VOID gsx_mxmy(WORD *pmx, WORD *pmy)
 /* 106de: 00e23d04 */
 	xdef _gsx_mxmy
 _gsx_mxmy: ds.b 0
-#if LINEF_HACK
-	xdef _gsx_fmxmy
-_gsx_fmxmy: ds.b 0
-#endif
 
 	lea	4(sp),a0
 	move.l	(a0)+,a1
@@ -826,11 +812,6 @@ VOID gsx_moff(NOTHING)
 	xdef _ratexit
 _ratexit:
 _gsx_moff:
-gsx_moff:
-ig_moff: ds.b 0
-
-	xdef _gsx_fmoff
-_gsx_fmoff: ds.b 0
 
 	tst.w	_gl_moff
 	bne	L35
@@ -868,7 +849,7 @@ _gsx_mon:
 
 	move.w	  d0,-(sp)
 	move.w	#122,-(sp)		; show cursor: don't force it
-	bsr	gsx_1code
+	bsr	_gsx_1code
 	addq.l	#4,sp
 
 	move.w	#1,_gl_mouse
@@ -1092,7 +1073,6 @@ VOID avro_cpyfm(WORD wr_mode, WORD *pxyarray, WORD *psrcMFDB, WORD *pdesMFDB)
 /* 106de: 00e23e10 */
 	xdef _avro_cpyfm
 _avro_cpyfm:
-vro_cpyfm:
 
 	lea	4(sp),a0		; a0 -> parameters on stack
 	move.w	(a0)+,_intin		; intin[0] <- writing mode	  4(sp)
@@ -1234,11 +1214,7 @@ vdi_sh:	move.w	d0,-(sp)
 
 vdi_cont:
 
-#if LINEF_HACK
-	jsr	_gsx_acode
-#else
 	jsr	_gsx_ncode
-#endif
 	addq.l	#6,sp
 	move.l	#_ptsin,pioff		; some routines alter this pointer
 	rts				; so we shall always reset it.

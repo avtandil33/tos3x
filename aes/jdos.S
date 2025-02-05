@@ -102,9 +102,9 @@ X_GSDTOF	equ $57
 /* 106de: 00e1e546 */
 	xdef	_isdrive
 _isdrive:
-	bsr	dos_gdrv		; get current drive number
+	bsr	_dos_gdrv		; get current drive number
 	move.w	d0,-(sp)		; and make it the current
-	bsr	dos_sdrv		;    drive again...
+	bsr	_dos_sdrv		;    drive again...
 	addq	#2,sp
 	rts
 
@@ -680,7 +680,6 @@ _prt_chr:
 
 	xdef	_dos_gdrv
 _dos_gdrv:
-dos_gdrv:
 		moveq	#X_GETDRV,d1
 		bra.b	generic
 
@@ -698,7 +697,6 @@ _dos_chdir:	moveq	#X_CHDIR,d1
 
 	xdef	_dos_sdrv
 _dos_sdrv:
-dos_sdrv:
 		moveq	#X_SETDRV,d1
 		bra.b	generic
 
@@ -720,8 +718,6 @@ _dos_create:	moveq	#X_CREAT,d1
 
 	xdef	_dos_free
 _dos_free: ds.b 0
-	xdef	_dos_ffree
-_dos_ffree: ds.b 0
 	moveq	#X_MFREE,d1
 
 generic:

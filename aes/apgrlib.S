@@ -114,7 +114,6 @@ VOID gr_rect(UWORD icolor, UWORD ipattern, GRECT *pt)
 /* 104de: 00fd439c */
 	xdef	_gr_rect
 _gr_rect:
-gr_rect:
 	movem.l	d3-d5/a3-a3,-(sp)
 	movem.w	16+4(sp),d3-d4		; d3 = icolor,d4 = pattern
 	move.l	16+8(sp),a3		; a3 = pt
@@ -250,7 +249,6 @@ VOID gr_gtext(WORD just, WORD font, const char *ptext, GRECT *pt)
 /* 104de: 00fd4446 */
 	xdef	_gr_gtext
 _gr_gtext:
-gr_gtext:
 	movem.l	d0-d1/a3,-(sp)		; save a3 and make room for
 *					; a grect
 	move.l	sp,a3			; which is pointed to by a3
@@ -413,7 +411,7 @@ L62:	move.l	28+6(sp),d0		; get pmask
 	move.l	a4,-(sp)
 	move.w	#IP_SOLID,-(sp)
 	move.w	d3,-(sp)
-	bsr	gr_rect
+	bsr	_gr_rect
 	addq.l	#8,sp
 L63:
 	move.l	28+10(sp),d0		; pdata
@@ -439,7 +437,7 @@ L64:	move.w	#MD_TRANS,-(sp)
 	move.l	a4,-(sp)
 	move.l	34+14(sp),-(sp)		; push ptext
 	move.l	#$00020005,-(sp)	; push SMALL then TE_CNTR
-	bsr	gr_gtext
+	bsr	_gr_gtext
 	lea	14(sp),sp
 	movem.l	(sp)+,d3-d7/a3-a4
 	rts

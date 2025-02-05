@@ -130,10 +130,6 @@
 IBM	equ	3
 SMALL	equ	5
 
-#if LINEF_HACK
-	xdef	_ob_fformat
-_ob_fformat equ _ob_format
-#endif
 
 
 #if CCODE
@@ -213,10 +209,6 @@ VOID gsx_gclip(GRECT *pt)
 /* 104de: 00fd4660 */
 	xdef _gsx_gclip
 _gsx_gclip: ds.b 0
-#if LINEF_HACK
-	xdef _gsx_fgclip
-_gsx_fgclip: ds.b 0
-#endif
 	move.l	4(sp),a0		; a0 -> pt
 	move.w	_gl_xclip,(a0)+		; pt->g_x <- gl_xclip
 	move.w	_gl_yclip,(a0)+
@@ -343,10 +335,6 @@ VOID gsx_cline(UWORD x1, UWORD y1, UWORD x2, UWORD y2)
 /* 104de: 00fd46ec */
 	xdef	_gsx_cline
 _gsx_cline: ds.b 0
-#if LINEF_HACK
-	xdef	_gsx_fcline
-_gsx_fcline: ds.b 0
-#endif
 
 	jsr	_gsx_moff
 
@@ -408,10 +396,6 @@ VOID gsx_attr(UWORD text, UWORD mode, UWORD color)
 /* 104de: 00fd4700 */
 	xdef _gsx_attr
 _gsx_attr: ds.b 0
-#if LINEF_HACK
-	xdef _gsx_fattr
-_gsx_fattr: ds.b 0
-#endif
 
 	lea	4(sp),a0		; a0 -> parameters
 	movem.l	d3-d4/a3-a4,-(sp)
@@ -559,7 +543,6 @@ VOID gsx_fix(FDB *pfd, int16_t *theaddr, WORD wb, WORD h)
 /* 104de: 00fd47ac */
 	xdef _gsx_fix
 _gsx_fix:
-ig_fix:
 
 	lea	4(sp),a0
 
@@ -664,7 +647,7 @@ _gsx_blt:
 	move.w	(a3)+,-(sp)		; push swb
 	pea	(a0)			; push saddr
 	pea	(a4)			; push *gl_src
-	bsr	ig_fix
+	bsr	_gsx_fix
 
 	jsr	_gsx_moff		; hide cursor
 
@@ -674,7 +657,7 @@ _gsx_blt:
 	move.w	(a3)+,-(sp)		; push dwb
 	pea	(a0)			; push daddr
 	pea	(a5)			; push *gl_dst
-	bsr	ig_fix
+	bsr	_gsx_fix
 
 	lea	_ptsin,a0
 	move.l	a0,a1
@@ -774,13 +757,13 @@ _gsx_trans:
 	move.w	-(a3),-(sp)		; push dwb
 	move.l	-(a3),-(sp)		; push daddr
 	pea	 (a5)			; push gl_dst
-	bsr	ig_fix
+	bsr	_gsx_fix
 
 	move.w	   d3,-(sp)		; push h
 	move.w	-(a3),-(sp)		; push swb
 	move.l	-(a3),-(sp)		; push saddr
 	pea	 (a4)			; push gl_src
-	bsr	ig_fix
+	bsr	_gsx_fix
 
 	move.l	#$00010001,10(a4)	; gl_src.fd_stand=gl_src.fd_nplanes=1
 
@@ -903,11 +886,7 @@ _gsxsta2:
 
 	clr.l	    -(sp)		; gsx_ncode(VQT_ATTRIBUTES, 0, 0)
 	move.w	#38,-(sp)		; inquire text attributes (vqt_attributes)
-#if LINEF_HACK
-	jsr	_gsx_acode
-#else
 	jsr	_gsx_ncode
-#endif
 
 	lea	_ptsout,a1
 	move.w	(a1)+,_gl_wptschar		; gl_wptschar  <- ptsout[0]
@@ -1096,7 +1075,7 @@ L42:	lea	_ptsin,a0
 	clr.l	-(sp)
 	clr.l	-(sp)
 	pea	 (a3)
-	bsr	ig_fix		; gsx_fix(&gl_dst, 0x0L, 0, 0)
+	bsr	_gsx_fix		; gsx_fix(&gl_dst, 0x0L, 0, 0)
 
 	pea	 (a3)
 	pea	_ptsin

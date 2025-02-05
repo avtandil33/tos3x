@@ -188,7 +188,7 @@ _tikcod:
 
 tpollmb:
 	move.w	#1,-(a7)
-	bsr	b_delay
+	bsr	_b_delay
 	addq.l	#2,a7
 /*
  * --- Interrupt processed, restore everything and return -----
@@ -207,7 +207,6 @@ tpollmb:
 /* 104de: 00fe64be */
 	xdef	_b_delay
 _b_delay:
-b_delay:
 	move.w	4(sp),d0		; get the amnt
 	tst.w	_gl_bdelay
 	beq	bdout1

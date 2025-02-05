@@ -46,7 +46,7 @@ check::
 
 checkall::
 	for version in 306 206; do \
-		for lang in us de fr es it se sf sg; do \
+		for lang in us de fr es it se sf sg uk; do \
 			$(MAKE) clean; \
 			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
 			$(MAKE) -C glue TOSVERSION=$${version} COUNTRY=$${lang} check || exit 1; \
@@ -61,7 +61,7 @@ rsync::
 
 maps:
 	for version in 306 206; do \
-		for lang in us de fr es it se sf sg; do \
+		for lang in us de fr es it se sf sg uk; do \
 			$(MAKE) clean; \
 			$(MAKE) SYMBOLS=-s TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
 			cnm glue/tos.img | sort | uniq > glue/tos$${version}$${lang}.map; \

@@ -45,15 +45,14 @@ check::
 	for i in $(SUBDIRS); do $(MAKE) --no-print-directory -C $$i $(FLAGSTOPASS) $@; done
 
 checkall::
-	status=0; \
 	for version in 306 206; do \
 		for lang in us de fr es it se sf sg; do \
 			$(MAKE) clean; \
-			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} || status=1; \
+			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
+			$(MAKE) -C glue TOSVERSION=$${version} COUNTRY=$${lang} check || exit 1; \
 		done; \
-	done; \
-	$(MAKE) clean; \
-	exit $$status
+	done
+	$(MAKE) clean
 
 rsync::
 	for i in $(SUBDIRS) include GNUmakefile GNUmakefile.cmn config.mak; do sudo rsync -vzrlpt $$i $(LOCAL_WWWDIR); done

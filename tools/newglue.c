@@ -719,7 +719,7 @@ PP(char **argv;)
 
 		if (country && strcmp(country, "es") == 0)
 		{
-			if (i == 0 && size == 0x1420) /* 1.04 */
+			if (i == 0 && size == 0x1420 && 0) /* 1.04 */
 			{
 				putbeshort(address - 4, 0x0003);
 				putbeshort(address - 2, 0x0002);

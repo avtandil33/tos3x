@@ -154,7 +154,7 @@ nvramfail:
         rts
 
 /*
- * XBIOS #42 - NVMaccess
+ * XBIOS #46 - NVMaccess
  */
 /* 306de: 00e0208c */
         xdef _nvmaccess

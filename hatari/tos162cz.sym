@@ -1135,9 +1135,9 @@
 00e03fa2 t kbdvec25
 00e03fae t kbdvec26
 00e03fba t kbdvec27
-00e03fe2 t kbdde1
-00e04000 t kbdde2
-00e0401e t kbdde3
+00e03fe2 t kbdcz1
+00e04000 t kbdcz2
+00e0401e t kbdcz3
 00e0402e t kbdvec33
 00e04036 t kbdvec34
 00e04064 t kbdvec35

@@ -2831,7 +2831,7 @@ rw_ret:
 
 
 /*
- * XBIOS #26 - Supexec - Start routine in supervisor-mode.
+ * XBIOS #38 - Supexec - Start routine in supervisor-mode.
  *
  * 'codeptr' points to a piece of code, ending in an RTS, that is
  * executed in supervisor mode. The executed code cannot perform
@@ -3287,7 +3287,7 @@ setcol3:
         rts
 
 /*
- * XBIOS #27 - Puntaes - Throws away the AES, freeing up any memory it used.
+ * XBIOS #39 - Puntaes - Throws away the AES, freeing up any memory it used.
  *
  * If the AES is still resident, it will be discarded and the system
  * will reboot. If the AES is not resident (if it was discarded earlier)
@@ -3775,7 +3775,7 @@ run_res3:
         rts
 
 /*
- * XBIOS #17 - Gettime - Gets intelligent keyboard's time and date
+ * XBIOS #23 - Gettime - Gets intelligent keyboard's time and date
  *
  * Returns that value (in DOS format) as a 32-bit word.
  * (Time in the low word, date in the high word).
@@ -3789,7 +3789,7 @@ _gettime:
         bra.s     gsettime
 
 /*
- * XBIOS #16 - Settime - Sets the intelligent keyboard's time and date.
+ * XBIOS #22 - Settime - Sets the intelligent keyboard's time and date.
  *
  * 'datetime' is a 32-bit DOS-format date and time (time in the low word,
  * date in the high word).
@@ -3841,7 +3841,7 @@ braop:
 
 
 /*
- * XBIOS #40 - Blitmode
+ * XBIOS #64 - Blitmode
  *
  * Returns: d0.w - bit 0 - blitter enabled
  *                 bit 1 - blitter available

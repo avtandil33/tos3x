@@ -77,6 +77,55 @@ maps:
 	$(MAKE) clean
 	$(RM) glue/*.img glue/glue.*
 
+#
+# generate cleanup up symbol map for hatari,
+# by removing symbols that refer to duplicate addresses etc.
+#
+.PHONY: hatari
+hatari:
+	for version in 104 106 162; do \
+		for lang in uk de cz; do \
+			$(SED) -e '/ cart_base/d' \
+			       -e '/ gr_rect/d' \
+			       -e '/ gr_gtext/d' \
+			       -e '/ ig_fix/d' \
+			       -e '/ dos_gdrv/d' \
+			       -e '/ dos_sdrv/d' \
+			       -e '/ _dos_ffree/d' \
+			       -e '/ gr_xor/d' \
+			       -e '/ _gr_fmovebox/d' \
+			       -e '/ gr_movebox/d' \
+			       -e '/ gr_scale/d' \
+			       -e '/ gr_stilldn/d' \
+			       -e '/ ez_glrsr/d' \
+			       -e '/ gr_setup/d' \
+			       -e '/ gr_rubwind/d' \
+			       -e '/ _gr_fdragbox/d' \
+			       -e '/ _gsx_acode/d' \
+			       -e '/ gsx_ncode/d' \
+			       -e '/ _gsx_1acode/d' \
+			       -e '/ gsx_1code/d' \
+			       -e '/ _gsx_fmxmy/d' \
+			       -e '/ _gsx_fmoff/d' \
+			       -e '/ gsx_moff/d' \
+			       -e '/ ig_moff/d' \
+			       -e '/ vro_cpyfm/d' \
+			       -e '/ _ob_fdelete/d' \
+			       -e '/ _ob_factxywh/d' \
+			       -e '/ _ob_foffset/d' \
+			       -e '/ _rc_fequal/d' \
+			       -e '/ _rc_fconstrain/d' \
+			       -e '/ _inf_fgindex/d' \
+			       -e '/ _feveryobj/d' \
+			       -e '/ b_delay/d' \
+			       -e '/ BM_SM/d' \
+			       -e '/ BM_HOG/d' \
+			       -e '/ BM_GO/d' \
+			       -e '/ scrsize/d' \
+				glue/tos$${version}$${lang}.map > hatari/tos$${version}$${lang}.sym; \
+		done; \
+	done
+
 dosdir::
 	for i in $(SUBDIRS) lib bin/tos; do $(MKDIR_P) $(DOSDIR)/$$i; done
 	for i in $(SUBDIRS); do $(MAKE) -C $$i $@; done

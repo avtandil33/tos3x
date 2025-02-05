@@ -1135,9 +1135,9 @@
 00e03fa2 t kbdvec25
 00e03fae t kbdvec26
 00e03fba t kbdvec27
-00e03fe2 t kbdde1
-00e04000 t kbdde2
-00e0401e t kbdde3
+00e03fe2 t kbdcz1
+00e04000 t kbdcz2
+00e0401e t kbdcz3
 00e0402e t kbdvec33
 00e04036 t kbdvec34
 00e04064 t kbdvec35
@@ -3245,6 +3245,9 @@
 00e2647c T _sh_draw
 00e264da T _sh_show
 00e26504 T _sh_name
+00e2650a t sh_name1
+00e2650e t sh_name2
+00e26520 t sh_name3
 00e26536 T _sh_envrn
 00e2657a T _sh_path
 00e26654 T _sh_search

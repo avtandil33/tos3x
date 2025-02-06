@@ -83,46 +83,129 @@ maps:
 #
 .PHONY: hatari
 hatari:
-	for version in 104 106 162; do \
-		for lang in uk de cz; do \
-			$(SED) -e '/ cart_base/d' \
-			       -e '/ gr_rect/d' \
-			       -e '/ gr_gtext/d' \
-			       -e '/ ig_fix/d' \
-			       -e '/ dos_gdrv/d' \
-			       -e '/ dos_sdrv/d' \
-			       -e '/ _dos_ffree/d' \
-			       -e '/ gr_xor/d' \
-			       -e '/ _gr_fmovebox/d' \
-			       -e '/ gr_movebox/d' \
-			       -e '/ gr_scale/d' \
-			       -e '/ gr_stilldn/d' \
-			       -e '/ ez_glrsr/d' \
-			       -e '/ gr_setup/d' \
-			       -e '/ gr_rubwind/d' \
-			       -e '/ _gr_fdragbox/d' \
-			       -e '/ _gsx_acode/d' \
-			       -e '/ gsx_ncode/d' \
-			       -e '/ _gsx_1acode/d' \
-			       -e '/ gsx_1code/d' \
-			       -e '/ _gsx_fmxmy/d' \
-			       -e '/ _gsx_fmoff/d' \
-			       -e '/ gsx_moff/d' \
-			       -e '/ ig_moff/d' \
-			       -e '/ vro_cpyfm/d' \
-			       -e '/ _ob_fdelete/d' \
-			       -e '/ _ob_factxywh/d' \
-			       -e '/ _ob_foffset/d' \
-			       -e '/ _rc_fequal/d' \
-			       -e '/ _rc_fconstrain/d' \
-			       -e '/ _inf_fgindex/d' \
-			       -e '/ _feveryobj/d' \
-			       -e '/ b_delay/d' \
-			       -e '/ BM_SM/d' \
-			       -e '/ BM_HOG/d' \
-			       -e '/ BM_GO/d' \
-			       -e '/ scrsize/d' \
+	for version in 104 106 162 206 306; do \
+		for lang in us de fr es it se sf sg uk cz dk nl pl; do \
+			if test -f glue/tos$${version}$${lang}.map; then \
+			$(SED) -e '/ cart_base$$/d' \
+			       -e '/ gr_rect$$/d' \
+			       -e '/ gr_gtext$$/d' \
+			       -e '/ ig_fix$$/d' \
+			       -e '/ dos_gdrv$$/d' \
+			       -e '/ dos_sdrv$$/d' \
+			       -e '/ _dos_ffree$$/d' \
+			       -e '/ gr_xor$$/d' \
+			       -e '/ _gr_fmovebox$$/d' \
+			       -e '/ gr_movebox$$/d' \
+			       -e '/ gr_scale$$/d' \
+			       -e '/ gr_stilldn$$/d' \
+			       -e '/ ez_glrsr$$/d' \
+			       -e '/ gr_setup$$/d' \
+			       -e '/ gr_rubwind$$/d' \
+			       -e '/ _gr_fdragbox$$/d' \
+			       -e '/ _gsx_acode$$/d' \
+			       -e '/ gsx_ncode$$/d' \
+			       -e '/ _gsx_1acode$$/d' \
+			       -e '/ gsx_1code$$/d' \
+			       -e '/ _gsx_fmxmy$$/d' \
+			       -e '/ _gsx_fmoff$$/d' \
+			       -e '/ gsx_moff$$/d' \
+			       -e '/ ig_moff$$/d' \
+			       -e '/ vro_cpyfm$$/d' \
+			       -e '/ _ob_fdelete$$/d' \
+			       -e '/ _ob_factxywh$$/d' \
+			       -e '/ _ob_foffset$$/d' \
+			       -e '/ _rc_fequal$$/d' \
+			       -e '/ _rc_fconstrain$$/d' \
+			       -e '/ _inf_fgindex$$/d' \
+			       -e '/ _feveryobj$$/d' \
+			       -e '/ b_delay$$/d' \
+			       -e '/ _trp14int$$/d' \
+			       -e '/ BM_SM$$/d' \
+			       -e '/ BM_HOG$$/d' \
+			       -e '/ BM_GO$$/d' \
+			       -e '/ a /d' \
+			       -e 's/ A / B /' \
+			       -e '/ _proc_lives$$/d' \
+			       -e '/ _proc_dregs$$/d' \
+			       -e '/ _proc_aregs$$/d' \
+			       -e '/ _proc_enum$$/d' \
+			       -e '/ _proc_usp$$/d' \
+			       -e '/ _proc_stk$$/d' \
+			       -e '/ _etv_timer$$/d' \
+			       -e '/ sysvars_start$$/d' \
+			       -e '/ _etv_critic$$/d' \
+			       -e '/ _etv_term$$/d' \
+			       -e '/ _etv_xtra$$/d' \
+			       -e '/ _memvalid$$/d' \
+			       -e '/ memctrl$$/d' \
+			       -e '/ resvalid$$/d' \
+			       -e '/ resvector$$/d' \
+			       -e '/ _phystop$$/d' \
+			       -e '/ _membot$$/d' \
+			       -e '/ _memtop$$/d' \
+			       -e '/ _memval2$$/d' \
+			       -e '/ _flock$$/d' \
+			       -e '/ _seekrate$$/d' \
+			       -e '/ _timer_ms$$/d' \
+			       -e '/ _fverify$$/d' \
+			       -e '/ _bootdev$$/d' \
+			       -e '/ _palmode$$/d' \
+			       -e '/ _defshiftmod$$/d' \
+			       -e '/ _sshiftmod$$/d' \
+			       -e '/ _v_bas_ad$$/d' \
+			       -e '/ _vblsem$$/d' \
+			       -e '/ _nvbls$$/d' \
+			       -e '/ _vblqueue$$/d' \
+			       -e '/ _colorptr$$/d' \
+			       -e '/ _screenpt$$/d' \
+			       -e '/ _vbclock$$/d' \
+			       -e '/ _frclock$$/d' \
+			       -e '/ _hdv_init$$/d' \
+			       -e '/ _swv_vec$$/d' \
+			       -e '/ _hdv_bpb$$/d' \
+			       -e '/ _hdv_rw$$/d' \
+			       -e '/ _hdv_boot$$/d' \
+			       -e '/ _hdv_mediach$$/d' \
+			       -e '/ _cmdload$$/d' \
+			       -e '/ _conterm$$/d' \
+			       -e '/ _themd$$/d' \
+			       -e '/ ____md$$/d' \
+			       -e '/ _savptr$$/d' \
+			       -e '/ _nflops$$/d' \
+			       -e '/ con_state$$/d' \
+			       -e '/ _save_row$$/d' \
+			       -e '/ sav_context$$/d' \
+			       -e '/ _bufl$$/d' \
+			       -e '/ _hz_200$$/d' \
+			       -e '/ the_env$$/d' \
+			       -e '/ _drvbits$$/d' \
+			       -e '/ _dskbufp$$/d' \
+			       -e '/ _autopath$$/d' \
+			       -e '/ _vbl_list$$/d' \
+			       -e '/ _dumpflg$$/d' \
+			       -e '/ _sysbase$$/d' \
+			       -e '/ _shell_p$$/d' \
+			       -e '/ _end_os$$/d' \
+			       -e '/ _exec_os$$/d' \
+			       -e '/ _scr_dmp$$/d' \
+			       -e '/ _prt_stat$$/d' \
+			       -e '/ _prt_vec$$/d' \
+			       -e '/ _aux_stat$$/d' \
+			       -e '/ _aux_vec$$/d' \
+			       -e '/ _pun_ptr$$/d' \
+			       -e '/ _memval3$$/d' \
+			       -e '/ _bconstat_vec$$/d' \
+			       -e '/ _bconin_vec$$/d' \
+			       -e '/ _bcostat_vec$$/d' \
+			       -e '/ _bconout_vec$$/d' \
+			       -e '/ _longframe$$/d' \
+			       -e '/ _p_cookies$$/d' \
+			       -e '/ _ramtop$$/d' \
+			       -e '/ _ramvalid$$/d' \
+			       -e '/ _bell_hook$$/d' \
+			       -e '/ _kcl_hook$$/d' \
 				glue/tos$${version}$${lang}.map > hatari/tos$${version}$${lang}.sym; \
+			fi; \
 		done; \
 	done
 

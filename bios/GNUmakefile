@@ -30,7 +30,7 @@ endif
 bios.a: $(BIOS_OBJS) ${MAKEFILE}
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(BIOS_OBJS)
 
-startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc
+startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc intpriv.inc
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(NO_BRANCH_OPT) $(CPPFLAGS) -c -o $@ $<
 
 start1x.o: start1x.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc

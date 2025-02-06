@@ -626,7 +626,11 @@
 #if RAMVERSION
 #define BIOSTBASE   $00380000
 #else
+#if HADES
+#define BIOSTBASE   $7FE00000
+#else
 #define BIOSTBASE   $00E00000
+#endif
 #endif
 #endif
 

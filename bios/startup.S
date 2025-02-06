@@ -192,6 +192,260 @@ _main:
 /* but it matters for software reset */
         move    #$2700,sr
 
+#if HADES
+/* maschinen und tos id */
+hadesid		equ $68616465 /* 'hade' */
+
+		/* special hades initialisation */
+        reset                  /* reset all hardware */
+		move.l  #$00FFC040,d0
+		D0_DTT1
+		D0_ITT1
+		D0_DTT0
+		D0_ITT0
+		clr.l d0
+        D0_CACR              /*  cache off */
+        CINVA_BC
+        D0_VBR           /* initialise VBR to zero */
+        move.l  #$00000210,d0
+        D0_TC
+        lea.l   $70000000,a0 /* mem_set_adr */
+        lea.l   $08000000,a1 /* mtadr1: doppelseitig */
+        lea.l   $02000000,a2 /* mtadr2: 4mx32 */
+        lea.l   $00400000,a3 /* mtadr3: */
+        move.l  #hadesid,d3
+        move.l  #-hadesid,d4
+        clr.b   (a0)
+        clr.l   d6
+        clr.l   (4).w
+        clr.l   (a1)
+        clr.l   (a2)
+        clr.l   (a3)
+        clr.b   $70800000
+        clr.l   (a1)
+        clr.l   (a2)
+        clr.l   (a3)
+        nop
+        nop
+        move.l  d3,(0).w
+        nop
+        nop
+		cmp.l   (a2),d3
+		beq.s   hades1
+		tst.l   (a2)
+		beq.s   hades3
+hades1:
+		addq.w  #2,d6
+		cmp.l   (a3),d3
+		beq.s   hades2
+		tst.l   (a3)
+		beq.s   hades3
+hades2:
+		addq.w  #2,d6
+hades3:
+		clr.b   (a0)
+		nop
+		nop
+		move.l  d3,(a1)
+		move.l  d3,(4).w
+		nop
+		cmp.l   (a1),d3
+		beq.s   hades4
+		addq.w  #1,d6
+hades4:
+		cmp.l   (4).w,d3
+		beq.s   hades5
+		moveq.l #9,d6
+		bra.s   hades7
+hades5:
+		cmpi.w  #2,d6
+		bgt.s   hades7
+		beq.s   hades6
+		tst.w   d6
+		bne.s   hades7
+		cmp.l   (a2),d3
+		bne.s   hades7
+		moveq.l #9,d6
+		bra.s   hades7
+hades6:
+		cmp.l   $00800000,d3
+		bne.s   hades7
+		moveq.l #11,d6
+hades7:
+		move.l  d6,d0
+		swap    d0
+		lsl.l   #4,d0
+		adda.l  d0,a0
+		clr.b   (a0)
+
+        data
+zero:
+	    dc.l 0
+		text
+
+/* =========================================================================== */
+/* ==== memconf for Hades ==================================================== */
+/* =========================================================================== */
+
+        lea       memcret(pc),a6
+        bra       memchk
+memcret:
+        bne.s      noreset
+
+resetvec:
+        cmpi.l   #$31415926,(resvalid).w  /* Jump to resetvector? */
+        bne.s    noreset                /* No --> noreset */
+        move.l   (resvector).w,d0       /* Yes: old resvec to d0 */
+        btst     #0,d0                  /* Address odd ? */
+        bne.s    noreset                /* Yes --> noreset */
+        movea.l  d0,a0                  /* resvec */
+        lea      resetvec(pc),a6        /* save return address */
+/* Note: the return address intentionally points to the resvalid test. */
+/* So the reset routine must explicitly clear resvalid before returning */
+/* to a6, otherwise there will be an infinite loop. */
+        jmp      (a0)                   /* jump to resvec */
+noreset:
+        lea       memcret2(pc),a6               /* load return address */
+        bra       memchk                        /* check if the memory configuration is valid */
+memcret2:
+        beq       nomemchk
+
+		lea.l   (SUPSIZ*2+_supstk).w,a7  /* stack init */
+		move.l  #hadesid,d3              /* bit pattern */
+		move.l  #-hadesid,d4
+		clr.l   (_shell_p).w
+		move.l  #idinerr,(_buserror).w
+		move.l  #$00020000,d7            /* startadresse und schrittweite */
+		movea.l d7,a0                    /* startadresse setzen */
+		movea.l a0,a1
+		nop     
+		cmpi.l  #idinerr,(_buserror).w
+		bne.s   tt_ramsize_done
+idin:
+		move.l  d3,-4(a1)
+		move.l  d4,-8(a1)
+		adda.l  d7,a1
+		bra.s   idin
+idinerr:
+		move.l  #tt_ramsize_done,(_buserror).w
+zonecheck:
+		movea.l a0,a1			/* test auf spiegelung. wenn nicht da dann spiegelung */
+		cmp.l   -4(a1),d3       
+		bne.s   tt_ramsize_done
+		cmp.l   -8(a1),d4
+		bne.s   tt_ramsize_done
+		move.l  d0,d2			/* 0->d2 */
+		moveq.l #21,d1			/* loop counter */
+store_mem:
+		move.l  d2,-(a1)		/* write bit pattern */
+		add.l   d3,d2			/* change pattern */
+		dbf     d1,store_mem	/* next */
+		movea.l a0,a1
+		moveq.l #21,d1			/* loop counter */
+check_mem:
+		cmp.l   -(a1),d0		/* compare pattern */
+		bne.s   tt_ramsize_done	/* not equal -> done */
+		add.l   d3,d0
+		dbf     d1,check_mem
+		adda.l  d7,a0			/* next 128KB */
+		bra.s   zonecheck
+tt_ramsize_done:
+		suba.l  d7,a0
+		move.l  a0,d4
+		lea.l   256,a0
+		moveq.l #0,d0
+		moveq.l #0,d1
+		moveq.l #0,d2
+		moveq.l #0,d3
+clrmem:
+		movem.l d0-d3,0(a0)
+		movem.l d0-d3,16(a0)
+		movem.l d0-d3,32(a0)
+		movem.l d0-d3,48(a0)
+		movem.l d0-d3,64(a0)
+		movem.l d0-d3,80(a0)
+		movem.l d0-d3,96(a0)
+		movem.l d0-d3,112(a0)
+		adda.l  #128,a0
+		cmpa.l  #$00400000,a0
+		blt.s   clrmem
+		move.b  d6,(memctrl).w             /* set copy of hw memory config */
+		move.l  d4,(_phystop).w            /* highest address as phystop */
+		clr.l   (_ramtop).w				   /* no TT-RAM */
+
+        move.l    #$752019F3,(_memvalid).w /* set memvalid to ok */
+        move.l    #$237698AA,(_memval2).w  /* set memval2 to ok */
+        move.l    #$5555AAAA,(_memval3).w  /* set memval3 to ok */
+        move.l    #$1357BD13,(_ramvalid).w   /* ramtop is valid (ramvalid == RAMMAGIC) */
+
+nomemchk:
+
+		lea.l   (SUPSIZ*2+_supstk),a7
+
+/* clear the remainder of the BSS section */
+
+        lea       (_has_dmasound).w,a0
+        lea       __ebss,a1
+clrbss:
+        clr.w     (a0)+
+        cmpa.l    a0,a1
+        bne.s     clrbss
+
+		move.l     #$ABCDEF42,d0
+		lea.l      hadret1(pc),a6
+		jmp        $7FE5994C /* ZZZ */
+hadret1:
+		move.l     a0,d0
+		bne.s      hadret2
+		lea.l      hadret2(pc),a6
+		jmp        $7FE59330 /* ZZZ screen_init? */
+hadret2: ds.b 0
+
+/* clear screen memory */
+/* video resolution  2=st high 6=tt high */
+#define vidmo  2
+#if vidmo == 2
+scrsize equ ((640*400)/8)
+#else
+scrsize equ ((1280*960)/8)
+#endif
+        move.w     #(scrsize/16)-1,d1
+        move.l     a0,(_v_bas_ad).w
+        movea.l    a0,a1
+clrscr:
+        clr.l      (a0)+
+        clr.l      (a0)+
+        clr.l      (a0)+
+        clr.l      (a0)+
+        dbf        d1,clrscr
+
+		lea.l      hadret3(pc),a6
+		jmp        $7FE597AE /* ZZZ */
+hadret3:
+		move.b     #$0A,ldor /* floppy reset */
+		
+        lea.l     (psgsel).w,a0
+        move.b    #$07,(a0)  /* select mixer control */
+        move.b    #$C0,2(a0) /* Port A+B = output */
+        move.b    #$0E,(a0)  /* select Port A */
+        move.b    #7,2(a0) /* deselect floppy drives */
+
+		move.b     #$0e,ldor /* floppy normal int activ */
+		clr.b      fd_desel.l
+		clr.b      (sctr2).l  /* vme int off, scsi count0/eop und buserror off */
+		move.l     _os_entry,(0).w
+		move.l     reseth,(4).w
+
+		bra.s      hadret4
+
+		dc.l -1,-1
+
+hadret4: ds.b 0
+
+		/* end special hades initialisation */
+
+#else
+
 /* special TT reset */
 #if ((TOSVERSION >= 0x306) & (TOSVERSION < 0x400)) & !TP_50
         move.w #$0100,(DMA_CTRL).w /* reset ACSI chip... */
@@ -478,6 +732,7 @@ initpal2:
 #endif
 
         move.l    (_phystop).w,d5               /* d5 -> (possible) top of physical mem */
+
         lea       memcret2(pc),a6               /* load return address */
         bra       memchk                        /* check if the memory configuration is valid */
 memcret2:
@@ -820,6 +1075,7 @@ nomemchk:
         movea.l   #SUPSIZ*2+_supstk,a7
 #endif
 
+
 #if STBOOK | (TOSVERSION >= 0x400)
 /*
  *  Initialize interrupt vectors
@@ -1008,6 +1264,8 @@ clrscr:
         move.l    d0,(a0)+
         dbf       d1,clrscr
 
+#endif /* HADES */
+
 /* does os_magic indicate GEM in ROM? */
         movea.l   _os_magic(pc),a0
         cmpi.l    #GEM_MUPB_MAGIC,(a0)
@@ -1036,7 +1294,11 @@ gemok:
         move.l    #_bscr_dump,(_scr_dmp).w
 
 /* --- Randoms: */
+#if HADES
+        move.l    (_phystop).w,(_memtop).w
+#else
         move.l    (_v_bas_ad).w,(_memtop).w
+#endif
         move.l    (_end_os).w,(_membot).w          /* set bottom of memory (for DOS) */
         move.w    #8,(_nvbls).w                    /* default number of vbl queue entries */
         st        (_fverify).w                     /* enable write-verify */
@@ -1062,6 +1324,82 @@ gemok:
 
 /* detect CPU type */
 /* (actually nonsense since 68030 instructions have already been used above) */
+#if HADES
+        moveq.l   #40,d1         /* assume 68040 */
+        movea.l   (UNIMPII).w,a1 /* save unimpl. integer vector */
+		lea.l     is040(pc),a2
+		move.l    a2,(UNIMPII).w
+		movea.l   a7,a3
+		dc.w      $00d0,0       /* cmp2.b (a0),d0 illegal on 060 */
+		bra.s     cpuexit
+is040:
+		movea.l   a3,a7         /* restore SP */
+        moveq.l   #60,d1        /* assume 68060 */
+cpuexit:
+		move.l    a1,(UNIMPII).w /* restore unimpl. integer vector */
+		moveq.l   #0,d0
+		move.l    d0,(MMUILL).w
+        move.l    d1,(a0)+      /* set _CPU cookie */
+        move.w    d1,(_longframe).w
+
+        move.l    #$5F56444F,(a0)+ /* '_VDO' */
+        move.l    #$00020000,d1  /* 2,0 = TT Shifter */
+        move.l    d1,(a0)+
+		jmp       $7FE49010 /* ZZZ morecook */
+cook_wei:
+        clr.l     (a0)+
+        move.l    #NCOOKIES,(a0)
+
+/* set exception vectors for 040/60 */
+		lea.l   la_rte,a3
+		lea.l   la_rts,a4
+		lea.l   exception,a1
+		lea.l   (_buserror).w,a0
+		moveq.l #62-1,d0
+exc_loop:
+		move.l  a1,(a0)+
+		dbf     d0,exc_loop
+		moveq.l #6,d0
+		lea.l   (_lvl1vec).w,a1
+exc_loop2:
+		move.l  a3,(a1)+			 /* ignore auto vectors */
+		dbf     d0,exc_loop2
+		move.l  a3,(_zerodiv).w      /* ignore zero divide */
+		move.l  (_v_bas_ad).w,($000000E8).w /* set physbase */
+		cmpi.w  #60,(_longframe).w
+		bne     exc_wei
+xFP_CALL_TOP    equ $7fe4b57a /* ZZZ */
+unim_int_instr  equ $7fe49c82 /* ZZZ */
+exception       equ $7fe58a8a /* ZZZ */
+int_hbl         equ $7fe49140 /* ZZZ */
+		move.l  #unim_int_instr,(UNIMPII).w
+		move.l  #xFP_CALL_TOP+$80+$30,(_lineftrap).w /* fline */
+		move.l  #xFP_CALL_TOP+$80+$00,(FPNAN).w      /* snan */
+		move.l  #xFP_CALL_TOP+$80+$08,(FPOE).w       /* operr */
+		move.l  #xFP_CALL_TOP+$80+$10,(FPOVER).w     /* overflow */
+		move.l  #xFP_CALL_TOP+$80+$18,(FPUNDER).w    /* underflow */
+		move.l  #xFP_CALL_TOP+$80+$20,(FPDIVZ).w     /* divide by zero */
+		move.l  #xFP_CALL_TOP+$80+$28,(FPIE).w       /* inexact */
+		move.l  #xFP_CALL_TOP+$80+$38,(FPUNSUP).w    /* Unimplemented data type */
+		move.l  #xFP_CALL_TOP+$80+$40,(UNIMPEA).w    /* Unimplemented Effective Address */
+#if BINEXACT
+		dc.l	$f23c,$9000,0,0			/* fmove.l #0,fpcr BUG: must be dc.w */
+#else
+		dc.w	$f23c,$9000,0,0			/* fmove.l #0,fpcr */
+#endif
+		bra.s exc_wei
+la_rte:
+		rte
+la_rts:
+		rts
+#if BINEXACT
+/* only used to fill original space */
+		dc.l -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+		dc.w -1
+#endif
+exc_wei: ds.b 0
+
+#else
         moveq.l   #0,d1         /* assume 68000 */
         movea.w   #_illinst,a2
         movea.l   (a2),a3       /* save illegal instruction vector */
@@ -1169,7 +1507,7 @@ cooFPU:     movea.l   a2,sp
 cooFPU3:    move.l    a1,(_buserror).w
             movea.l   a2,sp
 
-#else
+#else /* STBOOK | (TOSVERSION >= 0x400) */
 
 #if (TOSVERSION < 0x300) | TP_50
 			tst.b     STEFlag                   /* no STE hardware available? */
@@ -1207,7 +1545,7 @@ cooMCH2:	move.l    a1,(_buserror).w
         move.l    #$5F4D4348,(a0)+ /* '_MCH' */
         move.l    #$00020000,(a0)+ /* 2,0 = TT */
 #endif
-#endif
+#endif /*  (TOSVERSION < 0x300) | TP_50 */
 
 cooSWI: move.b    #$7F,d0
         tst.b     STEFlag
@@ -1314,7 +1652,7 @@ nosfp:
 frbdone:
 #endif
 
-#endif
+#endif /* STBOOK | (TOSVERSION >= 0x400) */
 
 
 /* terminate cookie jar */
@@ -1349,7 +1687,11 @@ initexc:
 initauto:
         move.l    #just_rte,(a1)+      /* ignore auto vectors */
         dbf       d0,initauto
+#endif
 
+#endif /* HADES */
+
+#if !STBOOK & (TOSVERSION < 0x400)
         move.l    #int_vbl,(_lvl4vec).w      /* vblank handler */
         move.l    #int_hbl,(_lvl2vec).w      /* hblank handler */
         move.l    a3,(_trap2vec).w           /* ignore GEM trap for now */
@@ -1447,12 +1789,27 @@ setvb1:
             move.b    d1,(v_shf_mod).w          /* set rez hardware register */
 
 #else
+#if HADES
+        /* no monitor change */
+        nop
+        nop
+        nop
+        nop
+        nop
+#else
         moveq.l   #TTMED,d1                 /* assume color, video mode 640x480x16 */
         btst      #7,(MFP_GPIP).w			/* monochrome monitor connected? */
         bne.s     moncolor
         moveq.l   #TTHIGH,d1                /* Switch to 1280x960x1 */
 moncolor:
+#endif
+#if HADES
+		moveq #vidmo,d1
+		nop
+		nop
+#else
         move.b    d1,(shift_tt).w   /* set TT shifter video mode */
+#endif
 #endif
 #endif
         move.b    d1,(_sshiftmod).w  /* .. and also system var */
@@ -1480,7 +1837,11 @@ moncolor:
 /* Run all boot applications from the application cartridge,
  * with interrupts enabled.
  */
+#if HADES
+        move.w    #$2100,sr /* scsi int on */
+#else
         move.w    #$2300,sr
+#endif
         moveq.l   #1,d0
         bsr       _run_cartridge_applications
 #if STBOOK
@@ -1559,6 +1920,53 @@ biosinit:
 clockdone:
         clr.b     (MFP_TACR).w     /* stop Timer A */
         bclr      #5,(MFP_IERA).w  /* disable Timer A interrupt */
+
+#if HADES
+
+/* medusa logo ausgeben 376x135 Pixel = 47 Byts x 135 Zeilen */
+medusalogo equ $7FE59998 /* ZZZ */
+hadeslogo  equ $7FE5B262 /* ZZZ */
+		lea 	medusalogo,a0 		;logo 
+		move.l 	_v_bas_ad.w,a1
+		move.l 	a1,a2
+		move.w 	#135-1,d1
+lolo1:	
+#if vidmo == 2
+        add.w 	#80-47,a2       ;ST hoch
+#else
+        add.w 	#160-47,a2      ;TT hoch
+#endif
+        	
+		moveq 	#46,d2
+lolo2:
+		move.b 	(a0)+,(a2)+
+		dbf 	d2,lolo2
+		dbf 	d1,lolo1
+
+		lea 	hadeslogo,a0 	;hades logo 
+		move.l 	_v_bas_ad.w,a1
+		move.l 	a1,a2
+		add.w   #240+27,a2	;4.Zeile 4.byt
+		move.w 	#101,d1
+lolo3:	
+#if vidmo == 2
+        add.w 	#80-23,a2       ;ST hoch
+#else 
+        add.w 	#160-23,a2      ;TT hoch
+#endif
+
+		moveq 	#22,d2
+lolo4:
+		move.b 	(a0)+,(a2)+
+		dbf 	d2,lolo4
+		dbf 	d1,lolo3
+#if BINEXACT
+		bra.s 	end_logo
+		dc.l -1,-1,-1,-1,-1,-1
+end_logo:
+#endif
+
+#else
 
 #if TOSVERSION >= 0x300
         move.l    #$00003111,d0
@@ -1662,6 +2070,9 @@ logomon2:
         dbf       d0,logomon1
 #endif
 logodone:
+
+#endif /* HADES */
+
 		text
 
         data
@@ -1846,7 +2257,11 @@ crcok:
 #if TP_50 /* PAK */
         cmpi.b    #STHIGH,(_sshiftmod).w         /* ST high? */
 #else
+#if HADES
+        cmpi.b    #vidmo,(_sshiftmod).w         /* TT high? */
+#else
         cmpi.b    #TTHIGH,(_sshiftmod).w         /* TT high? */
+#endif
 #endif
         beq.s     nosetrez
         move.l    #$000BFFFF,-(a7)
@@ -1860,8 +2275,16 @@ crcok:
         move.w    #$0005,-(a7)
         trap      #14                         /* Setscreen(-1L, -1L, 0) - switch to low rez */
         adda.w    #$000C,a7
+#if HADES
+		CPUSHA_BC
+		nop
+		nop
+		nop
+		nop
+#else
         move.l    #$00000808,d0 /* BUG? this will be skipped too if in TT high rez */
         D0_CACR
+#endif
 nosetrez:
 #endif
 
@@ -1917,7 +2340,7 @@ copyenv:
 nextenvc:
         move.b    (a0)+,(a1)+
         bpl.s     copyenv
-#if TP_13 /* BOOT_DEV */
+#if TP_13 | HADES /* BOOT_DEV */
         move.w    _bootdev,d0
 #else
         move.b    _bootdev,d0                  /* compute drive#, and shove it (infamous old bug accessing _bootdev as byte) */
@@ -2113,9 +2536,28 @@ dmaline:
 dmadone:
 #if STBOOK
 		clr.w     gem_env               /* index to the dmaDevList */
+        clr.w     (_bootpref).w
 #else
 #if TOSVERSION < 0x300
 	    moveq	  #16,d4     /* d4 = device (IDE0) */
+#else
+#if HADES
+        jsr       scsirst
+/* no TT-SCU start with IDE */
+        moveq.l   #16,d4     /* d4 = device (IDE0) */
+		moveq #0,d0			;dma boot
+		move.w d0,_bootpref.w
+		bra.s confdone
+boot1:
+		cmpi.w #$11,d4			;ide 1?
+		bne.s confdone			;nein -> weiter
+boot2:
+		moveq #8,d4			;ja bei scsi 0 weitermachen
+		bra.s confdone
+boot3:
+		moveq #0,d4			;bei acsi 0 weitermachen
+		bra.s confdone
+		dc.l -1,-1,-1,-1,-1
 #else
 #if TP_50 /* PAK */
 /*
@@ -2150,13 +2592,14 @@ dmadone:
         tst.w     d0
         beq.s     confdone
 #endif
+        clr.w     (_bootpref).w
+#endif
 #endif
 #endif
 
 #if TP_14 /* CT_HD */
 #include "../tospatch/patches/ct_hd1.S"
 #else
-        clr.w     (_bootpref).w
 confdone:
         move.w    #$0001,d1            /* d1 -> 2 tries per device */
 dmadev:
@@ -2195,8 +2638,19 @@ nextdev:
         dc.w $0c3b,$00ff         /* work around as68 bug with addressing mode above */
         dc.w dmaDevList-*+2+$4000       
         bne.s     confdone                  /* no -> continue with the next one */
+        rts
 #else
         addq.w    #1,d4
+#if HADES
+		cmpi.w #7,d4		;acsi 7?
+		bne.s no_ni_fer		;nein->
+		rts			;sonst fertig
+no_ni_fer:
+		cmpi.w #$f,d4		;scsi 7?
+		beq.s boot3		;ja ->
+		bra.s boot1
+		dc.w -1,-1
+#else
         move.w    d4,d0
         and.w     #$0007,d0
         bne.s     confdone
@@ -2204,9 +2658,10 @@ nextdev:
         beq.s     nodmaboot
         moveq.l   #0,d4       /* retry all again with ACSI devices */
         bra.s     confdone
-#endif
 nodmaboot:
         rts
+#endif
+#endif
 
 #if STBOOK
 /* boot order of DMA devices, $ff terminates the list */
@@ -2370,6 +2825,7 @@ dflt_pal:
 /* 206de: 00e00bf0 */
 /* 104de: 00fc06aa */
 /* 404: 00e00c9a */
+#if !HADES
 int_hbl:
         move.w    d0,-(a7)            /* save d0 */
         move.w    2(a7),d0            /* get status register from stack */
@@ -2379,6 +2835,9 @@ int_hbl:
 is_ipl:
         move.w    (a7)+,d0            /* restore d0 */
         rte
+#else
+        ds.b 22
+#endif
 
 /*
  * int_vbl - Int 0x70 - VBL interrupt
@@ -3298,7 +3757,7 @@ setcol3:
 /* 104de: 00fc0af0 */
 _puntaes:
         movea.l   _os_magic(pc),a0           /* get pointer to magic */
-        cmpi.l    #$87654321,(a0)            /* is the magic still there? */
+        cmpi.l    #GEM_MUPB_MAGIC,(a0)       /* is the magic still there? */
         bne.s     puntaes1                   /* no -- just return */
         cmpa.l    (_phystop).w,a0            /* is it in ROM? */
         bge.s     puntaes1                   /* yes -- we can't do anything about it */

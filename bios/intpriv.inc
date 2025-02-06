@@ -3,6 +3,15 @@
  */
 	xdef flushCaches
 flushCaches:
+#if HADES
+	/* routine for 040+ */
+	CPUSHA_BC
+	nop
+	rts
+#if BINEXACT
+	dc.w -1,-1,-1,-1,-1,-1,-1,-1,-1
+#endif
+#else
         move.w    sr,-(a7)
         ori.w     #$0700,sr
         CACR_D0
@@ -10,6 +19,7 @@ flushCaches:
         D0_CACR
         move.w    (a7)+,sr
         rts
+#endif
 
 /*
  * _int_priv - privileged instruction handler

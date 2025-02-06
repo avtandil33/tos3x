@@ -24,7 +24,7 @@ all::
 
 include $(top_srcdir)/config.mak
 
-FLAGSTOPASS = COUNTRY=$(COUNTRY) TOSVERSION=$(TOSVERSION)
+FLAGSTOPASS = COUNTRY=$(COUNTRY) TOSVERSION=$(TOSVERSION) HADES=$(HADES)
 
 dist::
 	rm -rf $(DISTDIR1) $(DISTDIR2)
@@ -48,7 +48,7 @@ checkall::
 	for version in 306 206; do \
 		for lang in us de fr es it se sf sg uk; do \
 			$(MAKE) clean; \
-			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
+			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 || exit 1; \
 			$(MAKE) -C glue TOSVERSION=$${version} COUNTRY=$${lang} check || exit 1; \
 		done; \
 	done
@@ -63,14 +63,14 @@ maps:
 	for version in 306 206; do \
 		for lang in us de fr es it se sf sg uk; do \
 			$(MAKE) clean; \
-			$(MAKE) SYMBOLS=-s TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
+			$(MAKE) SYMBOLS=-s TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 || exit 1; \
 			cnm glue/tos.img | sort | uniq > glue/tos$${version}$${lang}.map; \
 		done; \
 	done
 	for version in 208; do \
 		for lang in de us fr; do \
 			$(MAKE) clean; \
-			$(MAKE) SYMBOLS=-s TOSVERSION=$${version} COUNTRY=$${lang} || exit 1; \
+			$(MAKE) SYMBOLS=-s TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 || exit 1; \
 			cnm glue/tos.img | sort | uniq > glue/tos$${version}$${lang}.map; \
 		done; \
 	done

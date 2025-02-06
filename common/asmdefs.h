@@ -74,6 +74,8 @@
 #define D0_FP0              dc.l $f2004000        /* fmove.l d0,fp0 6888X, 68040-68060 */
 
 #define CINVA_IC            dc.w $f498            /* 68040 */
+#define CINVA_BC            dc.w $f4d8            /* 68040 */
+#define CPUSHA_BC           dc.w $f4f8            /* 68040 */
 
 /*
  * set to 1 if we run on plain 68k only

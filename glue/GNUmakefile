@@ -105,8 +105,10 @@ tosvars.o: ../common/tosvars.S $(top_srcdir)/common/config.h
 
 include gluer.mak
 
+# compare only 256k for STBook, since it only has the ROM, not the cartridge extension
+CMPSIZE_208 = --bytes=262144
 check:: $(IMG)
-	$(CMP) $(CMPL) -x --ignore-initial=0x0:0x0 --offsets=0x$(rombase):0 $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img $(IMG)
+	$(CMP) $(CMPL) -x --ignore-initial=0x0:0x0 --offsets=0x$(rombase):0 $(CMPSIZE_$(TOSVERSION)) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img $(IMG)
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

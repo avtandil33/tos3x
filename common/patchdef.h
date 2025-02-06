@@ -5,6 +5,13 @@
  * (better) create a file common/localcnf.h instead
  * with your preferred settings
  */
+
+#if HADES
+#if TOSVERSION != 0x306
+#undef HADES
+#define HADES 0
+#endif
+#endif
  
 /*
  * TP_01: KILL_RESET: Omit RESET instruction for RAM-TOS on older ST's

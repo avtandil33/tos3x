@@ -72,6 +72,11 @@ dsb_sizeof equ 4
 #define FD_RAWTRACK (60 + 18 * FD_RAWSEC + 1401)
 
 
+#if HADES
+/* floppy completely new for hades */
+#include "hadflopp.S"
+#else /* rest of file */
+
         text
 
 /*
@@ -327,14 +332,14 @@ fdcerr1:
  * XBIOS #9 - Flopwr - Write individual sectors on a floppy disk.
  * flopwr - write sector to floppy
  * Passed (on the stack):
- *       $14(sp) count
- *       $12(sp) sideno
- *       $10(sp) trackno
- *        $e(sp) sectno
- *        $c(sp) devno
- *        $8(sp) ->DSB
- *        $4(sp) ->buffer (unused)
- *        $0(sp) return address
+ *        20(sp) count
+ *        18(sp) sideno
+ *        16(sp) trackno
+ *        14(sp) sectno
+ *        12(sp) devno
+ *         8(sp) ->DSB
+ *         4(sp) ->buffer (unused)
+ *         0(sp) return address
  *
  * Returns:      EQ, the write won (on all sectors),
  *               NE, the write failed (on some sectors).
@@ -449,16 +454,16 @@ flopwrt7:
  * XBIOS #10 - Flopfmt - Format specific tracks on a floppy
  * _flopfmt - format a track
  * Passed (on the stack):
- *       $1a(sp) initial sector data
- *       $16(sp) magic number
- *       $14(sp) interleave
- *       $12(sp) side
- *       $10(sp) track
- *        $e(sp) spt
- *        $c(sp) devno
- *        $8(sp) pointer to state block
- *        $4(sp) dma address
- *        $0(sp) [return]
+ *        26(sp) initial sector data
+ *        22(sp) magic number
+ *        20(sp) interleave
+ *        18(sp) side
+ *        16(sp) track
+ *        14(sp) spt
+ *        12(sp) devno
+ *         8(sp) pointer to state block
+ *         4(sp) dma address
+ *         0(sp) [return]
  *
  * Returns:      EQ: track successfully written.  Zero.W-terminated list of
  *               bad sectors left in buffer (they might /all/ be bad.)
@@ -958,12 +963,12 @@ flopvbl5:
  * floplock - lock floppies and setup floppy parameters
  *
  * Passed (on the stack):
- *       $18(sp) - count.W (sector count)
- *       $16(sp) - side.W (side#)
- *       $14(sp) - track.W (track#)
- *       $12(sp) - sect.W (sector#)
- *       $10(sp) - dev.W (device#)
- *        $c(sp) - obsolete.L
+ *        24(sp) - count.W (sector count)
+ *        22(sp) - side.W (side#)
+ *        20(sp) - track.W (track#)
+ *        18(sp) - sect.W (sector#)
+ *        16(sp) - dev.W (device#)
+ *        12(sp) - obsolete.L
  *         8(sp) - dma.L (dma pointer)
  *         4(sp) - ret1.L (caller's return address)
  *         0(sp) - ret.L (floplock's return address)
@@ -1753,6 +1758,8 @@ hd_portb:
             rts
 #endif /* TP_41 */
 
+#endif /* HADES */
+
     bss
 
     xdef fd_spt
@@ -1789,10 +1796,14 @@ hd_portb:
     comm fd_rtryseek,2
 
     xdef fd_frb
+#if HADES
+	comm status_buffer,8
+#else
     comm fd_frb,4
 
     xdef fd_copyp
     comm fd_copyp,4
+#endif
     
     xdef fd_cscnt
     comm fd_cscnt,2

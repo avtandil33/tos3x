@@ -198,17 +198,17 @@ hadesid		equ $68616465 /* 'hade' */
 
 		/* special hades initialisation */
         reset                  /* reset all hardware */
-		move.l  #$00FFC040,d0
+		move.l  #$00FFC040,d0  /* no cache serialized */
 		D0_DTT1
 		D0_ITT1
 		D0_DTT0
 		D0_ITT0
-		clr.l d0
-        D0_CACR              /*  cache off */
+		clr.l d0		/* all caches off */
+        D0_CACR
         CINVA_BC
         D0_VBR           /* initialise VBR to zero */
         move.l  #$00000210,d0
-        D0_TC
+        D0_TC            /* set no cache, precise for mc68060 (also works for mc68040) */
         lea.l   $70000000,a0 /* mem_set_adr */
         lea.l   $08000000,a1 /* mtadr1: doppelseitig */
         lea.l   $02000000,a2 /* mtadr2: 4mx32 */
@@ -1392,10 +1392,8 @@ la_rte:
 		rte
 la_rts:
 		rts
-#if BINEXACT
 /* only used to fill original space */
 		dcb.w 51,-1
-#endif
 exc_wei: ds.b 0
 
 #else
@@ -1959,11 +1957,10 @@ lolo4:
 		move.b 	(a0)+,(a2)+
 		dbf 	d2,lolo4
 		dbf 	d1,lolo3
-#if BINEXACT
 		bra.s 	end_logo
+/* only used to fill original space */
 		dcb.w 12,-1
 end_logo:
-#endif
 
 #else
 
@@ -2556,6 +2553,7 @@ boot2:
 boot3:
 		moveq #0,d4			;bei acsi 0 weitermachen
 		bra.s confdone
+/* only used to fill original space */
 		dcb.w 10,-1
 #else
 #if TP_50 /* PAK */
@@ -2648,6 +2646,7 @@ no_ni_fer:
 		cmpi.w #$f,d4		;scsi 7?
 		beq.s boot3		;ja ->
 		bra.s boot1
+/* only used to fill original space */
 		dcb.w 2,-1
 #else
         move.w    d4,d0
@@ -2923,6 +2922,7 @@ L0178:
 		bclr	  #2,$ffff8783.w
 		clr.b	  $ffff8783.w
 		rts
+/* only used to fill original space */
 		dcb.w 18,-1
 mon_chg:
 
@@ -3663,9 +3663,8 @@ _physbase:
 #if HADES
 		move.l hades_physbase.w,d0        		;phys base holen
         rts
-#if BINEXACT
+/* only used to fill original space */
         dcb.w 11,-1
-#endif
 #else
         moveq.l   #0,d0             /* cleanup pointer-to-be */
         move.b    (v_bas_h).w,d0    /* load and shift bits 16..23 */
@@ -3710,9 +3709,8 @@ _getrez:
 /* only fixed resolution */
 		moveq #hades_vidmo,d0
         rts
-#if BINEXACT
+/* only used to fill original space */
 		dcb.w 4,-1
-#endif
 #else
         moveq.l   #0,d0
 #if STBOOK
@@ -3747,9 +3745,8 @@ _vsetscreen:
 #if HADES
 /* only fixed resolution */
 		rts
-#if BINEXACT
+/* only used to fill original space */
 		dcb.w 42,-1
-#endif
 #else
 /* --- set logical location: */
         tst.l     4(a7)                      /* if(logloc < 0) then ignore it */
@@ -3885,10 +3882,34 @@ savp_2:
 #endif
 #if HADES
 		jmp exception
+
+/* Space for new program parts on old exception handler */
+cache_aus1:
+		st 	_flock.w
+cache_aus:
+		move.l 	d0,-(sp)
+		CACR_D0
+		move.l 	d0,hades_cacr.w
+		moveq 	#0,d0
+		D0_CACR
+		CPUSHA_BC
+		move.l 	(sp)+,d0
+		rts
+
+cache_ein1:
+		sf 	_flock.w
+cache_ein:
+		move.l 	d0,-(sp)
+		move.l 	hades_cacr.w,d0
+		D0_CACR
+		move.l 	(sp)+,d0
+		rts
+		dcb.w 88,-1
+
 #else
+
 /* dump the registers, including SSP */
         movem.l   d0-d7/a0-a7,(_proc_dregs).w
-#endif
 #if P68010
         move.l    2(a7),(_proc_enum).w
 /* get the exception number from the format word */
@@ -3934,6 +3955,7 @@ any_vec1:
  */
 /* 104de: 00fc0b56 */
 /* 106de: 00e00cee */
+/* 306de: 00e01272 */
 drawbombs:
 #if (TP_50 & TP_52) | TP_62 /* (PAK & Grafik_Bombs) | LOGO */
 /*
@@ -4021,6 +4043,7 @@ dwidthtab:        /* number of bytes per screen line, indexed by resolution */
         dc.w      320*4/8,640*2/8,640/8,0,640*4/8,0,1280/8,320*8/8
 #endif
 
+#endif /* HADES */
 
 /*
  * _fastcpy - "fast" 512-byte copy
@@ -4165,7 +4188,7 @@ autoscan:
         clr.w     -(a7)
         move.w    #$004A,-(a7)                  /* Mshrink to basepage only */
         trap      #1
-#if TP_15 /* STACK_POINTER */
+#if TP_15 | HADES /* STACK_POINTER */
 		adda.w    #12,a7
         tst.w     d0
         bne.s     autosca4                      /* if Mshrink failed, done */
@@ -4418,9 +4441,16 @@ braop:
 _blitmode:
 #if TP_18 /* IGNORE_BLITTER */
 		moveq     #0,d0
+        rts
+#else
+#if HADES
+/* no blitter */
+		moveq     #0,d0
+        rts
 #else
         bsr.s     blittest                      /* test if blitter is installed */
         move.w    d0,d4                         /* d4 = blitter status */
+#endif
         move.w    d0,d5
         lsr.w     #1,d5
         or.w      #$FFFE,d5                     /* d5 = blitter enable mask */
@@ -4433,8 +4463,8 @@ _blitmode:
         jsr       _SETBLT                       /* disable/enable blitter */
 blitmod1:
         move.w    d3,d0
-#endif
         rts
+#endif
 
 /*
  * blittest - test if the blitter is installed
@@ -4686,7 +4716,7 @@ mchtest2:
       movea.l   a2,a7
       lea       mchtest3(pc),a3
       move.l    a3,(_buserror).w
-      tst.b     $fff00039.l
+      tst.b     ide_stat2.l
       move.w    #8,d0
 mchtest3:
       move.l    a1,(_buserror).w
@@ -4706,6 +4736,13 @@ mchtest4:
 #if (TOSVERSION >= 0x300) & !TP_50
 /* 306de: 00e01756 */
 _esetshift:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		move.l #hades_vidmo*256,d0
+		rts
+		dcb.w 20,-1
+#else
         bsr       dovsync
         moveq.l   #0,d0
         move.w    (shift_tt).w,-(a7)
@@ -4718,21 +4755,36 @@ _esetshift:
         move.w    #1,(_vblsem).w
         move.w    (a7)+,d0
         rts
+#endif
 
 /*
  * XBIOS #81 - EgetShift
  */
 /* 306de: 00e01786 */
 _egetshift:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		move.l #hades_vidmo*256,d0
+		rts
+#else
         moveq.l   #0,d0
         move.w    (shift_tt).w,d0
         rts
+#endif
 
 /*
  * XBIOS #82 - EsetBank - Read/modify TT shifter color bank number
  */
 /* 306de: 00e0178e */
 _esetbank:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		move.l #hades_vidmo*256,d0
+		rts
+		dcb.w 8,-1
+#else
         moveq.l   #0,d0
         move.w    (shift_tt).w,d0
         and.w     #$000F,d0
@@ -4741,6 +4793,7 @@ _esetbank:
         move.b    5(a7),(shift_tt+1).w
 esetb1:
         rts
+#endif
 
 /*
  * XBIOS #83 - EsetColor - Read/modify TT palette color entry
@@ -4748,6 +4801,12 @@ esetb1:
 /* 306de: 00e017a6 */
 _esetcolor:
         moveq.l   #0,d0
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		rts
+		dcb.w 15,-1
+#else
         lea.l     ($FFFF8400).w,a0
         move.w    4(a7),d0
         and.w     #$00FF,d0
@@ -4760,6 +4819,7 @@ _esetcolor:
         move.w    d1,(a0)
 esetcol1:
         rts
+#endif
 
 /*
  * XBIOS #84 - EsetPalette - Set multiple TT palette color registers
@@ -4771,6 +4831,16 @@ esetcol1:
  */
 /* 306de: 00e017c8 */
 _esetpalette:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+        move.w    4(a7),d0
+        andi.w    #$00FF,d0
+        subi.w    #$0100,d0
+        neg.w     d0
+        rts
+        dcb.w 15,-1
+#else
         move.w    4(a7),d0
         and.w     #$00FF,d0
         movea.w   d0,a0
@@ -4790,6 +4860,7 @@ esetpal2:
 esetpal3:
         dbf       d1,esetpal2
         rts
+#endif
 
 /*
  * XBIOS #85 - EgetPalette - Get multiple TT palette color registers
@@ -4798,6 +4869,16 @@ esetpal3:
  */
 /* 306de: 00e017f6 */
 _egetpalette:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+        move.w    4(a7),d0
+        andi.w    #$00FF,d0
+		subi.w    #$100,d0
+		neg.w     d0
+		rts
+		dcb.w 15,-1
+#else
         move.w    4(a7),d0
         and.w     #$00FF,d0
         movea.w   d0,a0
@@ -4817,6 +4898,7 @@ egetpal2:
 egetpal3:
         dbf       d1,egetpal2
         rts
+#endif
 
 
 /*
@@ -4824,6 +4906,13 @@ egetpal3:
  */
 /* 306de: 00e01824 */
 _esetgray:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		moveq #hades_vidmo,d0
+		rts
+		dcb.w 16,-1
+#else
         moveq.l   #0,d0
         move.b    (shift_tt).w,d1
         move.b    d1,d0
@@ -4838,12 +4927,23 @@ esetgr1:
         move.b    d1,(shift_tt).w
 esetgr2:
         rts
+#endif
 
 /*
  * XBIOS #87 - EsetSmear - Read/modify TT shifter smear mode bit
  */
 /* 306de: 00e01848 */
 _esetsmear:
+#if HADES
+/* only fixed resolution */
+/* THO: imho unneeded, since the XBIOS call is disabled */
+		moveq #hades_vidmo,d0
+		add.b d0,d0
+		subx.w d0,d0
+		neg.w d0
+		rts
+		dcb.w 13,-1
+#else
         moveq.l   #0,d0
         move.b    (shift_tt).w,d1
         move.b    d1,d0
@@ -4860,6 +4960,8 @@ esetsm1:
 esetsm2:
         rts
 #endif
+#endif /* (TOSVERSION >= 0x300) & !TP_50 */
+
 
 
 #include "dma.inc"

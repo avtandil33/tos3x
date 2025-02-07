@@ -112,6 +112,7 @@ PP(int32_t msg_arg;)
 /* 306de: 00e0565c */
 /* 104de: 00fc173c */
 /* 404: 00e0480c */
+#if 1 /* hades has patched assembler version */
 BPB *bhdv_getbpb(P(int16_t) dev)
 PP(int16_t dev;)
 {
@@ -217,6 +218,7 @@ PP(int16_t dev;)
 
 	return &bdev->bpb;
 }
+#endif
 
 
 /*

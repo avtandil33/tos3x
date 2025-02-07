@@ -1972,7 +1972,12 @@ scctbl:
         dc.b $09,$01            /* status low, vector includes status */
         dc.b $0a,$00            /* misc flags */
         dc.b $0b,$50            /* Rx/Tx clocks from baudrate generator output */
+#if HADES
+/* different clock rate 14.7456 instead of 8 MHz */
+        dc.b $0c,46
+#else
         dc.b $0c,$18            /* time const low = 24 | so rate = (24+2)*2/BR clock period */
+#endif
         dc.b $0d,$00            /* time const hi = 0   | = 52/(8053976/16) => 9680 bps */
         dc.b $0e,$02            /* baudrate generator source = PCLK (8MHz) */
         dc.b $0e,$03            /* ditto + enable baudrate generator */
@@ -2613,8 +2618,28 @@ scccon13:
 
 /* 306de: 00e031e4 */
 /* 206de: 00e02e3e */
-sccbaudtab: dc.w $000b,$0018,$0032,$0044,$0067,$007c,$008a,$00d0
-            dc.w $01a1,$0345,$04e8,$068c,$074d,$08ee,$0d1a,$13a8
+sccbaudtab:
+#if HADES
+	dc.w	22	/* 0=19200 baud */
+	dc.w	46	/* 1=9600 */
+	dc.w	94	/* 2=4800 */
+	dc.w	126	/* 3=3600 */
+	dc.w	190	/* 4=2400 */
+	dc.w	228	/* 5=2000 */
+	dc.w	254	/* 6=1800 */
+	dc.w	382	/* 7=1200 */
+	dc.w	766	/* 8=600 */
+	dc.w	1534	/* 9=300 */
+	dc.w	10	/* 10=38400 */
+	dc.w	6	/* 11=57600 */
+	dc.w	4	/* 12=76800 */
+	dc.w	2	/* 13=115200 */
+	dc.w	1	/* 14=153600 */
+	dc.w	0	/* 15=230400 */
+#else
+	dc.w $000b,$0018,$0032,$0044,$0067,$007c,$008a,$00d0
+    dc.w $01a1,$0345,$04e8,$068c,$074d,$08ee,$0d1a,$13a8
+#endif
 
 
 /*
@@ -3661,6 +3686,37 @@ coldbooe:   nop
 coldbend:   ds.b 0
 
 #else
+#if HADES
+		move.l	#$ffc040,d0	/* no cache serialized */
+ 		D0_DTT1	            /* transparent translation data 1 */
+		D0_ITT1	            /* transparent translation instruction 1 */
+		D0_DTT0	            /* transparent translation data 0 */
+		D0_ITT0 	        /* transparent translation instruction 0 */
+		moveq.l	#0,d0		/* all caches off */
+        D0_CACR             /* cache setzen */
+		CINVA_BC		    /* caches invalid */
+
+		move.l  d0,a0		/* beginn loschen =0 */
+
+        move.l 	#$210,d0
+        D0_TC               /* set no cache, precise for mc68060 (also works for mc68040) */
+
+		move.w  #$7fff,d0	/* 1. MB loeschen */
+loopclr:
+		clr.l	(a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		clr.l   (a0)+
+		dbf	d0,loopclr
+		move.l	_os_entry+4,a0	/* resetvektor holen */
+		jmp	(a0)
+		dcb.w 17,-1
+        nop
+#else
 #if TP_50 /* PAK */
 		lea     no020_2(pc),a0
 		move.l  a0,ABSW(_illinst)
@@ -3738,10 +3794,12 @@ coldboo5:
 coldboo6:
         nop
 coldbend:  ds.b 0
+#endif /* HADES */
 
         data
 zero2:  dc.l 0
 		text
+
 #endif /* TOSVERSION > 0x200 */
 #endif /* TOSVERSION > 0x300 */
 #endif /* STBOOK */

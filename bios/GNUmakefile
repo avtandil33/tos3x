@@ -36,7 +36,7 @@ startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.in
 start1x.o: start1x.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(NO_BRANCH_OPT) $(CPPFLAGS) -c -o $@ $<
 
-floppy.o: floppy.S $(top_srcdir)/common/config.h
+floppy.o: floppy.S hadflopp.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(NO_BRANCH_OPT) $(CPPFLAGS) -c -o $@ $<
 
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h

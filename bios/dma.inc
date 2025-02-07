@@ -91,7 +91,11 @@ dmarw2:
         movea.l   a7,a1
         move.l    #noide,(_buserror).w
         tst.b     ide_stat2     /* read a register to probe for IDE bus */
+#if HADES
+	bmi.s     noide
+#else
         movea.l   a1,a7         /* hey! no bus error! */
+#endif
         move.l    a0,(_buserror).w /* restore vector & sp and continue. */
         move.b    15(a7),d0     /* IDE unit# */
         bsr       iderdy        /* wait for drive to be ready */
@@ -160,12 +164,20 @@ dmarw6:
         adda.w    #16,a7
 dmarw7:
 #if P68030
+#if HADES
+	CPUSHA_BC
+	nop
+	bra.s dmarwskip
+	dcb.w 7,-1
+dmarwskip:
+#else
         move.w    sr,-(a7)
         ori.w     #$0700,sr
         CACR_D1
         ori.w     #$0808,d1
         D1_CACR
         move.w    (a7)+,sr
+#endif
 #endif
         tst.w     d0             /* successful? */
         ble.s     dmaret         /* if no error or timed-out, return else */
@@ -294,12 +306,20 @@ _endcmd:
         bsr.s     _fdone                    /* wait for operation complete */
         bmi.s     acsiab1                   /* (timed-out, so complain) */
 #if P68030
+#if HADES
+	/* cache clear (un)necessary for dma (certainly necessary for 60s) */
+	CPUSHA_BC
+	bra.s endcmd_skip
+	dcb.w 8,-1
+endcmd_skip:
+#else
         move.w    sr,-(a7)
         ori.w     #$0700,sr
         CACR_D0
         ori.w     #$0800,d0
         D0_CACR
         move.w    (a7)+,sr
+#endif
 #endif
         move.w    d1,($FFFF8606).w
         move.w    ($FFFF8604).w,d0          /* get the result */
@@ -605,6 +625,11 @@ scsisen2:
 
 /* 306de: 00e01c1c */
 scsiphase:
+#if HADES
+/* address scsi arbitration differently */
+	bra arbitr
+	dcb.w 46,-1  
+#else
         bsr       sdelaytime
 scsipha1:
         btst      #6,($FFFF8789).w /* BSY set? */
@@ -641,6 +666,7 @@ scsipha5:
 scsipha6:
         move.b    #$00,($FFFF8783).w
         rts
+#endif
 
 /* 306de: 00e01c7c */
 scsiabort:
@@ -735,7 +761,12 @@ sdelaytime:
 /* 306de: 00e01d22 */
 ldelaytime:
         movea.w   #_hz_200,a0
+#if HADES
+	/* move.l    #66,d1 */	 /* wait only 1/3 sec and not 1 sec */
+	dc.w $223c,0,66
+#else
         move.l    #201,d1
+#endif
         add.l     (a0),d1
         rts
 #endif /* TP_50 */

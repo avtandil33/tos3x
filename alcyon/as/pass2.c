@@ -78,13 +78,22 @@ static VOID relbr(NOTHING)
 	/* make it a nop if destination is next instruction */
 	if (!didorg && ((instrlen == 2 && ival.l == 0) || (instrlen == 4 && ival.l == 2)))
 	{
-		opcpt = nopptr;
-		ins[0] = opcpt->vl1;
-		if (instrlen == 4)
-		{								/* long branch */
-			pins = &ins[1];
-			*pins++ = opcpt->vl1;
-			rlbits[1] = INSABS;
+		if (opcpt == bsrptr)
+		{
+			if (instrlen == 2 && ival.l == 0)
+			{
+				uerr(22); /* illegal relative address */
+			}
+		} else
+		{
+			opcpt = nopptr;
+			ins[0] = opcpt->vl1;
+			if (instrlen == 4)
+			{								/* long branch */
+				pins = &ins[1];
+				*pins++ = opcpt->vl1;
+				rlbits[1] = INSABS;
+			}
 		}
 	}
 	in_err++;							/* ignore extra eg. bra *+$d04(pc) vs. bra *+d04 */

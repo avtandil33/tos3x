@@ -69,7 +69,7 @@ VOID pass1a(NOTHING)
 		{								/* not a directive */
 			format = opcpt->flags & OPFF;
 			p1inlen = stbuf[1].itrl;	/* pass 1 instr length guess */
-			if (((format == 6 && p1inlen == 4) || opcpt == jsrptr) && (rlflg = stbuf[3].itrl) == TEXT)
+			if (((format == FORMAT_RELBR && p1inlen == 4) || opcpt == jsrptr) && (rlflg = stbuf[3].itrl) == TEXT)
 			{
 				nite = stbuf[0].itrl & 0xff;	/* # of it entries */
 				pnite = &stbuf[nite];	/* ptr to end of stmt */
@@ -84,7 +84,7 @@ VOID pass1a(NOTHING)
 				if (itype == ITCN && !extflg && reloc != ABS)
 				{
 					ival.l -= loctr + 2L;
-					if (format == 9)
+					if (format == FORMAT_JMP)
 					{
 						/* jsr */
 						i = (ival.l >= -128 && ival.l <= 127) ? p1inlen - 2 :
@@ -95,9 +95,15 @@ VOID pass1a(NOTHING)
 					} else if (ival.l >= -128 && ival.l <= 127)
 					{
 						if (ival.l == 2)	/* branch to next instr - delete */
+						{
+							/* but must not delete bsr */
+							if (opcpt == bsrptr)
+								continue;
 							i = 4;
-						else			/* reduce long branch to short */
+						} else			/* reduce long branch to short */
+						{
 							i = 2;
+						}
 					} else
 					{
 						continue;

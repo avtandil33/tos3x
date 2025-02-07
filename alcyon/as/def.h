@@ -7,40 +7,40 @@
 
 
 adirect const p1direct[DIRECT] = {
-    hopd,       /*  0 */
-    hend,       /*  1 */
-    hdsect,     /*  2 */
-    hpsect,     /*  3 */
-    hequ,       /*  4 */
-    hequ,       /*  5  .set same as .equ */
+    hopd,       /*  0 DIR_OPD */
+    hend,       /*  1 DIR_END */
+    hdsect,     /*  2 DIR_DSECT */
+    hpsect,     /*  3 DIR_PSECT */
+    hequ,       /*  4 DIR_EQU */
+    hequ,       /*  5 DIR_SET .set same as .equ */
     0,          /*  6 */
-    hascii,     /*  7 */
-    hdc,        /*  8 */
-    hent,       /*  9 */
-    hext,       /* 10 */
-    hbss,       /* 11 */
-    hds,        /* 12 */
-    heven,      /* 13 */
-    horg,       /* 14 */
-    hmask2,     /* 15 */
-    hreg,       /* 16 */
-    hdcb,       /* 17 */
-    hcomline,   /* 18 */
-    hidnt,      /* 19 */
-    hoffset,    /* 20 */
-    hsection,   /* 21 */
-    hifeq,      /* 22 */
-    hifne,      /* 23 */
-    hiflt,      /* 24 */
-    hifle,      /* 25 */
-    hifgt,      /* 26 */
-    hifge,      /* 27 */
-    hendc,      /* 28 */
-    hifc,       /* 29 */
-    hifnc,      /* 30 */
-    hopt,       /* 31 */
-    httl,       /* 32 */
-    hpage       /* 33 */
+    hascii,     /*  7 DIR_ASCII */
+    hdc,        /*  8 DIR_DC */
+    hent,       /*  9 DIR_GLOBL */
+    hext,       /* 10 DIR_COMM */
+    hbss,       /* 11 DIR_BSS */
+    hds,        /* 12 DIR_DS */
+    heven,      /* 13 DIR_EVEN */
+    horg,       /* 14 DIR_ORG */
+    hmask2,     /* 15 DIR_MASK2 */
+    hreg,       /* 16 DIR_REGEQU */
+    hdcb,       /* 17 DIR_DCB */
+    hcomline,   /* 18 DIR_COMLINE */
+    hidnt,      /* 19 DIR_IDNT */
+    hoffset,    /* 20 DIR_OFFSET */
+    hsection,   /* 21 DIR_SECTION */
+    hifeq,      /* 22 DIR_IFEQ */
+    hifne,      /* 23 DIR_IFNE */
+    hiflt,      /* 24 DIR_IFLT */
+    hifle,      /* 25 DIR_IFLE */
+    hifgt,      /* 26 DIR_IFGT */
+    hifge,      /* 27 DIR_IFGE */
+    hendc,      /* 28 DIR_ENDC */
+    hifc,       /* 29 DIR_IFC */
+    hifnc,      /* 30 DIR_IFNC */
+    hopt,       /* 31 DIR_OPT */
+    httl,       /* 32 DIR_TTL */
+    hpage       /* 33 DIR_PAGE */
 };
 
 adirect const p2direct[DIRECT] = {

@@ -1095,6 +1095,17 @@ static VOID usage(NOTHING)
 
 #include "../common/linux/libcmain.h"
 
+#ifdef __GNUC__
+/* gcc will optimize the reference in the macro away */
+extern struct symtab *opformat_out_of_range(void);
+extern struct symtab *directive_out_of_range(void);
+#define MKOPD(name, formt, val) ((formt) > OPFF ? opformat_out_of_range() : mkopd(name, formt, val))
+#define MDEMT(name, dir) ((dir) >= DIRECT ? directive_out_of_range() : mdemt(name, dir))
+#else
+#define MKOPD(name, formt, val) mkopd(name, formt, val)
+#define MDEMT(name, dir) mdemt(name, dir)
+#endif
+
 
 int main(P(int) argc, P(char **) argv)
 PP(int argc;)
@@ -1218,42 +1229,42 @@ PP(char **argv;)
 	initsy();
 	
 	/* make entries in main table for directives */
-	mdemt("opd", 0);				/* opcode definition */
-	endptr = mdemt("end", 1);		/* end statement */
-	mdemt("data", 2);				/* dsect directive(code DATA based) */
-	mdemt("text", 3);				/* psect directive(code TEXT based) */
-	mdemt("equ", 4);				/* equate */
-	mdemt("set", 5);				/* .set - same as .equ */
-	mdemt("ascii", 7);				/* define ascii string */
-	dcptr = mdemt("dc", 8);			/* define constant */
-	mdemt("globl", 9);				/* define global (public) symbols */
-	mdemt("xdef", 9);				/* define global (public) symbols */
-	mdemt("xref", 9);				/* define global (public) symbols */
-	mdemt("comm", 10);				/* define external symbols */
-	mdemt("bss", 11);				/* block storage based */
-	mdemt("ds", 12);				/* block storage based */
-	evenptr = mdemt("even", 13);	/* round pc */
-	mdemt("~.yxzorg", 14);			/* internal, *= */
-	orgptr = mdemt("org", 14);		/* org location, also *= */
-	mdemt("mask2", 15);				/* assemble for mask2, ignore */
-	mdemt("reg", 16);				/* register equate */
-	mdemt("dcb", 17);				/* define block */
-	mdemt("comline", 18);			/* command line */
-	mdemt("idnt", 19);				/* relocateable id record, ignore */
-	mdemt("offset", 20);			/* define offsets */
-	mdemt("section", 21);			/* define sections */
-	mdemt("ifeq", 22);				/* ca if expr = 0 */
-	mdemt("ifne", 23);				/* ca if expr != 0 */
-	mdemt("iflt", 24);				/* ca if expr < 0 */
-	mdemt("ifle", 25);				/* ca if expr <= 0 */
-	mdemt("ifgt", 26);				/* ca if expr > 0 */
-	mdemt("ifge", 27);				/* ca if expr >= 0 */
-	mdemt("endc", 28);				/* end ca */
-	mdemt("ifc", 29);				/* ca if string compare */
-	mdemt("ifnc", 30);				/* ca if not string compare */
-	mdemt("opt", 31);				/* ignored, assemb options */
-	mdemt("ttl", 32);				/* ttl define, ignore */
-	mdemt("page", 33);				/* page define, ignore */
+	MDEMT("opd", DIR_OPD);			/* opcode definition */
+	endptr = MDEMT("end", DIR_END);	/* end statement */
+	MDEMT("data", DIR_DSECT);		/* dsect directive(code DATA based) */
+	MDEMT("text", DIR_PSECT);		/* psect directive(code TEXT based) */
+	MDEMT("equ", DIR_EQU);			/* equate */
+	MDEMT("set", DIR_SET);			/* .set - same as .equ */
+	MDEMT("ascii", DIR_ASCII);		/* define ascii string */
+	dcptr = MDEMT("dc", DIR_DC);	/* define constant */
+	MDEMT("globl", DIR_GLOBL);		/* define global (public) symbols */
+	MDEMT("xdef", DIR_GLOBL);		/* define global (public) symbols */
+	MDEMT("xref", DIR_GLOBL);		/* define global (public) symbols */
+	MDEMT("comm", DIR_COMM);		/* define external symbols */
+	MDEMT("bss", DIR_BSS);			/* block storage based */
+	MDEMT("ds", DIR_DS);			/* block storage based */
+	evenptr = MDEMT("even", DIR_EVEN);	/* round pc */
+	MDEMT("~.yxzorg", DIR_ORG);		/* internal, *= */
+	orgptr = MDEMT("org", DIR_ORG);	/* org location, also *= */
+	MDEMT("mask2", DIR_MASK2);		/* assemble for mask2, ignore */
+	MDEMT("reg", DIR_REGEQU);		/* register equate */
+	MDEMT("dcb", DIR_DCB);				/* define block */
+	MDEMT("comline", DIR_COMLINE);	/* command line */
+	MDEMT("idnt", DIR_IDNT);		/* relocateable id record, ignore */
+	MDEMT("offset", DIR_OFFSET);	/* define offsets */
+	MDEMT("section", DIR_SECTION);	/* define sections */
+	MDEMT("ifeq", DIR_IFEQ);		/* ca if expr = 0 */
+	MDEMT("ifne", DIR_IFNE);		/* ca if expr != 0 */
+	MDEMT("iflt", DIR_IFLT);		/* ca if expr < 0 */
+	MDEMT("ifle", DIR_IFLE);		/* ca if expr <= 0 */
+	MDEMT("ifgt", DIR_IFGT);		/* ca if expr > 0 */
+	MDEMT("ifge", DIR_IFGE);		/* ca if expr >= 0 */
+	MDEMT("endc", DIR_ENDC);		/* end ca */
+	MDEMT("ifc", DIR_IFC);			/* ca if string compare */
+	MDEMT("ifnc", DIR_IFNC);		/* ca if not string compare */
+	MDEMT("opt", DIR_OPT);			/* ignored, assemb options */
+	MDEMT("ttl", DIR_TTL);			/* ttl define, ignore */
+	MDEMT("page", DIR_PAGE);		/* page define, ignore */
 	
 	/* make entries in main table for registers */
 	for (i = 0; i < (short)(sizeof(regnames) / sizeof(regnames[0])); i++)
@@ -1261,144 +1272,144 @@ PP(char **argv;)
 	
 	/* make entries in opcode table */
 
-	mkopd("abcd",    4, 0140400);
-	addptr = mkopd("add",    1, 0150000);
-	addaptr = mkopd("adda",    15, 0150000);
-	addiptr = mkopd("addi",    2, 0003000);
-	addqptr = mkopd("addq",    17, 0050000);
-	mkopd("inc",    16, 0050000);
-	mkopd("addx",   27, 0150400);
-	andptr = mkopd("and",    1, 0140000);
-	andiptr = mkopd("andi",    2, 0001000);
-	mkopd("asl",     8, 0160400);
-	mkopd("asr",     8, 0160000);
-	mkopd("bcc",     6, 0062000);
-	mkopd("bcs",     6, 0062400);
-	mkopd("beq",     6, 0063400);
-	mkopd("bze",     6, 0063400);
-	mkopd("bge",     6, 0066000);
-	mkopd("bgt",     6, 0067000);
-	mkopd("bhi",     6, 0061000);
-	mkopd("bhis",    6, 0062000);
-	mkopd("bhs",     6, 0062000);
-	mkopd("ble",     6, 0067400);
-	mkopd("blo",     6, 0062400);
-	mkopd("bls",     6, 0061400);
-	mkopd("blos",    6, 0061400);
-	mkopd("blt",     6, 0066400);
-	mkopd("bmi",     6, 0065400);
-	mkopd("bne",     6, 0063000);
-	mkopd("bnz",     6, 0063000);
-	mkopd("bpl",     6, 0065000);
-	mkopd("bvc",     6, 0064000);
-	mkopd("bvs",     6, 0064400);
-	mkopd("bchg",    7, 0000100);
-	mkopd("bclr",    7, 0000200);
-	mkopd("bra",     6, 0060000);
-	mkopd("bt",      6, 0060000);
-	mkopd("bset",    7, 0000300);
-	bsrptr = mkopd("bsr",    6, 0060400);
-	mkopd("btst",    7, 0000000);
-	mkopd("chk",    26, 0040600);
-	mkopd("clr",    CLRFOR, CLRVAL);
-	cmpptr = mkopd("cmp",    26, 0130000);
-	cmpaptr = mkopd("cmpa",    15, 0130000);
-	cmpiptr = mkopd("cmpi",    2, 0006000);
-	cmpmptr = mkopd("cmpm",    10, 0130410);
-	mkopd("dbcc",   11, 0052310);
-	mkopd("dbcs",   11, 0052710);
-	mkopd("dblo",   11, 0052710);
-	mkopd("dbeq",   11, 0053710);
-	mkopd("dbze",   11, 0053710);
-	mkopd("dbra",   11, 0050710);
-	mkopd("dbf",    11, 0050710);
-	mkopd("dbge",   11, 0056310);
-	mkopd("dbgt",   11, 0057310);
-	mkopd("dbhi",   11, 0051310);
-	mkopd("dbhs",   11, 0051310);
-	mkopd("dble",   11, 0057710);
-	mkopd("dbls",   11, 0051710);
-	mkopd("dblt",   11, 0056710);
-	mkopd("dbmi",   11, 0055710);
-	mkopd("dbne",   11, 0053310);
-	mkopd("dbnz",   11, 0053310);
-	mkopd("dbpl",   11, 0055310);
-	mkopd("dbt",    11, 0050310);
-	mkopd("dbvc",   11, 0054310);
-	mkopd("dbvs",   11, 0054710);
-	mkopd("divs",    5, 0100700);
-	mkopd("divu",    5, 0100300);
-	eorptr = mkopd("eor",    23, 0130000);
-	eoriptr = mkopd("eori",    2, 0005000);
-	exgptr = mkopd("exg",    12, 0140400);
-	mkopd("ext",    13, 0044000);
-	mkopd("jmp",     9, 0047300);
-	jsrptr = mkopd("jsr",    9, 0047200);
-	mkopd("illegal",   0, 0045374);
-	mkopd("lea",    30, 0040700);
-	mkopd("link",   19, 0047120);
-	mkopd("lsr",     8, 0160010);
-	mkopd("lsl",     8, 0160410);
-	moveptr = mkopd("move",    3, 0000000);
-	mkopd("movea",   3, 0000100);
-	mkopd("movec",  31, 0047172);
-	mkopd("movem",  20, 0044200);
-	mkopd("movep",  21, 0000010);
-	moveqptr = mkopd("moveq",    22, 0070000);
-	mkopd("moves",  31, 0007000);
-	mkopd("muls",    5, 0140700);
-	mkopd("mulu",    5, 0140300);
-	mkopd("nbcd",   25, 0044000);
-	mkopd("neg",    24, 0042000);
-	mkopd("negx",   24, 0040000);
-	nopptr = mkopd("nop",    0, 0047161);
-	mkopd("not",    24, 0043000);
-	orptr = mkopd("or",    1, 0100000);
-	oriptr = mkopd("ori",    2, 0000000);
-	mkopd("pea",    29, 0044100);
-	mkopd("reset",   0, 0047160);
-	mkopd("rol",     8, 0160430);
-	mkopd("ror",     8, 0160030);
-	mkopd("roxl",    8, 0160420);
-	mkopd("roxr",    8, 0160020);
-	mkopd("rtd",    14, 0047164);
-	mkopd("rte",     0, 0047163);
-	mkopd("rtr",     0, 0047167);
-	mkopd("rts",     0, 0047165);
-	mkopd("sbcd",    4, 0100400);
-	mkopd("scc",    25, 0052300);
-	mkopd("shs",    25, 0052300);
-	mkopd("scs",    25, 0052700);
-	mkopd("slo",    25, 0052700);
-	mkopd("seq",    25, 0053700);
-	mkopd("sze",    25, 0053700);
-	mkopd("sf",     25, 0050700);
-	mkopd("sge",    25, 0056300);
-	mkopd("sgt",    25, 0057300);
-	mkopd("shi",    25, 0051300);
-	mkopd("sle",    25, 0057700);
-	mkopd("sls",    25, 0051700);
-	mkopd("slt",    25, 0056700);
-	mkopd("smi",    25, 0055700);
-	mkopd("sne",    25, 0053300);
-	mkopd("snz",    25, 0053300);
-	mkopd("spl",    25, 0055300);
-	mkopd("st",     25, 0050300);
-	mkopd("svc",    25, 0054300);
-	mkopd("svs",    25, 0054700);
-	mkopd("stop",   14, 0047162);
-	subptr = mkopd("sub",    1, 0110000);
-	subaptr = mkopd("suba",    15, 0110000);
-	subiptr = mkopd("subi",    2, 0002000);
-	subqptr = mkopd("subq",    17, 0050400);
-	mkopd("dec",    16, 0050400);
-	mkopd("subx",   27, 0110400);
-	mkopd("swap",   28, 0044100);
-	mkopd("tas",    25, 0045300);
-	mkopd("trap",   18, 0047100);
-	mkopd("trapv",   0, 0047166);
-	mkopd("tst",    24, 0045000);
-	mkopd("unlk",   13, 0047130);
+	MKOPD("abcd",    4, 0140400);
+	addptr = MKOPD("add",    1, 0150000);
+	addaptr = MKOPD("adda",    15, 0150000);
+	addiptr = MKOPD("addi",    2, 0003000);
+	addqptr = MKOPD("addq",    17, 0050000);
+	MKOPD("inc",    16, 0050000);
+	MKOPD("addx",   27, 0150400);
+	andptr = MKOPD("and",    1, 0140000);
+	andiptr = MKOPD("andi",    2, 0001000);
+	MKOPD("asl",     8, 0160400);
+	MKOPD("asr",     8, 0160000);
+	MKOPD("bcc",     6, 0062000);
+	MKOPD("bcs",     6, 0062400);
+	MKOPD("beq",     6, 0063400);
+	MKOPD("bze",     6, 0063400);
+	MKOPD("bge",     6, 0066000);
+	MKOPD("bgt",     6, 0067000);
+	MKOPD("bhi",     6, 0061000);
+	MKOPD("bhis",    6, 0062000);
+	MKOPD("bhs",     6, 0062000);
+	MKOPD("ble",     6, 0067400);
+	MKOPD("blo",     6, 0062400);
+	MKOPD("bls",     6, 0061400);
+	MKOPD("blos",    6, 0061400);
+	MKOPD("blt",     6, 0066400);
+	MKOPD("bmi",     6, 0065400);
+	MKOPD("bne",     6, 0063000);
+	MKOPD("bnz",     6, 0063000);
+	MKOPD("bpl",     6, 0065000);
+	MKOPD("bvc",     6, 0064000);
+	MKOPD("bvs",     6, 0064400);
+	MKOPD("bchg",    7, 0000100);
+	MKOPD("bclr",    7, 0000200);
+	MKOPD("bra",     6, 0060000);
+	MKOPD("bt",      6, 0060000);
+	MKOPD("bset",    7, 0000300);
+	bsrptr = MKOPD("bsr",    6, 0060400);
+	MKOPD("btst",    7, 0000000);
+	MKOPD("chk",    26, 0040600);
+	MKOPD("clr",    CLRFOR, CLRVAL);
+	cmpptr = MKOPD("cmp",    26, 0130000);
+	cmpaptr = MKOPD("cmpa",    15, 0130000);
+	cmpiptr = MKOPD("cmpi",    2, 0006000);
+	cmpmptr = MKOPD("cmpm",    10, 0130410);
+	MKOPD("dbcc",   11, 0052310);
+	MKOPD("dbcs",   11, 0052710);
+	MKOPD("dblo",   11, 0052710);
+	MKOPD("dbeq",   11, 0053710);
+	MKOPD("dbze",   11, 0053710);
+	MKOPD("dbra",   11, 0050710);
+	MKOPD("dbf",    11, 0050710);
+	MKOPD("dbge",   11, 0056310);
+	MKOPD("dbgt",   11, 0057310);
+	MKOPD("dbhi",   11, 0051310);
+	MKOPD("dbhs",   11, 0051310);
+	MKOPD("dble",   11, 0057710);
+	MKOPD("dbls",   11, 0051710);
+	MKOPD("dblt",   11, 0056710);
+	MKOPD("dbmi",   11, 0055710);
+	MKOPD("dbne",   11, 0053310);
+	MKOPD("dbnz",   11, 0053310);
+	MKOPD("dbpl",   11, 0055310);
+	MKOPD("dbt",    11, 0050310);
+	MKOPD("dbvc",   11, 0054310);
+	MKOPD("dbvs",   11, 0054710);
+	MKOPD("divs",    5, 0100700);
+	MKOPD("divu",    5, 0100300);
+	eorptr = MKOPD("eor",    23, 0130000);
+	eoriptr = MKOPD("eori",    2, 0005000);
+	exgptr = MKOPD("exg",    12, 0140400);
+	MKOPD("ext",    13, 0044000);
+	MKOPD("jmp",     9, 0047300);
+	jsrptr = MKOPD("jsr",    9, 0047200);
+	MKOPD("illegal",   0, 0045374);
+	MKOPD("lea",    30, 0040700);
+	MKOPD("link",   19, 0047120);
+	MKOPD("lsr",     8, 0160010);
+	MKOPD("lsl",     8, 0160410);
+	moveptr = MKOPD("move",    3, 0000000);
+	MKOPD("movea",   3, 0000100);
+	MKOPD("movec",  31, 0047172);
+	MKOPD("movem",  20, 0044200);
+	MKOPD("movep",  21, 0000010);
+	moveqptr = MKOPD("moveq",    22, 0070000);
+	MKOPD("moves",  31, 0007000);
+	MKOPD("muls",    5, 0140700);
+	MKOPD("mulu",    5, 0140300);
+	MKOPD("nbcd",   25, 0044000);
+	MKOPD("neg",    24, 0042000);
+	MKOPD("negx",   24, 0040000);
+	nopptr = MKOPD("nop",    0, 0047161);
+	MKOPD("not",    24, 0043000);
+	orptr = MKOPD("or",    1, 0100000);
+	oriptr = MKOPD("ori",    2, 0000000);
+	MKOPD("pea",    29, 0044100);
+	MKOPD("reset",   0, 0047160);
+	MKOPD("rol",     8, 0160430);
+	MKOPD("ror",     8, 0160030);
+	MKOPD("roxl",    8, 0160420);
+	MKOPD("roxr",    8, 0160020);
+	MKOPD("rtd",    14, 0047164);
+	MKOPD("rte",     0, 0047163);
+	MKOPD("rtr",     0, 0047167);
+	MKOPD("rts",     0, 0047165);
+	MKOPD("sbcd",    4, 0100400);
+	MKOPD("scc",    25, 0052300);
+	MKOPD("shs",    25, 0052300);
+	MKOPD("scs",    25, 0052700);
+	MKOPD("slo",    25, 0052700);
+	MKOPD("seq",    25, 0053700);
+	MKOPD("sze",    25, 0053700);
+	MKOPD("sf",     25, 0050700);
+	MKOPD("sge",    25, 0056300);
+	MKOPD("sgt",    25, 0057300);
+	MKOPD("shi",    25, 0051300);
+	MKOPD("sle",    25, 0057700);
+	MKOPD("sls",    25, 0051700);
+	MKOPD("slt",    25, 0056700);
+	MKOPD("smi",    25, 0055700);
+	MKOPD("sne",    25, 0053300);
+	MKOPD("snz",    25, 0053300);
+	MKOPD("spl",    25, 0055300);
+	MKOPD("st",     25, 0050300);
+	MKOPD("svc",    25, 0054300);
+	MKOPD("svs",    25, 0054700);
+	MKOPD("stop",   14, 0047162);
+	subptr = MKOPD("sub",    1, 0110000);
+	subaptr = MKOPD("suba",    15, 0110000);
+	subiptr = MKOPD("subi",    2, 0002000);
+	subqptr = MKOPD("subq",    17, 0050400);
+	MKOPD("dec",    16, 0050400);
+	MKOPD("subx",   27, 0110400);
+	MKOPD("swap",   28, 0044100);
+	MKOPD("tas",    25, 0045300);
+	MKOPD("trap",   18, 0047100);
+	MKOPD("trapv",   0, 0047166);
+	MKOPD("tst",    24, 0045000);
+	MKOPD("unlk",   13, 0047130);
 	
 	rlflg = TEXT;						/* code initially TEXT based */
 	inoffset = 0;						/* not in offset mode */

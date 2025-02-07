@@ -145,8 +145,44 @@
 #define STMAX   200 /* size of intermediate text buffer */
 #define SZIRT   128
 #define EXTSZ   1024
+
+/*
+ * directive numbers
+ */
+#define DIR_OPD       0
+#define DIR_END       1
+#define DIR_DSECT     2
+#define DIR_PSECT     3
+#define DIR_EQU       4
+#define DIR_SET       5
+#define DIR_ASCII     7
+#define DIR_DC        8
+#define DIR_GLOBL     9
+#define DIR_COMM      10
+#define DIR_BSS       11
+#define DIR_DS        12
+#define DIR_EVEN      13
+#define DIR_ORG       14
+#define DIR_MASK2     15
+#define DIR_REGEQU    16
+#define DIR_DCB       17
+#define DIR_COMLINE   18
+#define DIR_IDNT      19
+#define DIR_OFFSET    20
+#define DIR_SECTION   21
+#define DIR_IFEQ      22
+#define DIR_IFNE      23
+#define DIR_IFLT      24
+#define DIR_IFLE      25
+#define DIR_IFGT      26
+#define DIR_IFGE      27
+#define DIR_ENDC      28
+#define DIR_IFC       29
+#define DIR_IFNC      30
+#define DIR_OPT       31
+#define DIR_TTL       32
+#define DIR_PAGE      33
 #define DIRECT  34  /* number of entries in p2direct */
-#define ORGDIR  14  /* org entry in p2direct */
 
 /*
  * intermediate text file

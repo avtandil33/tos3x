@@ -389,10 +389,10 @@ static VOID opf4(NOTHING)
 {
 	if (!get2ops())
 		return;
-	if (format == 27)
+	if (format == FORMAT_ADDX)
 	{									/* addx,subx add in size bits */
 		ins[0] |= f1mode[modelen];
-	} else if (format == 10)
+	} else if (format == FORMAT_CMPM)
 	{									/* cmpm */
 		if ((opnd[0].ea & 070) != INDINC || (opnd[1].ea & 070) != INDINC)
 			uerr(20); /* illegal addressing mode */
@@ -572,16 +572,16 @@ PP(struct op *ap;)
 static VOID opf9(NOTHING)
 {
 	getea(0);
-	if (format == 24)
+	if (format == FORMAT_CLR)
 	{									/* clr, not, etc */
 		ins[0] |= f1mode[modelen];		/* add size bits */
 		if (!dataalt(&opnd[0]) || pcea(&opnd[0]))
 			uerr(20); /* illegal addressing mode */
-	} else if (format == 25)
+	} else if (format == FORMAT_SCC)
 	{									/* tas,scc, etc */
 		if (ckareg(&opnd[0]) || pcea(&opnd[0]) || opnd[0].ea == IMM)
 			uerr(20); /* illegal addressing mode */
-	} else if (format == 14)
+	} else if (format == FORMAT_STOP)
 	{									/* stop */
 		if (ins[0] == RTD && !m68010)
 			uerr(8); /* opcode for 68010 only */
@@ -604,7 +604,7 @@ static VOID opf11(NOTHING)
 {
 	if (!get2ops())
 		return;
-	if (format == 19)
+	if (format == FORMAT_LINK)
 	{									/* link */
 		if (!ckareg(&opnd[0]))
 			uerr(33); /* register required */
@@ -673,7 +673,7 @@ static VOID opf12(NOTHING)
 static VOID opf13(NOTHING)
 {
 	getea(0);
-	if (format == 18)
+	if (format == FORMAT_TRAP)
 	{									/* trap */
 		if (opnd[0].con < 0 || opnd[0].con > 15)
 			uerr(15); /* illegal constant */
@@ -688,7 +688,7 @@ static VOID opf13(NOTHING)
 	{
 		if (!ckdreg(&opnd[0]))
 			uerr(20); /* illegal addressing mode */
-		if (format == 13)				/* ext */
+		if (format == FORMAT_EXT)				/* ext */
 			ins[0] |= f13mode[modelen];
 	}
 	ins[0] |= opnd[0].ea & 7;
@@ -705,7 +705,7 @@ static VOID opf15(NOTHING)
 		return;
 	if (!ckareg(&opnd[1]))
 		uerr(33); /* register required */
-	if (format == 30)
+	if (format == FORMAT_LEA)
 	{
 		i = 0700;
 		if (!controlea(&opnd[0]))
@@ -715,7 +715,7 @@ static VOID opf15(NOTHING)
 		i = f15mode[modelen];
 	}
 	makef1(opnd[1].ea & 7, i, &opnd[0]);
-	if (format == 15 && opnd[0].ea != 071)
+	if (format == FORMAT_ADDA && opnd[0].ea != 071)
 		cksize(&opnd[0]);
 }
 
@@ -723,7 +723,7 @@ static VOID opf15(NOTHING)
 /* formats 16 and 17 -- addq, inc, subq, dec */
 static VOID opf17(NOTHING)
 {
-	if (format == 16)
+	if (format == FORMAT_INC)
 	{									/* inc or dec */
 		clrea(&opnd[0]);
 		opnd[0].ea = IMM;
@@ -1006,38 +1006,38 @@ static VOID opf31(NOTHING)
 
 
 static adirect const opfary[] = {
-	0,		/*  0 */
-	opf1,	/*  1 */
-	opf2,	/*  2 */
-	opf3,	/*  3 */
-	opf4,	/*  4 */
-	opf5,	/*  5 */
-	relbr,	/*  6 */
-	opf7,	/*  7 */
-	opf8,	/*  8 */
-	opf9,	/*  9 */
-	opf4,	/* 10 */
-	opf11,	/* 11 */
-	opf12,	/* 12 */
-	opf13,	/* 13 */
-	opf9,	/* 14 */
-	opf15,	/* 15 */
-	opf17,	/* 16 */
-	opf17,	/* 17 */
-	opf13,	/* 18 */
-	opf11,	/* 19 */
-	opf20,	/* 20 */
-	opf21,	/* 21 */
-	opf22,	/* 22 */
-	opf23,	/* 23 */
-	opf9,	/* 24 */
-	opf9,	/* 25 */
-	opf5,	/* 26 */		/* cmp, chk, extention verification */
-	opf4,	/* 27 */		/* addx, subx, extension verification */
-	opf13,	/* 28 */		/* swap, extension verification */
-	opf9,	/* 29 */		/* pea, extention verification */
-	opf15,  /* 30 */		/* lea, extension verification */
-	opf31	/* 31 */		/* movec & moves 68010 */
+	0,		/*  0 FORMAT_NONE */
+	opf1,	/*  1 FORMAT_2EA */
+	opf2,	/*  2 FORMAT_ADDI */
+	opf3,	/*  3 FORMAT_MOVE */
+	opf4,	/*  4 FORMAT_ABCD */
+	opf5,	/*  5 FORMAT_DIV */
+	relbr,	/*  6 FORMAT_RELBR */
+	opf7,	/*  7 FORMAT_BTST */
+	opf8,	/*  8 FORMAT_ASL */
+	opf9,	/*  9 FORMAT_JMP */
+	opf4,	/* 10 FORMAT_CMPM */
+	opf11,	/* 11 FORMAT_DBCC */
+	opf12,	/* 12 FORMAT_EXG */
+	opf13,	/* 13 FORMAT_EXT */
+	opf9,	/* 14 FORMAT_STOP */
+	opf15,	/* 15 FORMAT_ADDA */
+	opf17,	/* 16 FORMAT_INC */
+	opf17,	/* 17 FORMAT_ADDQ */
+	opf13,	/* 18 FORMAT_TRAP */
+	opf11,	/* 19 FORMAT_LINK */
+	opf20,	/* 20 FORMAT_MOVEM */
+	opf21,	/* 21 FORMAT_MOVEP */
+	opf22,	/* 22 MOVEQ */
+	opf23,	/* 23 FORMAT_EOR */
+	opf9,	/* 24 FORMAT_CLR */
+	opf9,	/* 25 FORMAT_SCC */
+	opf5,	/* 26 FORMAT_CMP */		/* cmp, chk, extention verification */
+	opf4,	/* 27 FORMAT_ADDX */	/* addx, subx, extension verification */
+	opf13,	/* 28 FORMAT_SWAP */	/* swap, extension verification */
+	opf9,	/* 29 FORMAT_PEA */		/* pea, extention verification */
+	opf15,  /* 30 FORMAT_LEA */		/* lea, extension verification */
+	opf31	/* 31 FORMAT_MOVEC */	/* movec & moves 68010 */
 };
 #define LSTFRMT 31
 
@@ -1065,7 +1065,7 @@ static VOID gcist(NOTHING)
 	prlb = &rlbits[1];
 	if (nite > ITOP1)
 	{									/* operands */
-		if (!format)
+		if (format == FORMAT_NONE)
 		{
 			uerr(9); /* invalid first operand */
 		} else if (format > LSTFRMT)		/* was a magic number... */

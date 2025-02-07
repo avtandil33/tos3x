@@ -109,8 +109,6 @@
 #define MOVEUSP 047140
 #define CLRVAL  041000
 
-#define CLRFOR  24
-
 /* relocation values */
 #define ABS    0   /* absolute */
 #define DATA   1
@@ -183,6 +181,43 @@
 #define DIR_TTL       32
 #define DIR_PAGE      33
 #define DIRECT  34  /* number of entries in p2direct */
+
+/*
+ * opcode format
+ */
+#define FORMAT_NONE     0
+#define FORMAT_2EA      1    /* two ea's -- one of which may be a reg */
+#define FORMAT_ADDI     2    /* addi, andi, subi, etc */
+#define FORMAT_MOVE     3    /* move and movea */
+#define FORMAT_ABCD     4    /* abcd, sbcd */
+#define FORMAT_DIV      5    /* div, mul */
+#define FORMAT_RELBR    6    /* relative branches */
+#define FORMAT_BTST     7    /* btst, bclr, bset, etc */
+#define FORMAT_ASL      8    /* shifts and rotates */
+#define FORMAT_JMP      9    /* jmp, jsr */
+#define FORMAT_CMPM    10    /* cmpm */
+#define FORMAT_DBCC    11    /* dbcc */
+#define FORMAT_EXG     12    /* exg */
+#define FORMAT_EXT     13    /* ext, unlk */
+#define FORMAT_STOP    14    /* stop, rtd */
+#define FORMAT_ADDA    15    /* adda, cmpa, suba */
+#define FORMAT_INC     16    /* inc, dec */
+#define FORMAT_ADDQ    17    /* addq, subq */
+#define FORMAT_TRAP    18    /* trap */
+#define FORMAT_LINK    19    /* link */
+#define FORMAT_MOVEM   20    /* movem */
+#define FORMAT_MOVEP   21    /* movep */
+#define FORMAT_MOVEQ   22    /* moveq */
+#define FORMAT_EOR     23    /* eor */
+#define FORMAT_CLR     24    /* clr, neg, negx, not, tst */
+#define FORMAT_SCC     25    /* scc, tas, nbcd */
+#define FORMAT_CMP     26    /* cmp, chk */
+#define FORMAT_ADDX    27    /* addx, subx */
+#define FORMAT_SWAP    28    /* swap */
+#define FORMAT_PEA     29    /* pea */
+#define FORMAT_LEA     30    /* lea */
+#define FORMAT_MOVEC   31    /* movec, moves */
+
 
 /*
  * intermediate text file

@@ -252,31 +252,31 @@ static int modeok(NOTHING)
 {
 	switch (format)
 	{
-	case 0:
-	case 14:
-	case 18:
+	case FORMAT_NONE:
+	case FORMAT_STOP:
+	case FORMAT_TRAP:
 		return FALSE;
-	case 13:
-	case 15:
-	case 20:
-	case 21:
+	case FORMAT_EXT:
+	case FORMAT_ADDA:
+	case FORMAT_MOVEM:
+	case FORMAT_MOVEP:
 		return modelen == BYTESIZ ? FALSE : TRUE;
-	case 4:
-	case 25:
+	case FORMAT_ABCD:
+	case FORMAT_SCC:
 		return modelen == BYTESIZ ? TRUE : FALSE;
-	case 7:
-	case 9:
+	case FORMAT_BTST:
+	case FORMAT_JMP:
 		return modelen == WORDSIZ ? FALSE : TRUE;
-	case 5:
-	case 11:
-	case 28:
+	case FORMAT_DIV:
+	case FORMAT_DBCC:
+	case FORMAT_ADDX:
 		return modelen == WORDSIZ ? TRUE : FALSE;
-	case 6:
+	case FORMAT_RELBR:
 		return modelen == LONGSIZ ? FALSE : TRUE;
-	case 12:
-	case 30:
-	case 22:
-	case 29:
+	case FORMAT_EXG:
+	case FORMAT_LEA:
+	case FORMAT_MOVEQ:
+	case FORMAT_PEA:
 		return modelen == LONGSIZ ? TRUE : FALSE;
 	default:
 		return TRUE;
@@ -346,44 +346,44 @@ static int calcilen(NOTHING)
 
 	switch (format)
 	{
-	case 20:
+	case FORMAT_MOVEM:
 		i += 2;							/* for reg mask */
 		/* fall through */
-	case 1:								/* two ea's -- one of which may be a reg */
-	case 15:
-	case 30:
-	case 26:
-	case 5:
-	case 3:
-	case 21:
+	case FORMAT_2EA:					/* two ea's -- one of which may be a reg */
+	case FORMAT_ADDA:
+	case FORMAT_LEA:
+	case FORMAT_CMP:
+	case FORMAT_DIV:
+	case FORMAT_MOVE:
+	case FORMAT_MOVEP:
 		i += lenea(1);
 		/* fall through */
-	case 16:
-	case 24:
-	case 25:
-	case 29:
+	case FORMAT_INC:
+	case FORMAT_CLR:
+	case FORMAT_SCC:
+	case FORMAT_PEA:
 		i += lenea(0);
 		break;
 
-	case 9:							/* explicit jmp length... */
+	case FORMAT_JMP:					/* explicit jmp length... */
 		if (!explmode)
 			i += lenea(0);
 		else
 			return mode == LONG ? 6 : 4;	/* explicit jmp.? */
 		break;
 
-	case 7:
+	case FORMAT_BTST:
 		i += immed[0] ? 2 + lenea(1) : lenea(1);
 		break;
 
-	case 14:
-	case 11:
-	case 19:
-	case 31:
+	case FORMAT_STOP:
+	case FORMAT_DBCC:
+	case FORMAT_LINK:
+	case FORMAT_MOVEC:
 		i += 2;							/* always 4 bytes */
 		break;
 
-	case 6:								/* relative branches */
+	case FORMAT_RELBR:					/* relative branches */
 		if (itwc == ITOP1 + 1)
 		{
 			if (stbuf[ITOP1].itty == ITCN || stbuf[ITOP1].itty == ITCW)
@@ -409,20 +409,20 @@ static int calcilen(NOTHING)
 			i += 2;						/* long offset for branches */
 		break;
 
-	case 2:
+	case FORMAT_ADDI:
 		i += (mode == LONG ? LONGSIZ : WORDSIZ) + lenea(1);
 		break;
 
-	case 23:
+	case FORMAT_EOR:
 		if (immed[0])
 			i += (mode == LONG ? LONGSIZ : WORDSIZ);
 		/* fall through */
-	case 17:
-	case 22:
+	case FORMAT_ADDQ:
+	case FORMAT_MOVEQ:
 		i += lenea(1);
 		break;
 
-	case 8:
+	case FORMAT_ASL:
 		if (numops == 1)				/* memory shift instruction */
 			i += shiftea(0);
 		break;
@@ -432,7 +432,7 @@ static int calcilen(NOTHING)
 }
 
 
-#define NOCODE ((i>=0&&i<6)||i==9||i==11||i==12||i==16||(i>=20&&i<=30))
+#define NOCODE ((i >= 0 && i < 6) || i == 9 || i == 11 || i == 12 || i == 16 || (i >= 20 && i <= 30))
 /* cond-directives, section, ds, set, equ, reg, globl, end, offset */
 
 /*
@@ -609,7 +609,7 @@ static VOID cisit(NOTHING)
 	}
 	dlabl();							/* define label */
 	opitb();							/* beginning of statement */
-	if (format)
+	if (format != FORMAT_NONE)
 		opito();						/* may have operands */
 	else
 		igrst();						/* only comments */
@@ -733,7 +733,7 @@ VOID opito(NOTHING)
 		if (fchr == '\'' || fchr == '"')
 			lopcomma = 0;
 		gterm(FALSE);					/* get a term */
-		if (itwc == ITOP1 && format == CLRFOR && opcval == CLRVAL)
+		if (itwc == ITOP1 && format == FORMAT_CLR && opcval == CLRVAL)
 			chgclr();
 		opitoo();						/* output it for one operand */
 		if (itype == ITSP && ival.oper == ',')
@@ -1272,144 +1272,144 @@ PP(char **argv;)
 	
 	/* make entries in opcode table */
 
-	MKOPD("abcd",    4, 0140400);
-	addptr = MKOPD("add",    1, 0150000);
-	addaptr = MKOPD("adda",    15, 0150000);
-	addiptr = MKOPD("addi",    2, 0003000);
-	addqptr = MKOPD("addq",    17, 0050000);
-	MKOPD("inc",    16, 0050000);
-	MKOPD("addx",   27, 0150400);
-	andptr = MKOPD("and",    1, 0140000);
-	andiptr = MKOPD("andi",    2, 0001000);
-	MKOPD("asl",     8, 0160400);
-	MKOPD("asr",     8, 0160000);
-	MKOPD("bcc",     6, 0062000);
-	MKOPD("bcs",     6, 0062400);
-	MKOPD("beq",     6, 0063400);
-	MKOPD("bze",     6, 0063400);
-	MKOPD("bge",     6, 0066000);
-	MKOPD("bgt",     6, 0067000);
-	MKOPD("bhi",     6, 0061000);
-	MKOPD("bhis",    6, 0062000);
-	MKOPD("bhs",     6, 0062000);
-	MKOPD("ble",     6, 0067400);
-	MKOPD("blo",     6, 0062400);
-	MKOPD("bls",     6, 0061400);
-	MKOPD("blos",    6, 0061400);
-	MKOPD("blt",     6, 0066400);
-	MKOPD("bmi",     6, 0065400);
-	MKOPD("bne",     6, 0063000);
-	MKOPD("bnz",     6, 0063000);
-	MKOPD("bpl",     6, 0065000);
-	MKOPD("bvc",     6, 0064000);
-	MKOPD("bvs",     6, 0064400);
-	MKOPD("bchg",    7, 0000100);
-	MKOPD("bclr",    7, 0000200);
-	MKOPD("bra",     6, 0060000);
-	MKOPD("bt",      6, 0060000);
-	MKOPD("bset",    7, 0000300);
-	bsrptr = MKOPD("bsr",    6, 0060400);
-	MKOPD("btst",    7, 0000000);
-	MKOPD("chk",    26, 0040600);
-	MKOPD("clr",    CLRFOR, CLRVAL);
-	cmpptr = MKOPD("cmp",    26, 0130000);
-	cmpaptr = MKOPD("cmpa",    15, 0130000);
-	cmpiptr = MKOPD("cmpi",    2, 0006000);
-	cmpmptr = MKOPD("cmpm",    10, 0130410);
-	MKOPD("dbcc",   11, 0052310);
-	MKOPD("dbcs",   11, 0052710);
-	MKOPD("dblo",   11, 0052710);
-	MKOPD("dbeq",   11, 0053710);
-	MKOPD("dbze",   11, 0053710);
-	MKOPD("dbra",   11, 0050710);
-	MKOPD("dbf",    11, 0050710);
-	MKOPD("dbge",   11, 0056310);
-	MKOPD("dbgt",   11, 0057310);
-	MKOPD("dbhi",   11, 0051310);
-	MKOPD("dbhs",   11, 0051310);
-	MKOPD("dble",   11, 0057710);
-	MKOPD("dbls",   11, 0051710);
-	MKOPD("dblt",   11, 0056710);
-	MKOPD("dbmi",   11, 0055710);
-	MKOPD("dbne",   11, 0053310);
-	MKOPD("dbnz",   11, 0053310);
-	MKOPD("dbpl",   11, 0055310);
-	MKOPD("dbt",    11, 0050310);
-	MKOPD("dbvc",   11, 0054310);
-	MKOPD("dbvs",   11, 0054710);
-	MKOPD("divs",    5, 0100700);
-	MKOPD("divu",    5, 0100300);
-	eorptr = MKOPD("eor",    23, 0130000);
-	eoriptr = MKOPD("eori",    2, 0005000);
-	exgptr = MKOPD("exg",    12, 0140400);
-	MKOPD("ext",    13, 0044000);
-	MKOPD("jmp",     9, 0047300);
-	jsrptr = MKOPD("jsr",    9, 0047200);
-	MKOPD("illegal",   0, 0045374);
-	MKOPD("lea",    30, 0040700);
-	MKOPD("link",   19, 0047120);
-	MKOPD("lsr",     8, 0160010);
-	MKOPD("lsl",     8, 0160410);
+	MKOPD("abcd",    FORMAT_ABCD, 0140400);
+	addptr = MKOPD("add",    FORMAT_2EA, 0150000);
+	addaptr = MKOPD("adda",    FORMAT_ADDA, 0150000);
+	addiptr = MKOPD("addi",    FORMAT_ADDI, 0003000);
+	addqptr = MKOPD("addq",    FORMAT_ADDQ, 0050000);
+	MKOPD("inc",    FORMAT_INC, 0050000);
+	MKOPD("addx",   FORMAT_ADDX, 0150400);
+	andptr = MKOPD("and",    FORMAT_2EA, 0140000);
+	andiptr = MKOPD("andi",    FORMAT_ADDI, 0001000);
+	MKOPD("asl",     FORMAT_ASL, 0160400);
+	MKOPD("asr",     FORMAT_ASL, 0160000);
+	MKOPD("bcc",     FORMAT_RELBR, 0062000);
+	MKOPD("bcs",     FORMAT_RELBR, 0062400);
+	MKOPD("beq",     FORMAT_RELBR, 0063400);
+	MKOPD("bze",     FORMAT_RELBR, 0063400);
+	MKOPD("bge",     FORMAT_RELBR, 0066000);
+	MKOPD("bgt",     FORMAT_RELBR, 0067000);
+	MKOPD("bhi",     FORMAT_RELBR, 0061000);
+	MKOPD("bhis",    FORMAT_RELBR, 0062000);
+	MKOPD("bhs",     FORMAT_RELBR, 0062000);
+	MKOPD("ble",     FORMAT_RELBR, 0067400);
+	MKOPD("blo",     FORMAT_RELBR, 0062400);
+	MKOPD("bls",     FORMAT_RELBR, 0061400);
+	MKOPD("blos",    FORMAT_RELBR, 0061400);
+	MKOPD("blt",     FORMAT_RELBR, 0066400);
+	MKOPD("bmi",     FORMAT_RELBR, 0065400);
+	MKOPD("bne",     FORMAT_RELBR, 0063000);
+	MKOPD("bnz",     FORMAT_RELBR, 0063000);
+	MKOPD("bpl",     FORMAT_RELBR, 0065000);
+	MKOPD("bvc",     FORMAT_RELBR, 0064000);
+	MKOPD("bvs",     FORMAT_RELBR, 0064400);
+	MKOPD("bchg",    FORMAT_BTST, 0000100);
+	MKOPD("bclr",    FORMAT_BTST, 0000200);
+	MKOPD("bra",     FORMAT_RELBR, 0060000);
+	MKOPD("bt",      FORMAT_RELBR, 0060000);
+	MKOPD("bset",    FORMAT_BTST, 0000300);
+	bsrptr = MKOPD("bsr",    FORMAT_RELBR, 0060400);
+	MKOPD("btst",    FORMAT_BTST, 0000000);
+	MKOPD("chk",    FORMAT_CMP, 0040600);
+	MKOPD("clr",    FORMAT_CLR, CLRVAL);
+	cmpptr = MKOPD("cmp",    FORMAT_CMP, 0130000);
+	cmpaptr = MKOPD("cmpa",    FORMAT_ADDA, 0130000);
+	cmpiptr = MKOPD("cmpi",    FORMAT_ADDI, 0006000);
+	cmpmptr = MKOPD("cmpm",    FORMAT_CMPM, 0130410);
+	MKOPD("dbcc",   FORMAT_DBCC, 0052310);
+	MKOPD("dbcs",   FORMAT_DBCC, 0052710);
+	MKOPD("dblo",   FORMAT_DBCC, 0052710);
+	MKOPD("dbeq",   FORMAT_DBCC, 0053710);
+	MKOPD("dbze",   FORMAT_DBCC, 0053710);
+	MKOPD("dbra",   FORMAT_DBCC, 0050710);
+	MKOPD("dbf",    FORMAT_DBCC, 0050710);
+	MKOPD("dbge",   FORMAT_DBCC, 0056310);
+	MKOPD("dbgt",   FORMAT_DBCC, 0057310);
+	MKOPD("dbhi",   FORMAT_DBCC, 0051310);
+	MKOPD("dbhs",   FORMAT_DBCC, 0051310);
+	MKOPD("dble",   FORMAT_DBCC, 0057710);
+	MKOPD("dbls",   FORMAT_DBCC, 0051710);
+	MKOPD("dblt",   FORMAT_DBCC, 0056710);
+	MKOPD("dbmi",   FORMAT_DBCC, 0055710);
+	MKOPD("dbne",   FORMAT_DBCC, 0053310);
+	MKOPD("dbnz",   FORMAT_DBCC, 0053310);
+	MKOPD("dbpl",   FORMAT_DBCC, 0055310);
+	MKOPD("dbt",    FORMAT_DBCC, 0050310);
+	MKOPD("dbvc",   FORMAT_DBCC, 0054310);
+	MKOPD("dbvs",   FORMAT_DBCC, 0054710);
+	MKOPD("divs",    FORMAT_DIV, 0100700);
+	MKOPD("divu",    FORMAT_DIV, 0100300);
+	eorptr = MKOPD("eor",    FORMAT_EOR, 0130000);
+	eoriptr = MKOPD("eori",    FORMAT_ADDI, 0005000);
+	exgptr = MKOPD("exg",    FORMAT_EXG, 0140400);
+	MKOPD("ext",    FORMAT_EXT, 0044000);
+	MKOPD("jmp",     FORMAT_JMP, 0047300);
+	jsrptr = MKOPD("jsr",    FORMAT_JMP, 0047200);
+	MKOPD("illegal",   FORMAT_NONE, 0045374);
+	MKOPD("lea",    FORMAT_LEA, 0040700);
+	MKOPD("link",   FORMAT_LINK, 0047120);
+	MKOPD("lsr",     FORMAT_ASL, 0160010);
+	MKOPD("lsl",     FORMAT_ASL, 0160410);
 	moveptr = MKOPD("move",    3, 0000000);
-	MKOPD("movea",   3, 0000100);
-	MKOPD("movec",  31, 0047172);
-	MKOPD("movem",  20, 0044200);
-	MKOPD("movep",  21, 0000010);
-	moveqptr = MKOPD("moveq",    22, 0070000);
-	MKOPD("moves",  31, 0007000);
-	MKOPD("muls",    5, 0140700);
-	MKOPD("mulu",    5, 0140300);
-	MKOPD("nbcd",   25, 0044000);
-	MKOPD("neg",    24, 0042000);
-	MKOPD("negx",   24, 0040000);
-	nopptr = MKOPD("nop",    0, 0047161);
-	MKOPD("not",    24, 0043000);
-	orptr = MKOPD("or",    1, 0100000);
-	oriptr = MKOPD("ori",    2, 0000000);
-	MKOPD("pea",    29, 0044100);
-	MKOPD("reset",   0, 0047160);
-	MKOPD("rol",     8, 0160430);
-	MKOPD("ror",     8, 0160030);
-	MKOPD("roxl",    8, 0160420);
-	MKOPD("roxr",    8, 0160020);
-	MKOPD("rtd",    14, 0047164);
-	MKOPD("rte",     0, 0047163);
-	MKOPD("rtr",     0, 0047167);
-	MKOPD("rts",     0, 0047165);
-	MKOPD("sbcd",    4, 0100400);
-	MKOPD("scc",    25, 0052300);
-	MKOPD("shs",    25, 0052300);
-	MKOPD("scs",    25, 0052700);
-	MKOPD("slo",    25, 0052700);
-	MKOPD("seq",    25, 0053700);
-	MKOPD("sze",    25, 0053700);
-	MKOPD("sf",     25, 0050700);
-	MKOPD("sge",    25, 0056300);
-	MKOPD("sgt",    25, 0057300);
-	MKOPD("shi",    25, 0051300);
-	MKOPD("sle",    25, 0057700);
-	MKOPD("sls",    25, 0051700);
-	MKOPD("slt",    25, 0056700);
-	MKOPD("smi",    25, 0055700);
-	MKOPD("sne",    25, 0053300);
-	MKOPD("snz",    25, 0053300);
-	MKOPD("spl",    25, 0055300);
-	MKOPD("st",     25, 0050300);
-	MKOPD("svc",    25, 0054300);
-	MKOPD("svs",    25, 0054700);
-	MKOPD("stop",   14, 0047162);
-	subptr = MKOPD("sub",    1, 0110000);
-	subaptr = MKOPD("suba",    15, 0110000);
-	subiptr = MKOPD("subi",    2, 0002000);
-	subqptr = MKOPD("subq",    17, 0050400);
-	MKOPD("dec",    16, 0050400);
-	MKOPD("subx",   27, 0110400);
-	MKOPD("swap",   28, 0044100);
-	MKOPD("tas",    25, 0045300);
-	MKOPD("trap",   18, 0047100);
-	MKOPD("trapv",   0, 0047166);
-	MKOPD("tst",    24, 0045000);
-	MKOPD("unlk",   13, 0047130);
+	MKOPD("movea",   FORMAT_MOVE, 0000100);
+	MKOPD("movec",  FORMAT_MOVEC, 0047172);
+	MKOPD("movem",  FORMAT_MOVEM, 0044200);
+	MKOPD("movep",  FORMAT_MOVEP, 0000010);
+	moveqptr = MKOPD("moveq",    FORMAT_MOVEQ, 0070000);
+	MKOPD("moves",  FORMAT_MOVEC, 0007000);
+	MKOPD("muls",    FORMAT_DIV, 0140700);
+	MKOPD("mulu",    FORMAT_DIV, 0140300);
+	MKOPD("nbcd",   FORMAT_SCC, 0044000);
+	MKOPD("neg",    FORMAT_CLR, 0042000);
+	MKOPD("negx",   FORMAT_CLR, 0040000);
+	nopptr = MKOPD("nop",    FORMAT_NONE, 0047161);
+	MKOPD("not",    FORMAT_CLR, 0043000);
+	orptr = MKOPD("or",    FORMAT_2EA, 0100000);
+	oriptr = MKOPD("ori",    FORMAT_ADDI, 0000000);
+	MKOPD("pea",    FORMAT_PEA, 0044100);
+	MKOPD("reset",   FORMAT_NONE, 0047160);
+	MKOPD("rol",     FORMAT_ASL, 0160430);
+	MKOPD("ror",     FORMAT_ASL, 0160030);
+	MKOPD("roxl",    FORMAT_ASL, 0160420);
+	MKOPD("roxr",    FORMAT_ASL, 0160020);
+	MKOPD("rtd",    FORMAT_STOP, 0047164);
+	MKOPD("rte",     FORMAT_NONE, 0047163);
+	MKOPD("rtr",     FORMAT_NONE, 0047167);
+	MKOPD("rts",     FORMAT_NONE, 0047165);
+	MKOPD("sbcd",    FORMAT_ABCD, 0100400);
+	MKOPD("scc",    FORMAT_SCC, 0052300);
+	MKOPD("shs",    FORMAT_SCC, 0052300);
+	MKOPD("scs",    FORMAT_SCC, 0052700);
+	MKOPD("slo",    FORMAT_SCC, 0052700);
+	MKOPD("seq",    FORMAT_SCC, 0053700);
+	MKOPD("sze",    FORMAT_SCC, 0053700);
+	MKOPD("sf",     FORMAT_SCC, 0050700);
+	MKOPD("sge",    FORMAT_SCC, 0056300);
+	MKOPD("sgt",    FORMAT_SCC, 0057300);
+	MKOPD("shi",    FORMAT_SCC, 0051300);
+	MKOPD("sle",    FORMAT_SCC, 0057700);
+	MKOPD("sls",    FORMAT_SCC, 0051700);
+	MKOPD("slt",    FORMAT_SCC, 0056700);
+	MKOPD("smi",    FORMAT_SCC, 0055700);
+	MKOPD("sne",    FORMAT_SCC, 0053300);
+	MKOPD("snz",    FORMAT_SCC, 0053300);
+	MKOPD("spl",    FORMAT_SCC, 0055300);
+	MKOPD("st",     FORMAT_SCC, 0050300);
+	MKOPD("svc",    FORMAT_SCC, 0054300);
+	MKOPD("svs",    FORMAT_SCC, 0054700);
+	MKOPD("stop",   FORMAT_STOP, 0047162);
+	subptr = MKOPD("sub",    FORMAT_2EA, 0110000);
+	subaptr = MKOPD("suba",    FORMAT_ADDA, 0110000);
+	subiptr = MKOPD("subi",    FORMAT_ADDI, 0002000);
+	subqptr = MKOPD("subq",    FORMAT_ADDQ, 0050400);
+	MKOPD("dec",    FORMAT_INC, 0050400);
+	MKOPD("subx",   FORMAT_ADDX, 0110400);
+	MKOPD("swap",   FORMAT_SWAP, 0044100);
+	MKOPD("tas",    FORMAT_SCC, 0045300);
+	MKOPD("trap",   FORMAT_TRAP, 0047100);
+	MKOPD("trapv",   FORMAT_NONE, 0047166);
+	MKOPD("tst",    FORMAT_CLR, 0045000);
+	MKOPD("unlk",   FORMAT_EXT, 0047130);
 	
 	rlflg = TEXT;						/* code initially TEXT based */
 	inoffset = 0;						/* not in offset mode */

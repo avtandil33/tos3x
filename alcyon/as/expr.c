@@ -611,7 +611,7 @@ VOID p2gi(NOTHING)
 	if ((itype = pitw->itty) == ITPC)
 	{
 		pitw->itop.l = loctr;
-		if (p2flg || format == 6)
+		if (p2flg || format == FORMAT_RELBR)
 			itype = pitw->itty = ITCN;
 	}
 	ival.p = pitw->itop.p;					/* value */

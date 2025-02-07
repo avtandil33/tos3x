@@ -813,7 +813,7 @@ PP(int nd;)
 	putid(source, 1);					/* identify as first line in source file */
 
 	/* clear out symbol table */
-	for (sp = &symtab[0]; sp <= &symtab[HSIZE - 1]; sp++)
+	for (sp = &symtab[0]; sp <= &symtab[(long)HSIZE - 1]; sp++)
 		sp->s_def = -1;
 	defap = lmalloc((long)DEFSIZE);
 	if (defap == NULL)

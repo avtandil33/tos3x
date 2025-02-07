@@ -264,16 +264,18 @@ PP(const char *name;)
 	register int wrap;
 	register struct symbol *sp;
 	register struct symbol *asp;
-
+	register long i;
+	
 	wrap = 0;
 	asp = 0;
-	for (sp = &symtab[symhash(name)]; sp->s_def >= 0;)
+	i = symhash(name);
+	for (sp = &symtab[i]; sp->s_def >= 0;)
 	{
 		if (symequal(sp->s_name, name))
 			return sp;
 		if (!asp && sp->s_def < 0)
 			asp = sp;
-		if (++sp >= &symtab[HSIZE])
+		if (++sp >= &symtab[(long)HSIZE])
 		{
 			if (wrap++)
 			{

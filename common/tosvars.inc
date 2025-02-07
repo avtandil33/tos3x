@@ -63,6 +63,8 @@ MMUCFG          equ $0e0       /* MMU Configuration Error */
 MMUILL          equ $0e4       /* MC68851, Illegal Operation, not used by MC68030 */
 MMUACC          equ $0e8       /* MC68851, Access level violation, not used by MC68030 */
 
+hades_physbase  equ $0e8
+
 /* ==== Miscellaneous Vectors ================================================ */
 
 UNIMPEA         equ $0f0       /* Unimplemented Effective Address (060) */

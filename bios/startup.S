@@ -403,8 +403,8 @@ hadret2: ds.b 0
 
 /* clear screen memory */
 /* video resolution  2=st high 6=tt high */
-#define vidmo  2
-#if vidmo == 2
+#define hades_vidmo  2
+#if hades_vidmo == 2
 scrsize equ ((640*400)/8)
 #else
 scrsize equ ((1280*960)/8)
@@ -1365,7 +1365,7 @@ exc_loop2:
 		move.l  a3,(a1)+			 /* ignore auto vectors */
 		dbf     d0,exc_loop2
 		move.l  a3,(_zerodiv).w      /* ignore zero divide */
-		move.l  (_v_bas_ad).w,($000000E8).w /* set physbase */
+		move.l  (_v_bas_ad).w,(hades_physbase).w /* set physbase */
 		cmpi.w  #60,(_longframe).w
 		bne     exc_wei
 xFP_CALL_TOP    equ $7fe4b57a /* ZZZ */
@@ -1394,8 +1394,7 @@ la_rts:
 		rts
 #if BINEXACT
 /* only used to fill original space */
-		dc.l -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
-		dc.w -1
+		dcb.w 51,-1
 #endif
 exc_wei: ds.b 0
 
@@ -1804,7 +1803,7 @@ setvb1:
 moncolor:
 #endif
 #if HADES
-		moveq #vidmo,d1
+		moveq #hades_vidmo,d1
 		nop
 		nop
 #else
@@ -1931,7 +1930,7 @@ hadeslogo  equ $7FE5B262 /* ZZZ */
 		move.l 	a1,a2
 		move.w 	#135-1,d1
 lolo1:	
-#if vidmo == 2
+#if hades_vidmo == 2
         add.w 	#80-47,a2       ;ST hoch
 #else
         add.w 	#160-47,a2      ;TT hoch
@@ -1949,7 +1948,7 @@ lolo2:
 		add.w   #240+27,a2	;4.Zeile 4.byt
 		move.w 	#101,d1
 lolo3:	
-#if vidmo == 2
+#if hades_vidmo == 2
         add.w 	#80-23,a2       ;ST hoch
 #else 
         add.w 	#160-23,a2      ;TT hoch
@@ -1962,7 +1961,7 @@ lolo4:
 		dbf 	d1,lolo3
 #if BINEXACT
 		bra.s 	end_logo
-		dc.l -1,-1,-1,-1,-1,-1
+		dcb.w 12,-1
 end_logo:
 #endif
 
@@ -2258,7 +2257,7 @@ crcok:
         cmpi.b    #STHIGH,(_sshiftmod).w         /* ST high? */
 #else
 #if HADES
-        cmpi.b    #vidmo,(_sshiftmod).w         /* TT high? */
+        cmpi.b    #hades_vidmo,(_sshiftmod).w    /* TT high? */
 #else
         cmpi.b    #TTHIGH,(_sshiftmod).w         /* TT high? */
 #endif
@@ -2557,7 +2556,7 @@ boot2:
 boot3:
 		moveq #0,d4			;bei acsi 0 weitermachen
 		bra.s confdone
-		dc.l -1,-1,-1,-1,-1
+		dcb.w 10,-1
 #else
 #if TP_50 /* PAK */
 /*
@@ -2649,7 +2648,7 @@ no_ni_fer:
 		cmpi.w #$f,d4		;scsi 7?
 		beq.s boot3		;ja ->
 		bra.s boot1
-		dc.w -1,-1
+		dcb.w 2,-1
 #else
         move.w    d4,d0
         and.w     #$0007,d0
@@ -2825,8 +2824,9 @@ dflt_pal:
 /* 206de: 00e00bf0 */
 /* 104de: 00fc06aa */
 /* 404: 00e00c9a */
-#if !HADES
+#if !HADES /* routine has moved, but old code remains here */
 int_hbl:
+#endif
         move.w    d0,-(a7)            /* save d0 */
         move.w    2(a7),d0            /* get status register from stack */
         and.w     #$0700,d0           /* isolate just IPL-mask from sr */
@@ -2835,9 +2835,6 @@ int_hbl:
 is_ipl:
         move.w    (a7)+,d0            /* restore d0 */
         rte
-#else
-        ds.b 22
-#endif
 
 /*
  * int_vbl - Int 0x70 - VBL interrupt
@@ -2876,6 +2873,60 @@ vbl_loop:
 vbl_next:
         dbf       d7,vbl_loop               /* loop for more vectors */
 
+#if HADES
+/* no screen change in vertikal blank interrupt */
+        jsr       blink						/* blink cursor */
+		jsr	_flopvbl
+		bra 	mon_chg
+
+arbitr:
+		bsr	  sdelaytime
+L0174:
+		btst	  #6,$ffff8789.w
+		beq.s	  L0175
+		cmp.l	  (A0),d1
+		bhi.s	  L0174
+		bra.s	  L0177
+L0175:
+		clr.b	  $ffff8787.w
+		clr.b	  $ffff8789.w
+		move.b	  #$80,$ffff8781.w
+		move.b	  #1,$ffff8783.w
+		move.b	  #9,$ffff8783.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		move.b	  #$D,$ffff8783.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		tst.b	  MFP_GPIP.w
+		move.w	  4(A7),d1
+		bset	  d1,$ffff8781.w
+		bclr	  #0,$ffff8785.w
+		bclr	  #3,$ffff8783.w
+		bsr	  sdelaytime
+L0176:
+		btst	  #6,$ffff8789.w
+		bne.s	  L0178
+		cmp.l	  (A0),d1
+		bhi.s	  L0176
+L0177:
+		moveq	  #-1,d0
+		bclr	  #0,$ffff8783.w
+		clr.b	  $ffff8783.w
+		rts
+L0178:
+		moveq	  #0,D0
+		bclr	  #2,$ffff8783.w
+		clr.b	  $ffff8783.w
+		rts
+		dcb.w 18,-1
+mon_chg:
+
+#else
 #if !STBOOK
         move.b    (MFP_GPIP).w,d1
         tst.b     _has_dmasound
@@ -2957,7 +3008,9 @@ vbl_monchg:
 #endif /* TP_65 */
 vbl_nomonchg:
 #endif /* !STBOOK */
+
         jsr       blink								/* blink cursor */
+
 /* --- reload color palettes */
 
         tst.l     (_colorptr).w						/* reload color palettes, if(colorptr != NULL).... */
@@ -2985,8 +3038,11 @@ vbl_no_palette:
 #endif
 vbl_no_screenpt:
         bsr       _flopvbl
-vbl_no_queue:
+
+#endif /* HADES */
+
 /* screen hardcopy */
+vbl_no_queue:
         tst.w     (_dumpflg).w						/* monitor screen dump flag - printscreen active? */
         bne.s     vbl_no_dump
         bsr       _scrdmp
@@ -3096,7 +3152,13 @@ biosxbios:
 #endif
         tst.w     (a7)+                  /* skip format word */
 traph2: movem.l   d3-d7/a3-a7,-(a1)      /* regs, including stack pointer */
+#if HADES
+/* cache push on trap 13 and trap 14 */
+        move.l    a1,_savptr.w
+        CPUSHA_BC
+#else
         move.l    a1,_savptr
+#endif
         btst      #13,d0                 /* were we in supervisor mode? */
         bne.s     bx_sp_ok               /* yes, the sp already points to the arguments */
         move.l    usp,a7                 /* no, the arguments were on the user stack */
@@ -3161,7 +3223,12 @@ bios_vecs:
 /* 206de: 00e00dd6 */
 /* 104de: 00fc084a */
 xbios_vecs:
+#if HADES
+/* new TT xbios calls are not available */
+        dc.w 65
+#else
         dc.w (xbvecsend-xbios_vecs)/4
+#endif
         dc.l _initmouse
         dc.l bios_unimpl /* Ssbrk */
         dc.l _physbase
@@ -3593,6 +3660,13 @@ _tickcal:
 /* 206de: 00e01014 */
 /* 104de: 00fc0a5c */
 _physbase:
+#if HADES
+		move.l hades_physbase.w,d0        		;phys base holen
+        rts
+#if BINEXACT
+        dcb.w 11,-1
+#endif
+#else
         moveq.l   #0,d0             /* cleanup pointer-to-be */
         move.b    (v_bas_h).w,d0    /* load and shift bits 16..23 */
         lsl.w     #8,d0
@@ -3607,6 +3681,7 @@ _physbase:
 #endif
 physbas1:
         rts
+#endif
 
 /*
  * XBIOS #3 - Logbase - Get the screen's logical base, right away.
@@ -3631,6 +3706,14 @@ _logbase:
 /* 104de: 00fc0a72 */
 /* 106de: 00e00c0a */
 _getrez:
+#if HADES
+/* only fixed resolution */
+		moveq #hades_vidmo,d0
+        rts
+#if BINEXACT
+		dcb.w 4,-1
+#endif
+#else
         moveq.l   #0,d0
 #if STBOOK
         move.b    (_sshiftmod).w,d0         /* get screen rezolution */
@@ -3645,6 +3728,7 @@ _getrez:
 #endif
 #endif
         rts
+#endif
 
 /*
  * XBIOS #5 - Setscreen/VsetScreen - Set the screen locations
@@ -3660,6 +3744,13 @@ _getrez:
 /* 104de: 00fc0a7e */
 /* 106de: 00e00c10 */
 _vsetscreen:
+#if HADES
+/* only fixed resolution */
+		rts
+#if BINEXACT
+		dcb.w 42,-1
+#endif
+#else
 /* --- set logical location: */
         tst.l     4(a7)                      /* if(logloc < 0) then ignore it */
         bmi.s     nosetl
@@ -3697,6 +3788,7 @@ nosetp:
         move.w    #1,(_vblsem).w             /* re-enable vblanks */
 nosetr:
         rts
+#endif
 
 /*
  * XBIOS #6 - Setpalette - Set the contents of the hardware palette register
@@ -3710,8 +3802,13 @@ nosetr:
 /* 104de: 00fc0ac4 */
 /* 106de: 00e00c5c */
 _setpalette:
+#if HADES
+		rts
+		dcb.w 3,-1
+#else
         move.l    4(a7),(_colorptr).w     /* next VBL will do this */
         rts
+#endif
 
 /*
  * XBIOS #7 - Setcolor - Set the palette number
@@ -3727,6 +3824,10 @@ _setpalette:
 /* 104de: 00fc0acc */
 /* 106de: 00e00c64 */
 _setcolor:
+#if HADES
+		rts
+		dcb.w 24,-1
+#else
         move.w    4(a7),d1                   /* get color number */
         add.w     d1,d1                      /* turn into word index */
         and.w     #$001F,d1                  /* force color range (prevent buserr) */
@@ -3744,6 +3845,7 @@ setcol2:
         move.w    6(a7),0(a0,d1.w)           /* set new color */
 setcol3:
         rts
+#endif
 
 /*
  * XBIOS #39 - Puntaes - Throws away the AES, freeing up any memory it used.
@@ -3781,8 +3883,12 @@ any_vec:
 savp_2:
 		move.l    (sp)+,(_proc_enum).w       /* save bogus PC + exception number */
 #endif
+#if HADES
+		jmp exception
+#else
 /* dump the registers, including SSP */
         movem.l   d0-d7/a0-a7,(_proc_dregs).w
+#endif
 #if P68010
         move.l    2(a7),(_proc_enum).w
 /* get the exception number from the format word */

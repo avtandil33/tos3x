@@ -541,10 +541,18 @@ VOID hdcb(NOTHING)
 	}
 	opitoo();
 	len = ival.l;
-	itype = ITSP;
-	ival.l = ',';
-	opitoo();							/* output a comma */
+	numops = 0;							/* initialize count for number of operands */
 	opito();
+	if (numops == 1)
+	{
+		itype = ITSP;
+		ival.l = ',';
+		opitoo();							/* output a comma */
+		uerr(17);
+	} else if (numops > 2)
+	{
+		uerr(30);
+	}
 	stbuf[0].itrl = itwc;
 	loctr += len * modelen;
 	wostb();							/* write out statement buffer */

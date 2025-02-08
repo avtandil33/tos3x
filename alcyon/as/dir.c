@@ -726,7 +726,8 @@ VOID sds(NOTHING)
 /* second pass - define block storage, initialized */
 VOID sdcb(NOTHING)
 {
-	register short pfg, i, hflg, len, w;
+	register short pfg, i, hflg, w;
+	register int32_t len;
 
 	i = pfg = hflg = 0;
 	expr(p2gi);
@@ -736,6 +737,11 @@ VOID sdcb(NOTHING)
 		return;
 	}
 	len = ival.l;
+	if (len < 0)
+	{
+		uerr(15);						/* illegal constant */
+		return;
+	}
 	expr(p2gi);
 	if (modelen == BYTESIZ && (ival.l < -128 || ival.l >= 256 || reloc != ABS))
 	{
@@ -743,7 +749,7 @@ VOID sdcb(NOTHING)
 		ival.l = 0;
 		reloc = ABS;
 	}
-	while (len--)
+	while (--len >= 0)
 	{
 		if (modelen == BYTESIZ)
 		{

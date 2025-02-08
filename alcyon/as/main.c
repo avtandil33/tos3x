@@ -269,7 +269,7 @@ static int modeok(NOTHING)
 		return modelen == WORDSIZ ? FALSE : TRUE;
 	case FORMAT_DIV:
 	case FORMAT_DBCC:
-	case FORMAT_ADDX:
+	case FORMAT_SWAP:
 		return modelen == WORDSIZ ? TRUE : FALSE;
 	case FORMAT_RELBR:
 		return modelen == LONGSIZ ? FALSE : TRUE;

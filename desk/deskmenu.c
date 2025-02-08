@@ -1541,7 +1541,17 @@ VOID av_desk(NOTHING)
 	obj[AP1].ob_state = NORMAL;
 	obj[WI1].ob_state = NORMAL;
 	obj[DEFFULL].ob_state = NORMAL;
+#if HADES & BINEXACT & (DEFFILE == 9)
+	/*
+	 * orignal was "clr.w     $e2(a5)"
+	 * which apparently was wrongly relocated due to a missing entry
+	 * in relocs.fil from TOSPATCH
+	 * Dangerous, since this will write to a random memory location.
+	 */
+	obj[1364].ob_head = NORMAL;
+#else
 	obj[DEFFILE].ob_state = NORMAL;
+#endif
 
 	if (s_defdir)						/* set the full path    */
 		obj[AP1].ob_state = SELECTED;	/* application      */
@@ -1551,7 +1561,12 @@ VOID av_desk(NOTHING)
 	if (s_fullpath)
 		obj[DEFFULL].ob_state = SELECTED;
 	else
+#if HADES & BINEXACT & (DEFFILE == 9)
+		/* see comments above about TOSPATCH */
+		obj[1364].ob_head = SELECTED;
+#else
 		obj[DEFFILE].ob_state = SELECTED;
+#endif
 
 	f_str(obj, SDMEMORY, av_mem());
 	*(((TEDINFO *) (obj[SDKEY].ob_spec))->te_ptext) = '\0';

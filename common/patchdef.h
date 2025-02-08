@@ -7,6 +7,7 @@
  */
 
 #if HADES
+/* Hades patches can only be applied to 3.06 */
 #if TOSVERSION != 0x306
 #undef HADES
 #define HADES 0
@@ -766,4 +767,9 @@
 #endif
 #ifndef WX_FULL_CONT
 #define WX_FULL_CONT 2000
+#endif
+
+#if HADES
+/* video resolution  2=st high 6=tt high */
+#define hades_vidmo  2
 #endif

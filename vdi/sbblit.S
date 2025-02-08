@@ -98,9 +98,17 @@ sb_bitblt: ds.b 0
  * We are going to compile things in memory later on, so flush the
  * the instruction cache if we are on a 68030
  */
+#if HADES
+	CPUSHA_BC
+	nop
+	bra.s not040
+	RESERVE_SPACE(sb_bitblt,$e0d300,$e0d30c)
+not040:
+#else
 	CACR_D5			; d5 <- cache control register
 	bset.l	#3,d5			; set "Clr Instr Cache" bit
 	D5_CACR			; clear the instruction cache
+#endif
 #endif
 
 	PIXLA(a4)

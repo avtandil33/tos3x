@@ -334,6 +334,21 @@ text.o: text.c
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.s
 	$(AM_V_at)${RM} $*.s $*.i $*.1 $*.2 $*.3
 
+# vs_color was completely disabled in the roms
+ttcolor_1_sed1=$(SED) -n '{$$!N; s/_vs_color:\nlink R14,#0/_vs_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
+ttcolor_1_sed2=$(SED) -n '{$$!N; s/_vq_color:\nlink R14,#0/_vq_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
+ttcolor_1_sed3=$(SED) -e 's/move $$ff8262,R/move.l #$$200,R/' $*.s > $*.1; mv $*.1 $*.s
+ttcolor.o: ttcolor.c
+	$(AM_V_CC)${BIN}cp68${EXEEXT} ${CPPFLAGS} $*.c $*.i
+	$(AM_V_at)${BIN}c068${EXEEXT} $*.i $*.1 $*.2 $*.3 ${CFLAGS}
+	$(AM_V_at)${BIN}c168${EXEEXT} $*.1 $*.2 $*.s
+	$(AM_V_at)$(ttcolor_$(HADES)_sed1)
+	$(AM_V_at)$(ttcolor_$(HADES)_sed2)
+	$(AM_V_at)$(ttcolor_$(HADES)_sed3)
+	$(AM_V_at)${RUN_OPTIMIZE_${$*_OPTIMIZE}}
+	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.s
+	$(AM_V_at)${RM} $*.s $*.i $*.1 $*.2 $*.3
+
 #
 # sed: optimizer seems to have missed an sub.l #8,(sp) in seedfill()
 # (edit: seedfill.s was not run through optimizer)

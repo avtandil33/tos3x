@@ -3714,7 +3714,7 @@ loopclr:
 		dbf	d0,loopclr
 		move.l	_os_entry+4,a0	/* resetvektor holen */
 		jmp	(a0)
-		dcb.w 17,-1
+		RESERVE_SPACE(coldboot,$e0380c,$e0387c)
         nop
 #else
 #if TP_50 /* PAK */

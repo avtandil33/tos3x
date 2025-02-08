@@ -8,9 +8,7 @@ flushCaches:
 	CPUSHA_BC
 	nop
 	rts
-#if BINEXACT
-	dc.w -1,-1,-1,-1,-1,-1,-1,-1,-1
-#endif
+	RESERVE_SPACE(flushCaches,$e005f2,$e0060a)
 #else
         move.w    sr,-(a7)
         ori.w     #$0700,sr

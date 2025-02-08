@@ -490,7 +490,7 @@ _ENDIF
 ;* Neue Bios-Routinen Getbpb und Rwabs mit ED-Untersttzung:
 ;* - Es werden keine nicht erfolgten Diskettenwechsel mehr erkannt.
 ;* - Rwabs-Schreibroutinen zerst”ren keine VDI-Zeichensatzinformationen mehr.
-;* - Es auch k”nnen Disketten mit nur einer FAT genutzt werden.
+;* - Es k”nnen auch Disketten mit nur einer FAT genutzt werden.
 
 .ED_BIOS = 1        ;1: Patch einbinden, 0: Patch nicht einbinden
 

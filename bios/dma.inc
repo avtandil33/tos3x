@@ -168,7 +168,7 @@ dmarw7:
 	CPUSHA_BC
 	nop
 	bra.s dmarwskip
-	dcb.w 7,-1
+	RESERVE_SPACE(dmarw7,$e01990,$e019a4)
 dmarwskip:
 #else
         move.w    sr,-(a7)
@@ -310,7 +310,7 @@ _endcmd:
 	/* cache clear (un)necessary for dma (certainly necessary for 60s) */
 	CPUSHA_BC
 	bra.s endcmd_skip
-	dcb.w 8,-1
+	RESERVE_SPACE(_endcmd,$e01a02,$e01a1a)
 endcmd_skip:
 #else
         move.w    sr,-(a7)
@@ -628,7 +628,7 @@ scsiphase:
 #if HADES
 /* address scsi arbitration differently */
 	bra arbitr
-	dcb.w 46,-1  
+	RESERVE_SPACE(scsiphase,$e01c1c,$e01c7c)
 #else
         bsr       sdelaytime
 scsipha1:

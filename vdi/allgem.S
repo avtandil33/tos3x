@@ -241,7 +241,11 @@ _FindDevice:
         move.w    (a0),d1
         cmp.w     #STAYINDEV,d1
         beq.s     FindDev3
+#if HADES
+        cmpi.w    #hades_vidmo,d0
+#else
         cmp.w     #DEFREZ,d0
+#endif
         beq.s     FindDev3
 #if TP_50
       subq.w    #2,d1
@@ -913,7 +917,11 @@ _esc_init:
         cmp.w     #3,d0
         blt.s     esc2	; see if we have > 4 planes
 #else
-        cmp.w     #6,d0
+#if HADES
+        cmpi.w    #hades_vidmo,d0
+#else
+        cmp.w     #DEFREZ,d0
+#endif
         blt.s     esc2	; see if we have > 4 planes
         beq.s     esc1
 #endif

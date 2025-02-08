@@ -353,6 +353,14 @@ _colors:
 #if PLANES8 & !VIDEL_SUPPORT
 	xdef	_colors
 _colors:
+/*
+ * hades tos patch has a bug in the memory display code, and missed a +lang_diff,
+ * thus filling more space than the original routine was.
+ * This will overwrite part of this table.
+ */
+#if HADES & BINEXACT
+	dcb.w 45,-1
+#else
 *--- 16 standard colors
 	dc.w	$fff			; 0 white
 	dc.w	$f00			; 1 red
@@ -405,6 +413,7 @@ _colors:
 	dc.w	$f0a
 	dc.w	$f0b
 	dc.w	$f0c
+#endif
 	dc.w	$f0d
 	dc.w	$f0e
 

@@ -39,10 +39,7 @@ mmutable_ram equ $700 /* CPU root table in memory */
 initmmu:
 #if HADES
 	rts
-#if BINEXACT
-	/* dcb.b ($e01724-$e016ec)-(*-initmmu) */
-	dcb.w 27,-1
-#endif
+	RESERVE_SPACE(initmmu,$e016ec,$e01724)
 #else
         lea.l     mmutable_ram,a0
         lea.l     mmurom_table,a1

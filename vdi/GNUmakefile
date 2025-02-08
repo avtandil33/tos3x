@@ -46,6 +46,18 @@ text.o: text.c
 	$(AM_V_at)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $*.s
 	$(AM_V_at)$(RM) $*.s
 
+ifeq ($(HADES),1)
+# vs_color and vq_color are completely disabled in the roms
+ttcolor.o: ttcolor.c
+	$(AM_V_CC)$(CC) $(CFLAGS) $(CPPFLAGS) -c -S -o $*.s $<
+	$(AM_V_at)$(SED) -n '{$$!N; s/_vs_color:\nlink R14,#0/_vs_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
+	$(AM_V_at)$(SED) -n '{$$!N; s/_vq_color:\nlink R14,#0/_vq_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
+	$(AM_V_at)$(SED) -e 's/move $$ff8262,R/move.l #$$200,R/' $*.s > $*.1; mv $*.1 $*.s
+	$(AM_V_at)$(BIN)optimize -q $*.s
+	$(AM_V_at)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $*.s
+	$(AM_V_at)$(RM) $*.s
+endif
+
 endif
 
 tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h

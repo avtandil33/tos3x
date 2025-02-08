@@ -113,3 +113,19 @@
 #	define ABSW2(x) (x).w
 #   define SETBASEREG
 #endif
+
+#if BINEXACT
+/*
+ * Used to fill up space to the size of the original routines.
+ * Strictly only needed for BINEXACT mode,
+ * but also useful to keep the addresses the same so that
+ * tospatch can still be applied afterwards
+ *
+ * should be (origend-origstart)-(*-start)
+ * but as68 does not allow us to convert it to an
+ * absolute value when using parenthesis
+ */
+#define RESERVE_SPACE(start,origstart,origend) dcb.b start-*+origend-origstart,-1
+#else
+#define RESERVE_SPACE(start,origstart,origend)
+#endif

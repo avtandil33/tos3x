@@ -380,7 +380,7 @@ L03CD:		MOVEM.L (A7)+,D1-D2
       		BNE.S   L03CA 
 L03CE:		MOVEM.L (A7)+,D3-d4 
       		RTS 
-                blk.b	$7fe06476-*,$ff
+                blk.b	$7fe06476-*,$ff /* THO: BUG: +lang_dif missing */
 ;======================================================================================
 ; .28
 ; Prozessortest ab„ndern  (fa_8.11.94):mmu cacr etc. ist schon gemacht
@@ -1423,7 +1423,7 @@ noed:		cmp.b	#dd,hdinfo+1(a1)		;dd?
 		move.b	#ed,hdinfo+1(a1)		;ist dd weiter nach ed
 		bra	floprd12
 nodd:		move.b	#dd,hdinfo+1(a1)		;bleibt noch dd
-floprd12:	move.b	hdinfo+1,ldcr			;takt setzen
+floprd12:	move.b	hdinfo+1,ldcr			;takt setzen THO: BUG: (a1) missing
 		bsr	restore                         ;alles auf anfang
 		bra	floprd1				;mit andererm takt probieren
 floprd9:	bsr.s	errbits				;Fehlerbehandlung

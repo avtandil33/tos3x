@@ -778,9 +778,17 @@ wm_tbl:	dc.w	wm0y_nxt-*
 pixfrag: ds.b 0
 
 #if P68030
+#if HADES
+		CPUSHA_BC
+		nop
+		bra.s not040
+		RESERVE_SPACE(pixfrag,$e07d4e,$e07d5a)
+not040:
+#else
 		CACR_D2				; d2 <- cache control register
 		bset.l	#3,d2			; set "Clr Instr Cache" bit
 		D2_CACR				; clear the instruction cache
+#endif
 #endif
 		subq.w	#1,d3			; d3 <- dbra plane counter
 

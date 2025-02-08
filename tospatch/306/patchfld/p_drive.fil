@@ -275,3 +275,18 @@ _ENDIF		; zu .HDwait
 _IF .HD_BIT <> 0
 +hd_bit.fil
 _ENDIF
+
+;*******************************************************************************
+;* Harun Scheutzow: (implementiert von MH)
+;* Neue Bios-Routinen Getbpb und Rwabs mit ED-UnterstÅtzung:
+;* - Es werden keine nicht erfolgten Diskettenwechsel mehr erkannt.
+;* - Rwabs-Schreibroutinen zerstîren keine VDI-Zeichensatzinformationen mehr.
+;* - Es kînnen auch Disketten mit nur einer FAT genutzt werden.
+
+_IF .ED_BIOS
+ 565C+.d1
+ +bios1.fil
+ 5B1E+.d1
+ +bios2.fil
+_ENDIF
+

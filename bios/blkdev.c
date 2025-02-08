@@ -112,7 +112,158 @@ PP(int32_t msg_arg;)
 /* 306de: 00e0565c */
 /* 104de: 00fc173c */
 /* 404: 00e0480c */
-#if 1 /* hades has patched assembler version */
+#if HADES & BINEXACT
+/*
+ * patched assembler version
+ * for ED support
+ * (same as bios1.fil from TOSPATCH)
+ */
+asm(" xdef _bhdv_getbpb");
+asm("_bhdv_getbpb:");
+	asm("link	a6,#0");
+	asm("movem.l	a4-a5/d6-d7,-(a7)");
+	asm("move.w	#_blkdev,a5");
+	asm("move.w	8(a6),d0");
+	asm("beq.s	getbpb1");
+	asm("add.w	#36,a5");
+	asm("subq.w	#1,d0");
+	asm("bne.s	getbpb4");
+asm("getbpb1:");
+	asm("move.l	a5,a4");
+asm("getbpb2:");
+	asm("move.w	#6,-(a7)");
+	asm("clr.l	-(a7)");
+	asm("move.w	#1,-(a7)");
+	asm("move.w	8(a6),-(a7)");
+	asm("clr.l	-(a7)");
+	asm("move.l	_dskbufp,-(a7)");
+	asm("jsr	_floprd");
+	asm("lea	18(a7),a7");
+	asm("tst.l	d0");
+	asm("bge.s	getbpb3");
+	asm("move.w	8(a6),-(a7)");
+	asm("move.w	d0,-(a7)");
+	asm("jsr	_callcrit");
+	asm("addq.l	#4,a7");
+asm("getbpb3:");
+	asm("cmpi.l	#$10000,d0"); /* CRITIC_RETRY_REQUEST */
+	asm("beq.s	getbpb2");
+	asm("tst.l	d0");
+	asm("bmi.s	getbpb4");
+	asm("move.l	_dskbufp,a0");
+	asm("move.b	12(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	11(a0),d0");
+	asm("move.w	d0,d7");
+	asm("ble.s	getbpb4");
+	asm("clr.w	d6");
+	asm("move.b	13(a0),d6");
+	asm("bne.s	getbpb5");
+asm("getbpb4:");
+	asm("clr.l	d0");
+	asm("bra	getbpb14");
+asm("getbpb5:");
+	asm("move.w	d7,(a4)");
+	asm("move.w	d6,2(a4)");
+	asm("move.b	23(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	22(a0),d0");
+	asm("move.w	d0,8(a4)");
+	asm("clr.w	d7");
+	asm("cmp.b	#2,16(a0)");
+	asm("bcc.s	getbpb6");
+	asm("clr.w	d0");
+	asm("ori.w	#2,d7");
+asm("getbpb6:");
+	asm("move.w	d7,16(a4)");
+	asm("addq.w	#1,d0");
+	asm("move.w	d0,10(a4)");
+	asm("move.w	(a4),d0");
+	asm("muls	2(a4),d0");
+	asm("move.w	d0,4(a4)");
+	asm("move.b	18(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	17(a0),d0");
+	asm("asl.w	#5,d0");
+	asm("ext.l	d0");
+	asm("divs	(a4),d0");
+	asm("move.w	d0,6(a4)");
+	asm("move.w	10(a4),d0");
+	asm("add.w	6(a4),d0");
+	asm("add.w	8(a4),d0");
+	asm("move.w	d0,12(a4)");
+	asm("move.b	20(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	19(a0),d0");
+	asm("sub.w	12(a4),d0");
+	asm("ext.l	d0");
+	asm("divs	2(a4),d0");
+	asm("move.w	d0,14(a4)");
+	asm("cmpi.w	#4078,d0");
+	asm("bls.s	getbpb7");
+	asm("or.w	#1,16(a4)");
+asm("getbpb7:");
+	asm("move.b	27(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	26(a0),d0");
+	asm("move.w	d0,20(a5)");
+	asm("move.b	25(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	24(a0),d0");
+	asm("move.w	d0,24(a5)");
+	asm("muls	20(a5),d0");
+	asm("move.w	d0,22(a5)");
+	asm("move.b	29(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	28(a0),d0");
+	asm("move.w	d0,$1a(a5)");
+	asm("move.b	20(a0),d0");
+	asm("asl.w	#8,d0");
+	asm("move.b	19(a0),d0");
+	asm("ext.l	d0");
+	asm("divs	22(a5),d0");
+	asm("move.w	d0,18(a5)");
+	asm("moveq	#2,d7");
+asm("getbpb8:");
+	asm("move.b	8(a0,d7.w),28(a5,d7.w)");
+	asm("dbf	d7,getbpb8");
+	asm("moveq	#3,d7");
+asm("getbpb9:");
+	asm("move.b	39(a0,d7.w),31(a5,d7.w)");
+	asm("dbf	d7,getbpb9");
+	asm("move.w	#_bpbsums,a1");
+	asm("tst.w	8(a6)");
+	asm("beq.s	getbpb10");
+	asm("add.w	#12,a1");
+asm("getbpb10:");
+	asm("moveq	#5,d7");
+asm("getbpb11:");
+	asm("clr.w	d0");
+	asm("move.w	#$ff,d6");
+asm("getbpb12:");
+	asm("add.w	(a0)+,d0");
+	asm("dbf	d6,getbpb12");
+	asm("move.w	d0,(a1)+");
+	asm("dbf	d7,getbpb11");
+	asm("move.w	8(a6),d7");                /* lw nr. */
+	asm("lea	_fd_latch.w,a0");
+	asm("lea	_fd_wp.w,a1");
+	asm("clr.l	d0");                      /* default not change */
+	asm("move.b	0(a1,d7.w),0(a0,d7.w)");   /* new->old */
+	asm("beq.s	getbpb13");                   /* nicht null = change?? */
+	asm("moveq	#1,d0");                   /* disk gewechselt */
+asm("getbpb13:");
+	asm("lea	_drivechange.w,a1");
+	asm("move.b	d0,0(a1,d7.w)		/* changemode setzen */");
+	asm("move.l	a4,d0");
+asm("getbpb14:");
+	asm("movem.l	(a7)+,a4-a5/d6-d7");
+	asm("unlk	a6");
+	asm("rts");
+	asm("dcb.b _bhdv_getbpb-*+$e058ae-$e0565c,-1");
+
+#else
+
 BPB *bhdv_getbpb(P(int16_t) dev)
 PP(int16_t dev;)
 {
@@ -398,6 +549,203 @@ PP(LRECNO lrecnr;) /* not supported by TOS */
 /* 306de: 00e05b1e */
 /* 104de: 00fc1aac */
 /* 404: 00e04ce2 */
+#if HADES & BINEXACT
+/*
+ * patched assembler version
+ * for ED support
+ * (almost same as bios2.fil from TOSPATCH)
+ */
+asm("_dorwabs:");
+	asm("link	a6,#-12");
+	asm("movem.l	a5/d2-d7,-(a7)");
+	asm("move.w	#_blkdev,a5");
+	asm("tst.w	16(a6)");
+	asm("beq.s	dorwabs1");
+	asm("add.w	#36,a5");
+asm("dorwabs1:");
+	asm("clr.w	d0");
+/* 		asm("btst	#0,13(a6)"); */
+/* 		asm("beq.s	dorwabs2"); */
+/* 		asm("moveq	#1,d0"); */
+asm("dorwabs2:");
+	asm("move.w	d0,-2(a6)");
+	asm("tst.w	22(a5)");
+	asm("bne.s	dorwabs3");
+	asm("moveq	#9,d0");
+	asm("move.w	d0,22(a5)");
+	asm("move.w	d0,24(a5)");
+asm("dorwabs3:");
+	asm("bra		dorwabs25");
+asm("dorwabs4:");
+	asm("move.l	10(a6),d0");
+	asm("tst.w	-2(a6)");
+	asm("beq.s	dorwabs5");
+	asm("move.l	_dskbufp,d0");
+asm("dorwabs5:");
+	asm("move.l	d0,-6(a6)");
+	asm("move.w	14(a6),d6");
+	asm("ext.l	d6");
+	asm("divs	22(a5),d6");
+	asm("move.w	14(a6),d4");
+	asm("ext.l	d4");
+	asm("divs	22(a5),d4");
+	asm("swap	d4");
+	asm("clr.w	d5");
+	asm("cmp.w	24(a5),d4");
+	asm("bcs.s	dorwabs6");
+	asm("moveq	#1,d5");
+	asm("sub.w	24(a5),d4");
+asm("dorwabs6:");
+	asm("moveq	#1,d3");
+	asm("tst.w	-2(a6)");
+	asm("bne.s	dorwabs8");
+	asm("move.w	24(a5),d0");
+	asm("sub.w	d4,d0");
+	asm("cmp.w	18(a6),d0");
+	asm("bge.s	dorwabs7");
+	asm("move.w	24(a5),d3");
+	asm("sub.w	d4,d3");
+	asm("bra.s	dorwabs8");
+asm("dorwabs7:");
+	asm("move.w	18(a6),d3");
+asm("dorwabs8:");
+	asm("tst.w	-2(a6)");
+	asm("beq.s	dorwabs9");
+	asm("move.l	-6(a6),-(a7)");
+	asm("move.l	10(a6),-(a7)");
+	asm("jsr		_cpy512");
+	asm("addq.l	#8,a7");
+asm("dorwabs9:");
+	asm("btst	#0,9(a6)");
+	asm("beq.s	dorwabs15");
+	asm("move.w	d6,d0");
+	asm("or.w	d5,d0");
+	asm("bne.s	dorwabs15");
+	asm("cmpi.w	#6,d4");
+	asm("bcc.s	dorwabs15");
+	asm("movem.l	a5/d6-d7,-(a7)");
+	asm("move.w	d4,d0");
+	asm("asl.w	#1,d0");
+	asm("move.w	#_bpbsums,a5");
+	asm("tst.w	16(a6)");
+	asm("beq.s	dorwabs11");
+	asm("add.w	#12,a5");
+asm("dorwabs11:");
+	asm("add.w	d0,a5");
+	asm("moveq	#6,d7");
+	asm("sub.w	d4,d7");
+	asm("cmp.w	d3,d7");
+	asm("bcs.s	dorwabs12");
+	asm("move.w	d3,d7");
+asm("dorwabs12:");
+	asm("subq.w	#1,d7");
+	asm("move.l	-6(a6),a0");
+asm("dorwabs13:");
+	asm("move.w	#255,d6");
+	asm("clr.w	d0");
+asm("dorwabs14:");
+	asm("add.w	(a0)+,d0");
+	asm("dbf	d6,dorwabs14");
+	asm("move.w	d0,(a5)+");
+	asm("dbf	d7,dorwabs13");
+	asm("movem.l	(a7)+,a5/d6-d7");
+asm("dorwabs15:");
+	asm("addq.w	#1,d4");
+asm("dorwabs16:");
+	asm("btst	#0,9(a6)");
+	asm("beq.s	dorwabs18");
+	asm("move.w	d3,(a7)");
+	asm("move.w	d5,-(a7)");
+	asm("move.w	d6,-(a7)");
+	asm("move.w	d4,-(a7)");
+	asm("move.w	16(a6),-(a7)");
+	asm("clr.l	-(a7)");
+	asm("move.l	-6(a6),-(a7)");
+	asm("jsr	_flopwrt");
+	asm("lea	16(a7),a7");
+	asm("move.l	d0,d7");
+	asm("bne.s	dorwabs19");
+	asm("tst.w	_fverify");
+	asm("beq.s	dorwabs19");
+	asm("move.w	d3,(a7)");
+	asm("move.w	d5,-(a7)");
+	asm("move.w	d6,-(a7)");
+	asm("move.w	d4,-(a7)");
+	asm("move.w	16(a6),-(a7)");
+	asm("move.w	#-1,-(a7)");		/* verify */
+	asm("clr.w	-(a7)");
+	asm("move.l	-6(a6),-(a7)");
+	asm("jsr	_flopver");
+	asm("lea	16(a7),a7");
+	asm("move.l	d0,d7");
+	asm("bra.s	dorwabs19");
+asm("dorwabs18:");
+	asm("move.w	d3,(a7)");
+	asm("move.w	d5,-(a7)");
+	asm("move.w	d6,-(a7)");
+	asm("move.w	d4,-(a7)");
+	asm("move.w	16(a6),-(a7)");
+	asm("clr.l	-(a7)");
+	asm("move.l	-6(a6),-(a7)");
+	asm("jsr	_floprd");
+	asm("lea	16(a7),a7");
+	asm("move.l	d0,d7");
+	asm("tst.w	-2(a6)");
+	asm("beq.s	dorwabs19");
+	asm("move.l	10(a6),(a7)");
+	asm("move.l	-6(a6),-(a7)");
+	asm("jsr		_cpy512");
+	asm("addq.l	#4,a7");
+asm("dorwabs19:");
+	asm("tst.l	d7");
+	asm("bge.s	dorwabs20");
+	asm("move.w	16(a6),(a7)");
+	asm("move.l	d7,d0");
+	asm("move.w	d0,-(a7)");
+	asm("jsr		_callcrit");
+	asm("addq.l	#2,a7");
+	asm("move.l	d0,d7");
+	asm("cmp.w	#2,8(a6)");
+	asm("bge.s	dorwabs20");
+	asm("cmpi.l	#$10000,d7"); /* CRITIC_RETRY_REQUEST */
+	asm("bne.s	dorwabs20");
+	asm("move.w	16(a6),(a7)");
+	/* asm("jsr	_ckmediach"); manually written to prevent it being changed to bsr */
+	asm("dc.w $4eb9"); asm("dc.l _ckmediach");
+	asm("cmpi.w	#2,d0");
+	asm("bne.s	dorwabs20");
+	asm("moveq	#-14,d7");
+asm("dorwabs20:");
+	asm("cmpi.l	#$10000,d7"); /* CRITIC_RETRY_REQUEST */
+	asm("beq	dorwabs16");
+	asm("move.l	d7,d0");
+	asm("bmi.s	dorwabs26");
+	asm("move.w	d3,d0");
+	asm("ext.l	d0");
+	asm("moveq	#9,d1");
+	asm("asl.l	d1,d0");
+	asm("add.l	d0,10(a6)");
+	asm("add.w	d3,14(a6)");
+	asm("sub.w	d3,18(a6)");
+asm("dorwabs25:");
+	asm("tst.w	18(a6)");
+	asm("bne		dorwabs4");
+	asm("clr.l	d0");
+asm("dorwabs26:");
+	asm("tst.l	(a7)+");
+	asm("movem.l	(a7)+,a5/d3-d7");
+	asm("unlk	a6");
+	asm("rts");
+	asm("dcb.b _dorwabs-*+$e05d2a-$e05b1e,-1");
+	/* relicts from old routine */
+	asm("dc.w $fe32");
+	asm("clr.l      d0");
+	asm("tst.l      (a7)+");
+	asm("movem.l	(a7)+,a5/d3-d7");
+	asm("unlk	a6");
+	asm("rts");
+#else
+
 static ERROR dorwabs(P(int16_t) rw, P(char *) buf, P(RECNO) recnr, P(int16_t) dev, P(int16_t) cnt)
 PP(int16_t rw;)
 PP(char *buf;)
@@ -511,6 +859,7 @@ PP(int16_t cnt;)
 	}
 	return E_OK;
 }
+#endif
 
 
 /*
@@ -542,6 +891,29 @@ int16_t bhdv_boot(NOTHING)
 	register int ret;
 	
 	chdv_init();
+#if HADES & BINEXACT
+	/* patch is just one byte, but for BINEXACT need to repeat the original code here */
+	asm("	tst.w      _nflops");
+	asm("	bra.s      *+56");
+	asm("	moveq.l    #2,d7  ");
+	asm("	move.w     #1,(a7)");
+	asm("	clr.l      -(a7)");
+	asm("	move.w     #1,-(a7)");
+	asm("	clr.w      -(a7)");
+	asm("	clr.l      -(a7)");
+	asm("	move.l     _dskbufp,-(a7)");
+	asm("	jsr        _floprd");
+	asm("	adda.w     #16,a7");
+	asm("	tst.l      d0");
+	asm("	bne.s      *+6");
+	asm("	clr.w      d7");
+	asm("	bra.s      *+14");
+	asm("	tst.b      _fd_wp");
+	asm("	bne.s      *+6");
+	asm("	moveq.l    #3,d0");
+	asm("	bra.s      *+42");
+	asm("	bra.s      *+4");
+#endif
 #if !TP_26 /* KILL_BOOT */
 	if (nflops != 0
 #if TP_27 /* NORM_BOOT */

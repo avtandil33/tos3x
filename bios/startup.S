@@ -402,8 +402,6 @@ hadret1:
 hadret2: ds.b 0
 
 /* clear screen memory */
-/* video resolution  2=st high 6=tt high */
-#define hades_vidmo  2
 #if hades_vidmo == 2
 scrsize equ ((640*400)/8)
 #else
@@ -438,7 +436,7 @@ hadret3:
 
 		bra.s      hadret4
 
-		dc.l -1,-1
+		RESERVE_SPACE(_main,$e00030,$e002c8)
 
 hadret4: ds.b 0
 
@@ -1325,6 +1323,7 @@ gemok:
 /* detect CPU type */
 /* (actually nonsense since 68030 instructions have already been used above) */
 #if HADES
+hades_cpu_check:
         moveq.l   #40,d1         /* assume 68040 */
         movea.l   (UNIMPII).w,a1 /* save unimpl. integer vector */
 		lea.l     is040(pc),a2
@@ -1392,8 +1391,7 @@ la_rte:
 		rte
 la_rts:
 		rts
-/* only used to fill original space */
-		dcb.w 51,-1
+		RESERVE_SPACE(hades_cpu_check,$e003a0,$e004f0)
 exc_wei: ds.b 0
 
 #else
@@ -1923,6 +1921,7 @@ clockdone:
 /* medusa logo ausgeben 376x135 Pixel = 47 Byts x 135 Zeilen */
 medusalogo equ $7FE59998 /* ZZZ */
 hadeslogo  equ $7FE5B262 /* ZZZ */
+lolo0:
 		lea 	medusalogo,a0 		;logo 
 		move.l 	_v_bas_ad.w,a1
 		move.l 	a1,a2
@@ -1958,8 +1957,7 @@ lolo4:
 		dbf 	d2,lolo4
 		dbf 	d1,lolo3
 		bra.s 	end_logo
-/* only used to fill original space */
-		dcb.w 12,-1
+		RESERVE_SPACE(lolo0,$e00740,$e0079e)
 end_logo:
 
 #else
@@ -2336,7 +2334,7 @@ copyenv:
 nextenvc:
         move.b    (a0)+,(a1)+
         bpl.s     copyenv
-#if TP_13 | HADES /* BOOT_DEV */
+#if TP_13 /* BOOT_DEV */
         move.w    _bootdev,d0
 #else
         move.b    _bootdev,d0                  /* compute drive#, and shove it (infamous old bug accessing _bootdev as byte) */
@@ -2539,7 +2537,7 @@ dmadone:
 #else
 #if HADES
         jsr       scsirst
-/* no TT-SCU start with IDE */
+/* no TT-SCU and start with IDE */
         moveq.l   #16,d4     /* d4 = device (IDE0) */
 		moveq #0,d0			;dma boot
 		move.w d0,_bootpref.w
@@ -2553,8 +2551,7 @@ boot2:
 boot3:
 		moveq #0,d4			;bei acsi 0 weitermachen
 		bra.s confdone
-/* only used to fill original space */
-		dcb.w 10,-1
+		RESERVE_SPACE(dmadone,$e00b0c,$e00b3e)
 #else
 #if TP_50 /* PAK */
 /*
@@ -2639,6 +2636,7 @@ nextdev:
 #else
         addq.w    #1,d4
 #if HADES
+hades_acsi_boot:
 		cmpi.w #7,d4		;acsi 7?
 		bne.s no_ni_fer		;nein->
 		rts			;sonst fertig
@@ -2646,8 +2644,7 @@ no_ni_fer:
 		cmpi.w #$f,d4		;scsi 7?
 		beq.s boot3		;ja ->
 		bra.s boot1
-/* only used to fill original space */
-		dcb.w 2,-1
+		RESERVE_SPACE(hades_acsi_boot,$e00b80,$e00b94)
 #else
         move.w    d4,d0
         and.w     #$0007,d0
@@ -2874,6 +2871,7 @@ vbl_next:
 
 #if HADES
 /* no screen change in vertikal blank interrupt */
+vbl_hades:
         jsr       blink						/* blink cursor */
 		jsr	_flopvbl
 		bra 	mon_chg
@@ -2922,8 +2920,7 @@ L0178:
 		bclr	  #2,$ffff8783.w
 		clr.b	  $ffff8783.w
 		rts
-/* only used to fill original space */
-		dcb.w 18,-1
+		RESERVE_SPACE(vbl_hades,$e00c9a,$e00d64)
 mon_chg:
 
 #else
@@ -3663,8 +3660,7 @@ _physbase:
 #if HADES
 		move.l hades_physbase.w,d0        		;phys base holen
         rts
-/* only used to fill original space */
-        dcb.w 11,-1
+        RESERVE_SPACE(_physbase,$e01144,$e01160)
 #else
         moveq.l   #0,d0             /* cleanup pointer-to-be */
         move.b    (v_bas_h).w,d0    /* load and shift bits 16..23 */
@@ -3709,8 +3705,7 @@ _getrez:
 /* only fixed resolution */
 		moveq #hades_vidmo,d0
         rts
-/* only used to fill original space */
-		dcb.w 4,-1
+        RESERVE_SPACE(_getrez,$e01166,$e01172)
 #else
         moveq.l   #0,d0
 #if STBOOK
@@ -3745,8 +3740,7 @@ _vsetscreen:
 #if HADES
 /* only fixed resolution */
 		rts
-/* only used to fill original space */
-		dcb.w 42,-1
+		RESERVE_SPACE(_vsetscreen,$e01172,$e011c8)
 #else
 /* --- set logical location: */
         tst.l     4(a7)                      /* if(logloc < 0) then ignore it */
@@ -3801,7 +3795,7 @@ nosetr:
 _setpalette:
 #if HADES
 		rts
-		dcb.w 3,-1
+		RESERVE_SPACE(_setpalette,$e011c8,$e011d0)
 #else
         move.l    4(a7),(_colorptr).w     /* next VBL will do this */
         rts
@@ -3823,7 +3817,7 @@ _setpalette:
 _setcolor:
 #if HADES
 		rts
-		dcb.w 24,-1
+		RESERVE_SPACE(_setcolor,$e011d0,$e01202)
 #else
         move.w    4(a7),d1                   /* get color number */
         add.w     d1,d1                      /* turn into word index */
@@ -3904,7 +3898,7 @@ cache_ein:
 		D0_CACR
 		move.l 	(sp)+,d0
 		rts
-		dcb.w 88,-1
+		RESERVE_SPACE(any_vec,$e0121c,$e012fe)
 
 #else
 
@@ -4188,7 +4182,7 @@ autoscan:
         clr.w     -(a7)
         move.w    #$004A,-(a7)                  /* Mshrink to basepage only */
         trap      #1
-#if TP_15 | HADES /* STACK_POINTER */
+#if TP_15 /* STACK_POINTER */
 		adda.w    #12,a7
         tst.w     d0
         bne.s     autosca4                      /* if Mshrink failed, done */
@@ -4443,14 +4437,10 @@ _blitmode:
 		moveq     #0,d0
         rts
 #else
-#if HADES
-/* no blitter */
-		moveq     #0,d0
-        rts
-#else
         bsr.s     blittest                      /* test if blitter is installed */
         move.w    d0,d4                         /* d4 = blitter status */
 #endif
+#if !TP_18 | BINEXACT
         move.w    d0,d5
         lsr.w     #1,d5
         or.w      #$FFFE,d5                     /* d5 = blitter enable mask */
@@ -4741,7 +4731,7 @@ _esetshift:
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		move.l #hades_vidmo*256,d0
 		rts
-		dcb.w 20,-1
+		RESERVE_SPACE(_esetshift,$e01756,$e01786)
 #else
         bsr       dovsync
         moveq.l   #0,d0
@@ -4783,7 +4773,7 @@ _esetbank:
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		move.l #hades_vidmo*256,d0
 		rts
-		dcb.w 8,-1
+		RESERVE_SPACE(_esetbank,$e0178e,$e017a6)
 #else
         moveq.l   #0,d0
         move.w    (shift_tt).w,d0
@@ -4805,7 +4795,7 @@ _esetcolor:
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		rts
-		dcb.w 15,-1
+		RESERVE_SPACE(_esetcolor,$e017a6,$e017c8)
 #else
         lea.l     ($FFFF8400).w,a0
         move.w    4(a7),d0
@@ -4839,7 +4829,7 @@ _esetpalette:
         subi.w    #$0100,d0
         neg.w     d0
         rts
-        dcb.w 15,-1
+        RESERVE_SPACE(_esetpalette,$e017c8,$e017f6)
 #else
         move.w    4(a7),d0
         and.w     #$00FF,d0
@@ -4877,7 +4867,7 @@ _egetpalette:
 		subi.w    #$100,d0
 		neg.w     d0
 		rts
-		dcb.w 15,-1
+		RESERVE_SPACE(_egetpalette,$e017f6,$e01824)
 #else
         move.w    4(a7),d0
         and.w     #$00FF,d0
@@ -4911,7 +4901,7 @@ _esetgray:
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		moveq #hades_vidmo,d0
 		rts
-		dcb.w 16,-1
+		RESERVE_SPACE(_esetgray,$e01824,$e01848)
 #else
         moveq.l   #0,d0
         move.b    (shift_tt).w,d1
@@ -4942,7 +4932,7 @@ _esetsmear:
 		subx.w d0,d0
 		neg.w d0
 		rts
-		dcb.w 13,-1
+		RESERVE_SPACE(_esetsmear,$e01848,$e0186c)
 #else
         moveq.l   #0,d0
         move.b    (shift_tt).w,d1

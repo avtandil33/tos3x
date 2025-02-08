@@ -77,10 +77,23 @@ VOID vs_color(NOTHING)
 	register int16_t *ptr = LV(INTIN);
 	register int16_t *rgb;
 	register short j, pen;
-	register short mode = (VIDINFO >> 8) & 7;	/* get video info     */
+	register short mode;
 	register short temp;
 	register short total;
 
+#if HADES
+	/*
+	 * Note: this is all useless. In the final ROM,
+	 * this whole routine was disabled by putting a RTS
+	 * in the prologue. This cannot be achived here,
+	 * and is handled by a sed script in the Makefile
+	 */
+	asm("move.l #$200,d5"); /* hades_vidmo * 256 */
+	mode >>= 8;
+	asm("andi.w #7,d5");;
+#else
+	mode = (VIDINFO >> 8) & 7;	/* get video info     */
+#endif
 
 #if TOSVERSION >= 0x400
 	j = tplane_mask[LV(v_planes)];			/* max pen allowed    */
@@ -102,7 +115,13 @@ VOID vs_color(NOTHING)
 	case _640x480:
 
 #if PLANES8
+#if HADES
+		asm("move.l #$200,d4"); /* hades_vidmo * 256 */
+		temp &= 15;
+		temp <<= 4;
+#else
 		temp = (VIDINFO & 15) << 4;		/* temp = bank * 16   */
+#endif
 		if (temp != 0)
 			rgb = &LV(REQ_X_COL)[temp + pen - 16][0];	/* rgb -> extnded ary */
 #endif

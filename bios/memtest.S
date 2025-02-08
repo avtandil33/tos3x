@@ -1,4 +1,5 @@
 #include "config.h"
+#include "asmdefs.h"
 
 ZONESIZE equ $20000
 
@@ -57,7 +58,8 @@ memtes5:
         cmp.l     memttop,d0
         bne.s     memtes8
         move.l    d7,-(a7)
-#if TP_49
+#if TP_49 | HADES
+		/* 7 digits instead of 5 = total 11 ("kB" and 2 spaces) */
         moveq.l   #10,d7
 #else
         moveq.l   #8,d7
@@ -247,7 +249,12 @@ memtamsg:                            dc.b 13,10,'!TEST NIEDOKO',$c5,'CZONY.',27,
 #if TOSVERSION >= 0x300
 memthdr1:
                                      dc.b 'Memory Test:',13,10
-                                     dc.b 'ST RAM ',27,'p',0
+#if HADES
+                                     dc.b 'FASTRAM'
+#else
+                                     dc.b 'ST RAM '
+#endif
+                                     dc.b 27,'p',0
 memthdr2:                            dc.b 13,10,'TT RAM ',27,'p',0
 memtcmsg:                            dc.b 13,10,'Memory Test Complete.',13,10,0
 memtkb:                              dc.b ' KB',27,'q',27,'K',0
@@ -354,6 +361,38 @@ prtdec:
         movem.l   d3-d4,-(a7)
         clr.l     d4
 prtdec1:
+
+#if HADES
+  		move.l  #1000000,D2
+      	clr.w	d3     			/* vornullunterdrueckung on */
+prtdec2:
+		dc.w    $4c42,$1        /* divul.l d2,d1:d0 */
+      	movem.l d1-d2,-(a7)
+  		tst.b   d0            	/* zahl? */
+  		bne.s   prtdec3         /* ja-> */
+  		tst.w   d3              /* noch keine zahl? */
+  		bne.s   prtdec3         /* nein */
+  		cmpi.l  #1,d2           /* divisor=1 */
+  		beq.s   prtdec3         /* ja-> */
+  		move.b  #" ",d0         /* sonst leerzeichen */
+  		bra.s   prtdec4
+prtdec3:
+		addi.b  #"0",d0         /* add ascii 0 */
+  		moveq   #1,d3           /* vornull aus */
+prtdec4:
+		move.w  d0,-(a7)        /* zeichen ausgeben */
+  		move.l  #$30002,-(a7)
+  		trap    #$d
+  		addq.w  #6,a7
+		movem.l (a7)+,d1-d2
+  		move.l  d1,d0           /* rest nach d0 */
+  		moveq   #10,d1          /* divisor = 10 */
+  		dc.w	$4c41,$2002	    /* divul.l d1,d2:d2       auf ein zehntel setzen */
+  		bne.s   prtdec2
+		movem.l (a7)+,d3-d4
+  		rts
+  		RESERVE_SPACE(prtdec1,$e063d4,$e06476)
+#else
 #if TP_49
         move.l    #1000000,d2
         clr.w     d3
@@ -459,10 +498,12 @@ prtdec5:
         moveq.l   #10,d1
         divu.w    d1,d2
         bne.s     prtdec2
-#endif
+#endif /* TP_49 */
 prtdec6:
         movem.l   (a7)+,d3-d4
         rts
+#endif /* HADES */
+
 
 		bss
 		

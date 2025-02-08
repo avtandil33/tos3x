@@ -209,6 +209,24 @@
 #endif
 
 /*
+ * Hades ROM has some patches applied already
+ */
+#if HADES
+#undef TP_13
+#define TP_13 1 /* BOOT_DEV */
+#undef TP_15
+#define TP_15 1 /* STACK_POINTER */
+#undef TP_18
+#define TP_18 1 /* IGNORE_BLITTER */
+#undef TP_25
+#define TP_25 1 /* ED_BIOS */
+#undef TP_26
+#define TP_26 1 /* KILL_BOOT */
+#undef TP_31
+#define TP_31 1 /* MS_DOS */
+#endif
+
+/*
  * make sure the defaults are used for patches that are not activated
  */
 #if !TP_07

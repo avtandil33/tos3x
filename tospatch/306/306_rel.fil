@@ -188,6 +188,8 @@ _ENDSWITCH
 
 .MS_DOS = 1         ;Korrektes MSDOS-Format (Statt $EB nun $EB34904E als 1. Bytes im Bootsektor).
 
+.ED_BIOS = 1        ; Neue Bios-Routinen Getbpb und Rwabs mit ED-UnterstÅtzung
+
 .NEC_P6 = 0         ;éndert den Papiervorschub bei der Hardcopy ab
 
 .FDC_COOKIE = 01415443  ;FDC-Cookie-Wert, z.B. HD: 01415443 oder ED: 02000000.

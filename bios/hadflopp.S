@@ -1019,7 +1019,4 @@ formintwait3:
 		moveq	#0,d1                           /* ok */
 		rts
 
-#if BINEXACT
-		/* dcb.b ($e045d8-$e03ba8)-*,-1 */
-		dcb.w 52,-1
-#endif
+		RESERVE_SPACE(_flopini,$e03ba8,$e045d8)

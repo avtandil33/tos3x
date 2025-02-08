@@ -182,7 +182,17 @@ PP(int16_t op;)
 	obj[FCBOXF].ob_flags |= HIDETREE;
 	obj[FCBOXC].ob_flags |= HIDETREE;
 #else
+#if HADES & BINEXACT & (FCBOXF == 9)
+	/*
+	 * orignal was "move.w     #$0080,$e0(a4)"
+	 * which apparently was wrongly relocated due to a missing entry
+	 * in relocs.fil from TOSPATCH
+	 * Dangerous, since this will write to a random memory location.
+	 */
+	obj[1364].ob_next = HIDETREE;
+#else
 	obj[FCBOXF].ob_flags = HIDETREE;
+#endif
 	obj[FCBOXC].ob_flags = HIDETREE;
 #endif
 
@@ -226,7 +236,12 @@ PP(int16_t op;)
 			obj[FCBOXF].ob_flags &= ~HIDETREE;
 #else
 			obj[FCBOXC].ob_flags = HIDETREE;
+#if HADES & BINEXACT & (FCBOXF == 9)
+			/* see comments above about TOSPATCH usage */
+			obj[1364].ob_next = 0;
+#else
 			obj[FCBOXF].ob_flags = 0;
+#endif
 #endif
 			fc_draw(obj, FCBOXF);		/* draw the format  */
 			field = 0;
@@ -238,7 +253,12 @@ PP(int16_t op;)
 			obj[FCBOXF].ob_flags |= HIDETREE;
 			obj[FCBOXC].ob_flags &= ~HIDETREE;
 #else
+#if HADES & BINEXACT & (FCBOXF == 9)
+			/* see comments above about TOSPATCH usage */
+			obj[1364].ob_next = HIDETREE;
+#else
 			obj[FCBOXF].ob_flags = HIDETREE;
+#endif
 			obj[FCBOXC].ob_flags = 0;
 #endif
 			fc_draw(obj, FCBOXC);
@@ -414,10 +434,22 @@ PP(OBJECT *obj;)
 
 	if (!ret)							/* set up the Boot Sector info  */
 	{
-		Protobt(bufaddr, 0x01000000L, disktype, 0);
 #if TP_31 /* MS_DOS */
-		*((long *)bufaddr) = 0xeb34904eL;
+#if BINEXACT
+		asm("clr.w      (a7)");
+		asm("move.w     -20(a6),-(a7)");
+		asm("move.l     #$01000000,-(a7)");
+		asm("move.l     a5,-(a7)");
+		asm("move.w     #18,-(a7)");
+		asm("jsr        _trp14");
+		asm("adda.w     #12,a7");
+		asm("move.l     #$EB34904E,(a5)");
 #else
+		Protobt(bufaddr, 0x01000000L, disktype, 0);
+		*((long *)bufaddr) = 0xeb34904eL;
+#endif
+#else
+		Protobt(bufaddr, 0x01000000L, disktype, 0);
 		*bufaddr = 0xe9;
 #endif
 

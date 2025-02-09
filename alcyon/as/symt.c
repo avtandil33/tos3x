@@ -77,6 +77,7 @@ static const char *const ermsg[] = {
     N_("illegal 8-bit immediate"),          /* 43 */
     N_("warning: constant out of range"),   /* 44 */
     N_("illegal register list"),            /* 45 */
+    N_("warning: bra.l generated for 68020+"),/* 46 */
 };
 
 static const char *const itbtname[] = { "ITBS", "ITSY", "ITCN", "ITSP", "ITRM", "ITPC", "ITCW" };
@@ -835,7 +836,8 @@ PP(va_list args;)
 	}
 	vfprintf(stderr, _(ermsg[errn - 1]), args);
 	fputc('\n', stderr);
-	nerror++;
+	if (errn != 46)
+		nerror++;
 }
 
 

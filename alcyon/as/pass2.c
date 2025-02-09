@@ -50,7 +50,19 @@ static VOID relbr(NOTHING)
 	expr(p2gi);
 	if (extflg)
 	{									/* external reference */
-		instrlen += 2;					/* long relative */
+		if (p1inlen == 4)
+		{
+			instrlen += 2;				/* word relative */
+		} else if (p1inlen == 6)
+		{
+			instrlen += 4;				/* long relative */
+			ins[0] |= 0xff;
+			xerr(34); /* linker does not handle this currently */
+		} else
+		{
+			xerr(34);
+			return;
+		}
 		*pins++ = ival.l;			/* pass constant part */
 		*prlb++ = (extref << 3) | EXTREL;	/* ext ref */
 		return;
@@ -63,17 +75,30 @@ static VOID relbr(NOTHING)
 	}
 	reloc = ABS;
 	if (p1inlen == 4)
-	{									/* long displacement */
+	{									/* word displacement */
 		if (ival.l > 32767 || ival.l < -32768)
 			uerr(22);	/* illegal relative address */
 		instrlen += 2;
 		*pins++ = ival.l;
 		*prlb++ = DABS;					/* data absolute */
-	} else
+	} else if (p1inlen == 2)
 	{									/* short displacement */
 		if (ival.l > 127 || ival.l < -128)
 			uerr(22); /* illegal relative address */
 		ins[0] |= ((short)ival.l & 0xff);
+	} else if (p1inlen == 6)
+	{
+										/* long displacement */
+		ins[0] |= 0xff;
+		instrlen += 4;
+		*pins++ = ival.l >> 16;
+		*prlb++ = LUPPER;
+		*pins++ = ival.l & 0xffffL;
+		*prlb++ = DABS;
+	} else
+	{
+		xerr(34);
+		return;
 	}
 	/* make it a nop if destination is next instruction */
 	if (!didorg && ((instrlen == 2 && ival.l == 0) || (instrlen == 4 && ival.l == 2)))

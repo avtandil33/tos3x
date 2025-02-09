@@ -272,7 +272,7 @@ static int modeok(NOTHING)
 	case FORMAT_SWAP:
 		return modelen == WORDSIZ ? TRUE : FALSE;
 	case FORMAT_RELBR:
-		return modelen == LONGSIZ ? FALSE : TRUE;
+		return TRUE; /* now also valid for bra.l */
 	case FORMAT_EXG:
 	case FORMAT_LEA:
 	case FORMAT_MOVEQ:
@@ -406,7 +406,11 @@ static int calcilen(NOTHING)
 		}
 	  loffst:
 		if (!explmode || modelen > BYTESIZ)	/* recognize br extensions */
+		{
 			i += 2;						/* long offset for branches */
+			if (modelen >= LONGSIZ)
+				i += 2;
+		}
 		break;
 
 	case FORMAT_ADDI:
@@ -605,6 +609,10 @@ static VOID cisit(NOTHING)
 		{
 			xerr(16); /* illegal extension */
 			return;
+		}
+		if (format == FORMAT_RELBR && modelen == LONGSIZ)
+		{
+			uerr(46); /* warning: bra.l generated for 68020+" */
 		}
 	}
 	dlabl();							/* define label */

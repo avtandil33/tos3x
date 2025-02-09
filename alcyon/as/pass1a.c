@@ -92,7 +92,7 @@ VOID pass1a(NOTHING)
 						if (!i)
 							continue;
 						stbuf[2].itop.ptrw2 = bsrptr;	/* chng to bsr */
-					} else if (ival.l >= -128 && ival.l <= 127)
+					} else if (ival.l >= -128 && ival.l <= 127 && modelen == WORDSIZ)
 					{
 						if (ival.l == 2)	/* branch to next instr - delete */
 						{

@@ -380,7 +380,7 @@ clrmem:
 
 nomemchk:
 
-		lea.l   (SUPSIZ*2+_supstk),a7
+		lea.l   (SUPSIZ*2+_supstk),a7  		/* reset supervisor stack */
 
 /* clear the remainder of the BSS section */
 
@@ -393,12 +393,12 @@ clrbss:
 
 		move.l     #$ABCDEF42,d0
 		lea.l      hadret1(pc),a6
-		jmp        $7FE5994C /* ZZZ */
+		jmp        pcicheck
 hadret1:
 		move.l     a0,d0
 		bne.s      hadret2
 		lea.l      hadret2(pc),a6
-		jmp        $7FE59330 /* ZZZ screen_init? */
+		jmp        screen_init
 hadret2: ds.b 0
 
 /* clear screen memory */
@@ -418,7 +418,7 @@ clrscr:
         dbf        d1,clrscr
 
 		lea.l      hadret3(pc),a6
-		jmp        $7FE597AE /* ZZZ */
+		jmp        check_hardware
 hadret3:
 		move.b     #$0A,ldor /* floppy reset */
 		
@@ -1068,9 +1068,9 @@ nomemchk:
 
 #if TP_05 /* SHELL_P */
 		clr.l     (_shell_p).w
-        movea.w   #SUPSIZ*2+_supstk,a7
+        movea.w   #SUPSIZ*2+_supstk,a7  		/* reset supervisor stack */
 #else
-        movea.l   #SUPSIZ*2+_supstk,a7
+        movea.l   #SUPSIZ*2+_supstk,a7  		/* reset supervisor stack */
 #endif
 
 
@@ -1357,7 +1357,7 @@ cook_wei:
 /* set exception vectors for 040/60 */
 		lea.l   la_rte,a3
 		lea.l   la_rts,a4
-		lea.l   exception,a1
+		lea.l   hades_exception,a1
 		lea.l   (_buserror).w,a0
 		moveq.l #62-1,d0
 exc_loop:
@@ -1372,9 +1372,6 @@ exc_loop2:
 		move.l  (_v_bas_ad).w,(hades_physbase).w /* set physbase */
 		cmpi.w  #60,(_longframe).w
 		bne     exc_wei
-xFP_CALL_TOP    equ $7fe4b57a /* ZZZ */
-unim_int_instr  equ $7fe49c82 /* ZZZ */
-exception       equ $7fe58a8a /* ZZZ */
 		move.l  #unim_int_instr,(UNIMPII).w
 		move.l  #xFP_CALL_TOP+$80+$30,(_lineftrap).w /* fline */
 		move.l  #xFP_CALL_TOP+$80+$00,(FPNAN).w      /* snan */
@@ -1386,9 +1383,9 @@ exception       equ $7fe58a8a /* ZZZ */
 		move.l  #xFP_CALL_TOP+$80+$38,(FPUNSUP).w    /* Unimplemented data type */
 		move.l  #xFP_CALL_TOP+$80+$40,(UNIMPEA).w    /* Unimplemented Effective Address */
 #if BINEXACT
-		dc.l	$f23c,$9000,0,0			/* fmove.l #0,fpcr BUG: must be dc.w */
+		dc.l	$f23c,$9000,0,0			/* fmovem.l #0,fpcr BUG: must be dc.w */
 #else
-		dc.w	$f23c,$9000,0,0			/* fmove.l #0,fpcr */
+		dc.w	$f23c,$9000,0,0			/* fmovem.l #0,fpcr */
 #endif
 		bra.s exc_wei
 la_rte:
@@ -1927,8 +1924,6 @@ clockdone:
 #if HADES
 
 /* medusa logo ausgeben 376x135 Pixel = 47 Byts x 135 Zeilen */
-medusalogo equ $7FE59998 /* ZZZ */
-hadeslogo  equ $7FE5B262 /* ZZZ */
 lolo0:
 		lea 	medusalogo,a0 		;logo 
 		move.l 	_v_bas_ad.w,a1
@@ -1951,7 +1946,7 @@ lolo2:
 		move.l 	_v_bas_ad.w,a1
 		move.l 	a1,a2
 		add.w   #240+27,a2	;4.Zeile 4.byt
-		move.w 	#101,d1
+		move.w 	#102-1,d1
 lolo3:	
 #if hades_vidmo == 2
         add.w 	#80-23,a2       ;ST hoch
@@ -3882,7 +3877,7 @@ savp_2:
 		move.l    (sp)+,(_proc_enum).w       /* save bogus PC + exception number */
 #endif
 #if HADES
-		jmp exception
+		jmp hades_exception
 
 /* Space for new program parts on old exception handler */
 cache_aus1:

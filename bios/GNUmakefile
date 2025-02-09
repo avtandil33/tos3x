@@ -50,6 +50,13 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 
 keytbl.o: $(top_srcdir)/common/config.h
 
+FPSP060 = \
+	fpsp060/skel060.S \
+	fpsp060/isp.sa \
+	fpsp060/fpsp.sa \
+	$(empty)
+hadxbios.o: hadxbios.S $(FPSP060)
+
 prtkeys$(EXEEXT): prtkeys.o
 	$(AM_V_LD)${LD} ${LDFLAGS} -o $@ prtkeys.o
 

@@ -24,6 +24,10 @@ check_rom_crc:
         clr.w     d0
         clr.w     d1
         clr.w     d3
+#if HADES
+	xdef rom_crc_addr
+rom_crc_addr:
+#endif
         lea.l     rom_crc_table,a2
 ckcrc1:
         move.w    d0,d1

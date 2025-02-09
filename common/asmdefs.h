@@ -29,8 +29,9 @@
 #define CACR_D6 CACR_Dn(6)
 #define CACR_D7 CACR_Dn(7)
 
-#define PCR_D0        dc.l $4e7a0808        /* movec pcr,d0 68060 */
-#define PCR_D1        dc.l $4e7a1808        /* movec pcr,d1 68060 */
+#define PCR_Dn(r)     dc.l $4e7a0808+(r<<12) /* movec pcr,dn 68060 */
+#define PCR_D0        PCR_Dn(0)        /* movec pcr,d0 68060 */
+#define PCR_D1        PCR_Dn(1)        /* movec pcr,d1 68060 */
 
 #define Dn_CACR(r)    dc.l $4e7b0002+(r<<12)        /* movec dn,cacr 68020-68060 */
 #define D0_CACR       Dn_CACR(0)
@@ -46,11 +47,23 @@
 #define D0_CAAR       dc.l $4e7b0802        /* movec d0,caar 68020-68030 */
 #define D0_PCR        dc.l $4e7b0808        /* movec d0,pcr 68060 */
 
-#define D0_TC         dc.l $4e7b0003        /* movec d0,tc 68040-68060 (except 68ec040) */
-#define D0_ITT0       dc.l $4e7b0004        /* movec d0,itt0 68040-68060 */
-#define D0_ITT1       dc.l $4e7b0005        /* movec d0,itt1 68040-68060 */
-#define D0_DTT0       dc.l $4e7b0006        /* movec d0,dtt0 68040-68060 */
-#define D0_DTT1       dc.l $4e7b0007        /* movec d0,dtt1 68040-68060 */
+#define Dn_TC(r)      dc.l $4e7b0003+(r<<12)        /* movec dn,tc 68040-68060 (except 68ec040) */
+#define Dn_ITT0(r)    dc.l $4e7b0004+(r<<12)        /* movec dn,itt0 68040-68060 */
+#define Dn_ITT1(r)    dc.l $4e7b0005+(r<<12)        /* movec dn,itt1 68040-68060 */
+#define Dn_DTT0(r)    dc.l $4e7b0006+(r<<12)        /* movec dn,dtt0 68040-68060 */
+#define Dn_DTT1(r)    dc.l $4e7b0007+(r<<12)        /* movec dn,dtt1 68040-68060 */
+
+#define TC_Dn(r)      dc.l $4e7a0003+(r<<12)        /* movec tc,dn 68040-68060 (except 68ec040) */
+#define ITT0_Dn(r)    dc.l $4e7a0004+(r<<12)        /* movec itt0,dn 68040-68060 */
+#define ITT1_Dn(r)    dc.l $4e7a0005+(r<<12)        /* movec itt1,dn 68040-68060 */
+#define DTT0_Dn(r)    dc.l $4e7a0006+(r<<12)        /* movec dtt0,dn 68040-68060 */
+#define DTT1_Dn(r)    dc.l $4e7a0007+(r<<12)        /* movec dtt1,dn 68040-68060 */
+
+#define D0_TC         Dn_TC(0)
+#define D0_ITT0       Dn_ITT0(0)
+#define D0_ITT1       Dn_ITT1(0)
+#define D0_DTT0       Dn_DTT0(0)
+#define D0_DTT1       Dn_DTT1(0)
 
 #define FROM_TC(addr) dc.l $f0394200,addr   /* pmove tc,addr 68030 (except 68ec030) */
 

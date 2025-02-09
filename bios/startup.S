@@ -1106,7 +1106,11 @@ sei2:       move.l    #just_rte,(a1)+           /* level #1 ... level #6 to RTE 
 
 /* --- install OS interrupt vectors: */
             move.l    #int_vbl,(_lvl4vec).w       /* vblank handler */
+#if HADES
+            move.l    #int_scsi,(_lvl2vec).w      /* scsi handler */
+#else
             move.l    #int_hbl,(_lvl2vec).w       /* hblank handler */
+#endif
             move.l    a3,(_trap2vec).w            /* (empty) trap#2 handler */
             move.l    #_biostrap,(_trap13vec).w   /* trap #13 handler */
             move.l    #_xbiostrap,(_trap14vec).w  /* trap #14 handler */
@@ -1344,7 +1348,8 @@ cpuexit:
         move.l    #$5F56444F,(a0)+ /* '_VDO' */
         move.l    #$00020000,d1  /* 2,0 = TT Shifter */
         move.l    d1,(a0)+
-		jmp       $7FE49010 /* ZZZ morecook */
+		jmp       morecook
+		xdef cook_wei
 cook_wei:
         clr.l     (a0)+
         move.l    #NCOOKIES,(a0)
@@ -1370,7 +1375,6 @@ exc_loop2:
 xFP_CALL_TOP    equ $7fe4b57a /* ZZZ */
 unim_int_instr  equ $7fe49c82 /* ZZZ */
 exception       equ $7fe58a8a /* ZZZ */
-int_hbl         equ $7fe49140 /* ZZZ */
 		move.l  #unim_int_instr,(UNIMPII).w
 		move.l  #xFP_CALL_TOP+$80+$30,(_lineftrap).w /* fline */
 		move.l  #xFP_CALL_TOP+$80+$00,(FPNAN).w      /* snan */
@@ -1688,7 +1692,11 @@ initauto:
 
 #if !STBOOK & (TOSVERSION < 0x400)
         move.l    #int_vbl,(_lvl4vec).w      /* vblank handler */
-        move.l    #int_hbl,(_lvl2vec).w      /* hblank handler */
+#if HADES
+        move.l    #int_scsi,(_lvl2vec).w      /* scsi handler */
+#else
+        move.l    #int_hbl,(_lvl2vec).w       /* hblank handler */
+#endif
         move.l    a3,(_trap2vec).w           /* ignore GEM trap for now */
         move.l    #_biostrap,(_trap13vec).w  
         move.l    #_xbiostrap,(_trap14vec).w
@@ -2534,6 +2542,7 @@ dmadone:
 #else
 #if TOSVERSION < 0x300
 	    moveq	  #16,d4     /* d4 = device (IDE0) */
+        clr.w     (_bootpref).w
 #else
 #if HADES
         jsr       scsirst
@@ -2587,9 +2596,9 @@ boot3:
         beq.s     confdone
 #endif
         clr.w     (_bootpref).w
-#endif
-#endif
-#endif
+#endif /* HADES */
+#endif /* TOSVERSION < 0x300 */
+#endif /* STBOOK */
 
 #if TP_14 /* CT_HD */
 #include "../tospatch/patches/ct_hd1.S"
@@ -2820,9 +2829,7 @@ dflt_pal:
 /* 206de: 00e00bf0 */
 /* 104de: 00fc06aa */
 /* 404: 00e00c9a */
-#if !HADES /* routine has moved, but old code remains here */
 int_hbl:
-#endif
         move.w    d0,-(a7)            /* save d0 */
         move.w    2(a7),d0            /* get status register from stack */
         and.w     #$0700,d0           /* isolate just IPL-mask from sr */

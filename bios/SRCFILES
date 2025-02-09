@@ -36,6 +36,8 @@ BIOS_ASRCS = \
 	ikbdclk.S \
 	chardev.S \
 	floppy.S \
+	hadxbios.S \
+	hadflopp.S \
 	prt.S \
 	memtest.S \
 	${empty}

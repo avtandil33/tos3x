@@ -285,6 +285,7 @@ pci_vga_base	equ $80000000	/* screen ram beginn */
 isa_vga_base	equ $ff000000	/* screen ram beginn */
 pci_vga_reg	equ $b0000000	/* vga register */
 isa_vga_reg	equ $fff00000	/* vga register */
+pci_base        equ $a0000000
 pci_conf1	equ $a0010000   /* pci config */
 pci_conf2	equ $a0020000   /* pci config */
 pci_conf3	equ $a0040000   /* pci config */

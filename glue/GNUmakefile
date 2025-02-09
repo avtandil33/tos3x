@@ -28,7 +28,7 @@ include SRCFILES
 
 STARTUP = startup.o
 
-LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a
+LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a ../bios/hadxbios.o
 OBJS = $(STARTUP) $(BIOS_OBJS) $(VDI_OBJS) $(BDOS_OBJS) $(AES_OBJS) $(DESK_OBJS)
 
 ROMSIZE_206 = 256k
@@ -43,17 +43,39 @@ ROMSIZE = $(ROMSIZE_$(TOSVERSION))
 #
 CARTBASE = E40000
 
+#
+# For hades, linking is done in two steps
+#
+# - first, link a ROM
+# - get the address of the end of the resource data
+# - calculate the size of the area between that address,
+#   and the start of the bios extension functions
+# - generate a temporary object that fills this area with -1
+# - link the ROM again. This will now have the functions at their
+#   expected address
+#
 ifeq ($(USE_CROSS_ALCYON),1)
-tos.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o tosvars.o
+tos.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o tosvars.o GNUmakefile
+ifeq ($(HADES),1)
+	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o
+	end_of_resource=`$(BIN)cnm $@ | $(GREP) end_of_resource | $(SED) -e 's/ .*$$//' -e 's/^00//' | $(TR) abcdef ABCDEF`; \
+	fill=`echo "16 i $(rombase) $(HADES_XBIOS) + $$end_of_resource - 2 - p" | $(DC)`; \
+	echo "  data" > hadestmp.S; \
+	echo "  dcb.b $$fill,-1" >> hadestmp.S
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o hadestmp.o hadestmp.S
+	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,hadestmp.o,../bios/hadxbios.o
+	$(RM) hadestmp.S hadestmp.o
+else
 	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o
+endif
 
 # For the PAK/BootJmp option, we need to know the start of the resource area first
 tosimg.tmp: $(STARTUP) $(LIBS) rscend.o vars.o tosvars.o
-	$(AM_V_LD)$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o,../bios/hadxbios.o
 
 rscend.h: tosimg.tmp
 	$(AM_V_GEN)tosrsc=`$(BIN)cnm $< | $(GREP) tosrsc | $(SED) -e 's/ .*$$//' -e 's/^00//' | $(TR) abcdef ABCDEF`; \
-	fill=`echo "16 i E40030 $$tosrsc - p" | $(DC)`; \
+	fill=`echo "16 i $(rombase) 40030 + $$tosrsc - p" | $(DC)`; \
 	echo "#define RSCGAP $$fill" > $@
 
 tos.rel: $(STARTUP) $(LIBS) tosrsc$(COUNTRY).o vars.o tosvars.o ../vdi/vdivar.o ../aes/gembase.o sbss.o ebss.o
@@ -76,7 +98,7 @@ tosimg.tmp: $(STARTUP) $(LIBS) rscend.o vars.o tosvars.o ebss.o
 
 rscend.h: tosimg.tmp
 	$(AM_V_GEN)tosrsc=`$(GREP) tosrsc tostmp.map | $(SED) -e 's/.*0x\([0-9a-fA-F]*\).*/\1/' -e 's/^00//' | $(TR) abcdef ABCDEF`; \
-	fill=`echo "16 i E40030 $$tosrsc - p" | $(DC)`; \
+	fill=`echo "16 i $(rombase) 40030 + $$tosrsc - p" | $(DC)`; \
 	echo "#define RSCGAP $$fill" > $@
 
 endif
@@ -118,7 +140,7 @@ dosdir::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(DOSDIR)/$(subdir)
 
 clean:
-	$(RM) *.o *.a *.i $(IMG) tos.img tosimg.tmp cartridg.tmp cartridg.img tostmp.map $(PROGRAMS) tosrsc*.c glue.* rscend.h tosrel.tmp tos.rel $(top_srcdir)/common/config.h
+	$(RM) *.o *.a *.i $(IMG) tos.img tosimg.tmp cartridg.tmp cartridg.img tostmp.map $(PROGRAMS) tosrsc*.c glue.* rscend.h tosrel.tmp tos.rel hadestmp.S $(top_srcdir)/common/config.h
 
 distclean: clean
 	$(RM) $(top_srcdir)/common/sections.mak *.img

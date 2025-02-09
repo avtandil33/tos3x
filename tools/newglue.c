@@ -315,7 +315,8 @@ PP(char **argv;)
 	char *outfile;
 	const char *country = NULL;
 	const char *version = NULL;
-	
+	int hades;
+
 #ifdef __ALCYON__
 	/* symbols etoa and ftoa are unresolved */
 	asm("xdef _etoa");
@@ -323,6 +324,14 @@ PP(char **argv;)
 	asm("xdef _ftoa");
 	asm("_ftoa equ 0");
 #endif
+
+	hades = 0;
+	if (argc >= 2 && strcmp(argv[1], "--hades") == 0)
+	{
+		hades = 1;
+		argv++;
+		argc--;
+	}
 
 	if (argc == 2)
 	{
@@ -336,7 +345,21 @@ PP(char **argv;)
 		country = argv[1];
 		version = argv[2];
 		sprintf(gemrsc, "../aes/rsc/%s/gem%s.rsc", version, country);
-		sprintf(deskrsc, "../desk/rsc/%s/desk%s.rsc", version, country);
+		if (hades)
+		{
+			sprintf(deskrsc, "../desk/rsc/%s/hades%s.rsc", version, country);
+			handle = open(deskrsc, O_RDONLY | O_BINARY);	/* open source file */
+			if (handle > 0)
+			{
+				close(handle);
+			} else
+			{
+				fprintf(stderr, "%s not found, using default\n", deskrsc);
+				deskrsc[0] = '\0';
+			}
+		}
+		if (deskrsc[0] == '\0')
+			sprintf(deskrsc, "../desk/rsc/%s/desk%s.rsc", version, country);
 		sprintf(deskinf, "../desk/rsc/%s/desk%s.inf", version, country);
 		sprintf(glue, "glue.%s", country);
 	} else if (argc == (TOTALFILE + 1))

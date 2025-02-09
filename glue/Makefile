@@ -46,7 +46,7 @@ rscend.h: tosimg.tmp
 	$(GREP) tosrsc rscend.1 > rscend.2; \
 	$(SED) -e 's/ .*$$//' -e 's/^00//' rscend.2 > rscend.1; \
 	$(TR) abcdef ABCDEF < rscend.1 > rscend.2; \
-	echo "16 i E40030" > rscend.1; cat rscend.2 >> rscend.1; echo "- p" >> rscend.1; \
+	echo "16 i $(rombase) 40030 +" > rscend.1; cat rscend.2 >> rscend.1; echo "- p" >> rscend.1; \
 	$(TR) -d '\015' < rscend.1 > rscend.2; \
 	$(DC) < rscend.2 > rscend.1; \
 	$(SED) -e 's/^/#define RSCGAP /' rscend.1 > $@; \

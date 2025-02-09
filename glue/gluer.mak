@@ -9,7 +9,9 @@ DESK_INF = ../desk/rsc/$(TOSVERSION)/desk$(COUNTRY).inf
 
 -include localrsc.mak
 
+GLUE_1_HADES = --hades
+
 glue.$(COUNTRY): $(MKGLUE) $(GEM_RSC) $(DESK_RSC) $(DESK_INF)
-	$(AM_V_GEN)$(MKGLUE) $(COUNTRY) $(TOSVERSION)
+	$(AM_V_GEN)$(MKGLUE) $(GLUE_$(HADES)_HADES) $(COUNTRY) $(TOSVERSION)
 
 rscend.o: rscend.S

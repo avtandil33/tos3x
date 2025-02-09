@@ -44,6 +44,8 @@ RAMVERSION=0
 # Set this to 1 to build a hades ROM. Only valid for TOSVERSION 3.06
 #
 HADES=0
+# offset to Hades extensions from start of ROM
+HADES_XBIOS=49000
 
 -include $(top_srcdir)/localcnf.mak
 
@@ -64,6 +66,7 @@ $(top_srcdir)/common/config.h: $(top_srcdir)/config.mak ${MAKEFILE}
 	$(AM_V_at)echo '#endif' >> $@
 	$(AM_V_at)echo '#define RAMVERSION $(RAMVERSION)' >> $@
 	$(AM_V_at)echo '#define HADES $(HADES)' >> $@
+	$(AM_V_at)echo '#define HADES_XBIOS $$$(HADES_XBIOS)' >> $@
 	$(AM_V_at)echo '#define CT2 0' >> $@
 	$(AM_V_at)echo '#include "ctrycode.h"' >> $@
 	$(AM_V_at)echo '#if !BINEXACT' >> $@

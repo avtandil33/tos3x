@@ -187,7 +187,7 @@ it yourself:
 
 - There might currently be some issues with \ vs / in pathnames. If
   that is the case, try to run it using some emulator. Hatari
-  (https://hatari.tuxfamily.org/) is reported to work.
+  (https://www.hatari-emu.org/) is reported to work.
 
 - There might be some more hints available on
   http://www.atari-forum.com/viewforum.php?f=16

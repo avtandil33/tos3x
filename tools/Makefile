@@ -7,7 +7,7 @@ include $(top_srcdir)/Makefile.sil
 LIBS = $(LIBC)
 INC := ..${BS}include${BS}
 
-PROGRAMS = newglue$(BUILD_EXEEXT) mkbininc$(BUILD_EXEEXT) mkrom$(BUILD_EXEEXT)
+PROGRAMS = newglue$(BUILD_EXEEXT) mkbininc$(BUILD_EXEEXT) mkasminc$(BUILD_EXEEXT) mkrom$(BUILD_EXEEXT)
 PROGRAMS += cmprom$(BUILD_EXEEXT)
 # didnt bother to port these to alcyon
 #PROGRAMS += findrsc$(BUILD_EXEEXT)
@@ -29,6 +29,9 @@ findrsc$(BUILD_EXEEXT): findrsc.o
 	$(LD) -o $@ $(CRT0) $< $(LIBS)
 
 mkbininc$(BUILD_EXEEXT): mkbininc.o
+	$(LD) -o $@ $(CRT0) $< $(LIBS)
+
+mkasminc$(BUILD_EXEEXT): mkasminc.o
 	$(LD) -o $@ $(CRT0) $< $(LIBS)
 
 mkrom$(BUILD_EXEEXT): mkrom.o

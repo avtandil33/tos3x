@@ -72,9 +72,15 @@ vars1x.o: $(top_srcdir)/common/vars1x.S $(top_srcdir)/common/config.h
 vdiext.o: vdiext.S $(top_srcdir)/common/sections.inc
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+ifeq ($(HADES),1)
+IMG = hades$(COUNTRY).img
+else
+IMG = tos$(TOSVERSION)$(COUNTRY).img
+endif
+
 check:: vdi.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_toff):0x24 --offsets=0x$(vdi_tbase):0 --bytes=0x$(vdi_tlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img vdi.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_doff):0x$(vdi_tleno) --offsets=0x$(vdi_dbase):0x$(vdi_tlen) --bytes=0x$(vdi_dlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img vdi.o
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_toff):0x24 --offsets=0x$(vdi_tbase):0 --bytes=0x$(vdi_tlen) $(top_srcdir)/roms/$(IMG) vdi.o
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_doff):0x$(vdi_tleno) --offsets=0x$(vdi_dbase):0x$(vdi_tlen) --bytes=0x$(vdi_dlen) $(top_srcdir)/roms/$(IMG) vdi.o
 	
 
 dist::

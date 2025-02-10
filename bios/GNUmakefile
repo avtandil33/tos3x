@@ -55,7 +55,7 @@ FPSP060 = \
 	fpsp060/isp.sa \
 	fpsp060/fpsp.sa \
 	$(empty)
-hadxbios.o: hadxbios.S $(FPSP060)
+hadxbios.o: hadxbios.S $(FPSP060) m64_pci.sa m64_isa.sa
 
 prtkeys$(EXEEXT): prtkeys.o
 	$(AM_V_LD)${LD} ${LDFLAGS} -o $@ prtkeys.o
@@ -75,9 +75,24 @@ single: tosvars.o $(VARS_OBJS) biosext.o $(BIOS_OBJS) ${MAKEFILE}
 	$(LD) -u -s -l -o bios.o -a $(bios_tbase) $(bios_dbase) 0 tosvars.o $(VARS_OBJS) $(BIOS_OBJS) biosext.o
 endif
 
+ifeq ($(HADES),1)
+IMG = hades$(COUNTRY).img
+else
+IMG = tos$(TOSVERSION)$(COUNTRY).img
+endif
+
+ifeq ($(HADES),1)
+#
+# make check here does not work for hades, since some external entry points will be undefined,
+# but works for the final image
+#
+check::
+	@:
+else
 check:: bios.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_toff):0x24 --offsets=0x$(bios_tbase):0 --bytes=0x$(bios_tlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img $<
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_doff):0x$(bios_tleno) --offsets=0x$(bios_dbase):0x$(bios_tlen) --bytes=0x$(bios_dlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img $<
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_toff):0x24 --offsets=0x$(bios_tbase):0 --bytes=0x$(bios_tlen) $(top_srcdir)/roms/$(IMG) $<
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_doff):0x$(bios_tleno) --offsets=0x$(bios_dbase):0x$(bios_tlen) --bytes=0x$(bios_dlen) $(top_srcdir)/roms/$(IMG) $<
+endif
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

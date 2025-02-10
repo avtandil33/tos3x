@@ -120,6 +120,7 @@ TR    = tr
 CMP      = $(top_srcdir)/tools/cmprom$(BUILD_EXEEXT)
 MKGLUE   = $(top_srcdir)/tools/newglue$(BUILD_EXEEXT)
 MKBININC = $(top_srcdir)/tools/mkbininc$(BUILD_EXEEXT)
+MKASMINC = $(top_srcdir)/tools/mkasminc$(BUILD_EXEEXT)
 MKROM    = $(top_srcdir)/tools/mkrom$(BUILD_EXEEXT)
 
 # Wether to run the optimizer pass for Alcyon.

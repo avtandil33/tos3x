@@ -15,12 +15,16 @@ LIBS =
 CPPFLAGS = -I$(top_srcdir)/common -I$(INC)
 CFLAGS = $(OPTS) $(WARN)
 
-IMG = tos$(TOSVERSION)$(COUNTRY).img
-
 all::
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
+
+ifeq ($(HADES),1)
+IMG = hades$(COUNTRY).img
+else
+IMG = tos$(TOSVERSION)$(COUNTRY).img
+endif
 
 all:: $(IMG)
 
@@ -130,7 +134,7 @@ include gluer.mak
 # compare only 256k for STBook, since it only has the ROM, not the cartridge extension
 CMPSIZE_208 = --bytes=262144
 check:: $(IMG)
-	$(CMP) $(CMPL) -x --ignore-initial=0x0:0x0 --offsets=0x$(rombase):0 $(CMPSIZE_$(TOSVERSION)) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img $(IMG)
+	$(CMP) $(CMPL) -x --ignore-initial=0x0:0x0 --offsets=0x$(rombase):0 $(CMPSIZE_$(TOSVERSION)) $(top_srcdir)/roms/$(IMG) $(IMG)
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

@@ -54,6 +54,7 @@ TR    = ${BIN}tr
 CMP      = $(top_srcdir)$(BS)tools$(BS)cmprom$(BUILD_EXEEXT)
 MKGLUE   = $(top_srcdir)$(BS)tools$(BS)newglue$(BUILD_EXEEXT)
 MKBININC = $(top_srcdir)$(BS)tools$(BS)mkbininc$(BUILD_EXEEXT)
+MKASMINC = $(top_srcdir)$(BS)tools$(BS)mkasminc$(BUILD_EXEEXT)
 MKROM    = $(top_srcdir)$(BS)tools$(BS)mkrom$(BUILD_EXEEXT)
 
 # Wether to run the optimizer pass.

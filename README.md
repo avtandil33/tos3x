@@ -198,3 +198,14 @@ it yourself:
   Without modifiying the makefiles you would need to put the sources there
   too, risking to loose any modifications you made if something goes awfully
   wrong.
+
+# Hades ROMs
+
+Hades ROMs can now also be built, by using
+
+  make TOSVERSION=306 COUNTRY=uk HADES=1
+
+Only the UK version has been checked against original images,
+but it is expected that other versions work, too (except that the about
+dialog is not patched).
+Above example will build a hadesuk.img image in the glue directory.

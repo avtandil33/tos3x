@@ -354,11 +354,11 @@ _colors:
 	xdef	_colors
 _colors:
 /*
- * hades tos patch has a bug in the memory display code, and missed a +lang_diff,
+ * hades tos patch has a bug in the memory display code, and missed a +lang_dif,
  * thus filling more space than the original routine was.
  * This will overwrite part of this table.
  */
-#if HADES & BINEXACT
+#if HADES & BINEXACT & (OS_COUNTRY != CTRY_DE)
 	dcb.w 45,-1
 #else
 *--- 16 standard colors

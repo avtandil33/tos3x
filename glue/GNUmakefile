@@ -107,22 +107,28 @@ rscend.h: tosimg.tmp
 
 endif
 
+ifeq ($(USE_CROSS_ALCYON),1)
+NO_BRANCH_OPT = -n
+endif
+
 cartridg.img: cartridg.o
 ifeq ($(USE_CROSS_ALCYON),1)
-	$(LINK68) -o cartridg.tmp -a $(CARTBASE) x 0 cartridg.o
+	$(LINK68) '[abs,text[$(CARTBASE)],bss[0]]' cartridg.tmp=cartridg.o
 	dd bs=1 skip=36 < cartridg.tmp > $@
-else
-	$(LD) -nostartfiles -nostdlib -o cartridg.tmp -Wl,--script=../common/rom.ld,-Ttext=0x$(CARTBASE),-Tbss=0 cartridg.o
-endif
-	$(MV) cartridg.tmp $@
 	$(RM) cartridg.tmp
+else
+	$(LD) -nostartfiles -nostdlib -o $@ -Wl,--script=../common/rom.ld,-Ttext=0x$(CARTBASE),-Tbss=0 cartridg.o
+endif
+
+cartridg.o: cartridg.S
+	$(AM_V_AS)$(AS) $(ASFLAGS) $(NO_BRANCH_OPT) $(CPPFLAGS) -c -o $@ $<
 
 $(IMG): tos.img $(MKROM)
 	$(MKROM) pad $(ROMSIZE) $< $@
 
 vdivar.o: ../vdi/vdivar.S
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
-	
+
 vars.o: ../common/vars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 

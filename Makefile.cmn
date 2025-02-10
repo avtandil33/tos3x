@@ -51,7 +51,8 @@ DC    = ${BIN}dc
 GREP  = ${BIN}grep
 TR    = ${BIN}tr
 
-CMP      = $(top_srcdir)$(BS)tools$(BS)cmprom$(BUILD_EXEEXT)
+# FIXME: something wrong with freshly compiled cmprom for alcyon
+CMP      = ${BIN}cmprom$(BUILD_EXEEXT)
 MKGLUE   = $(top_srcdir)$(BS)tools$(BS)newglue$(BUILD_EXEEXT)
 MKBININC = $(top_srcdir)$(BS)tools$(BS)mkbininc$(BUILD_EXEEXT)
 MKASMINC = $(top_srcdir)$(BS)tools$(BS)mkasminc$(BUILD_EXEEXT)

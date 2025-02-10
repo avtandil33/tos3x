@@ -85,7 +85,7 @@ VOID vs_color(NOTHING)
 	/*
 	 * Note: this is all useless. In the final ROM,
 	 * this whole routine was disabled by putting a RTS
-	 * in the prologue. This cannot be achived here,
+	 * in the prologue. This cannot be achieved here,
 	 * and is handled by a sed script in the Makefile
 	 */
 	asm("move.l #$200,d5"); /* hades_vidmo * 256 */

@@ -4,7 +4,7 @@ include $(top_srcdir)/Makefile.cmn
 include $(top_srcdir)/Makefile.sil
 include optimize.mak
 
-all:: $(top_srcdir)/common/config.h bios.a
+all:: $(top_srcdir)/common/config.h bios.a hadxbios.o
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
@@ -21,7 +21,7 @@ bios.a: tosvars.o $(BIOS_OBJS) ${MAKEFILE}
 # because on a FAT filesystem, .S cannot be
 # distinguished from .s
 #
-startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc
+startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc intpriv.inc
 	$(AM_V_AS)${CPP} $*.S $*.i
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i
@@ -71,7 +71,12 @@ chardev.o: chardev.S
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i
 
-floppy.o: floppy.S
+floppy.o: floppy.S hadflopp.S
+	$(AM_V_AS)$(CPP) $< $*.i
+	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
+	$(AM_V_at)${RM} $*.i
+
+hadxbios.o: hadxbios.S $(FPSP060) m64_pci.sa m64_isa.sa
 	$(AM_V_AS)$(CPP) $< $*.i
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i
@@ -103,6 +108,10 @@ keytbl.o: $(top_srcdir)/common/config.h
 
 prtkeys$(EXEEXT): prtkeys.o
 	$(AM_V_LD)${LD} ${LDFLAGS} -o $@ prtkeys.o
+
+HADES_0_IMG = tos$(TOSVERSION)$(COUNTRY).img
+HADES_1_IMG = hades$(COUNTRY).img
+IMG = $(HADES_$(HADES)_IMG)
 
 check:: bios.a bios.o $(top_srcdir)/common/sections.mak
 	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_toff):0x24 --offsets=0x$(bios_tbase):0 --bytes=0x$(bios_tlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img bios.o

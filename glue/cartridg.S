@@ -2,6 +2,10 @@
  * cartridge.S - ROM cartridge for ST-Book
  */
 
+/* irrelevant here but needed by asmdefs.h */
+#define BINEXACT 0
+#define TOSVERSION 0
+
 #include "asmdefs.h"
 #include "tosvars.inc"
 
@@ -177,7 +181,7 @@ msg:	dc.b '0253K ROMDISK installed as ',CARTDRIVE+'A',':',13,10,0
 
 cart_end: ds.b 0
 
- 		dcb.b 512-(*-cart_beg),255
+		dcb.b cart_beg+512-*,255
 
 
 second:	

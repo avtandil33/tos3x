@@ -49,7 +49,13 @@ BIOS_CSRCS = \
 	blkdev.c \
 	${empty}
 
-BIOS_SRCS = $(BIOS_HEADERS) $(BIOS_INCLUDES) $(BIOS_ASRCS) $(BIOS_CSRCS)
+FPSP060 = \
+       fpsp060/skel060.S \
+       fpsp060/isp.sa \
+       fpsp060/fpsp.sa \
+       $(empty)
+
+BIOS_SRCS = $(BIOS_HEADERS) $(BIOS_INCLUDES) $(BIOS_ASRCS) $(BIOS_CSRCS) $(FPSP060)
 
 EXTRA_DIST1:=\
 	Makefile \

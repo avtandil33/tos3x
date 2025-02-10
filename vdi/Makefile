@@ -334,10 +334,10 @@ text.o: text.c
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.s
 	$(AM_V_at)${RM} $*.s $*.i $*.1 $*.2 $*.3
 
-# vs_color was completely disabled in the roms
+# vs_color and vq_color are completely disabled in the hades roms
 ttcolor_1_sed1=$(SED) -n '{$$!N; s/_vs_color:\nlink R14,#0/_vs_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
 ttcolor_1_sed2=$(SED) -n '{$$!N; s/_vq_color:\nlink R14,#0/_vq_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
-ttcolor_1_sed3=$(SED) -e 's/move $$ff8262,R/move.l #$$200,R/' $*.s > $*.1; mv $*.1 $*.s
+ttcolor_1_sed3=$(SED) -e 's/move \$$ff8262,R/move.l #\$$200,R/' $*.s > $*.1; mv $*.1 $*.s
 ttcolor.o: ttcolor.c
 	$(AM_V_CC)${BIN}cp68${EXEEXT} ${CPPFLAGS} $*.c $*.i
 	$(AM_V_at)${BIN}c068${EXEEXT} $*.i $*.1 $*.2 $*.3 ${CFLAGS}
@@ -373,9 +373,13 @@ lmul.o: lmul.S
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i
 
+HADES_0_IMG = tos$(TOSVERSION)$(COUNTRY).img
+HADES_1_IMG = hades$(COUNTRY).img
+IMG = $(HADES_$(HADES)_IMG)
+
 check:: vdi.a vdi.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_toff):0x24 --offsets=0x$(vdi_tbase):0 --bytes=0x$(vdi_tlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img vdi.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_doff):0x$(vdi_tleno) --offsets=0x$(vdi_dbase):0x$(vdi_tlen) --bytes=0x$(vdi_dlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img vdi.o
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_toff):0x24 --offsets=0x$(vdi_tbase):0 --bytes=0x$(vdi_tlen) $(top_srcdir)/roms/$(IMG) vdi.o
+	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_doff):0x$(vdi_tleno) --offsets=0x$(vdi_dbase):0x$(vdi_tlen) --bytes=0x$(vdi_dlen) $(top_srcdir)/roms/$(IMG) vdi.o
 
 clean:
 	$(RM) *.o *.a *.ndx *.i *.1 *.2 *.rel *.mod $(VDI_CSRCS:.c=.s) $(PROGRAMS) $(top_srcdir)/common/config.h

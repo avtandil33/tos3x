@@ -14,6 +14,7 @@
 #include "header.h"
 #include "tosvars.inc"
 #include "biosdefs.h"
+#include "hades.inc"
 
 
 /* ==== Defines ============================================================== */
@@ -430,7 +431,7 @@ hadret3:
 
 		move.b     #$0e,ldor /* floppy normal int activ */
 		clr.b      fd_desel.l
-		clr.b      (sctr2).l  /* vme int off, scsi count0/eop und buserror off */
+		clr.b      (dma_sctr2).l  /* vme int off, scsi count0/eop und buserror off */
 		move.l     _os_entry,(0).w
 		move.l     reseth,(4).w
 

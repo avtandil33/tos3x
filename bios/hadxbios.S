@@ -8,8 +8,9 @@
 #include "tosvars.inc"
 #include "biosdefs.h"
 
-
 #if HADES /* whole file */
+
+#include "hades.inc"
 
 /*
  * Dateiversion:		4.43
@@ -331,8 +332,8 @@ int_scsi:
 /* 		tst.l	d1 */
 /* 		beq	scsiendx */
 		move.l	_buserror.w,-(sp)		/* alter buserrorvector sichern */
-		bclr	#1,sctr1.w		/* dma off -> int 2 off */
-        and.b	#$fc,sctr2.w		/* eop, bus error off */
+		bclr	#1,dma_sctr1.w		/* dma off -> int 2 off */
+        and.b	#$fc,dma_sctr2.w		/* eop, bus error off */
 		move.l  #scsibuserror,_buserror.w 	/* neuen setzen */
 		DTT0_Dn(3)			/* dtt0 nach d3 */
 		ITT0_Dn(6)       /* itt0 nach d6 */
@@ -358,7 +359,7 @@ scsijmp:
 		lsr.l	#1,d5			/* =anzahl ganze sectoren */
 		andi.l  #$1ff,d1		/* anzahl byts -1 im naechsten sector */
 		lea     scsiwrlb,a3		/* sonst tabelle read nach a3 */
-		btst	#0,sctr1.w              /* write? */
+		btst	#0,dma_sctr1.w              /* write? */
 		bne.s	scsibs			/* ja-> */
 		lea     scsirdlb,a3		/* sonst tabelle read nach a3 */
 scsibs:
@@ -884,7 +885,7 @@ scsiwrlb:
         move.b  (a1)+,(a0)      /* byt verschieben */
 		bra     scsiwrloop   /* wiederholen bis fertig */
 scsiwrdone:
-		bset	#0,sctr2.w	/* sonst count0/eop on */
+		bset	#0,dma_sctr2.w	/* sonst count0/eop on */
 		move.b	(a1)+,(a0)	/* dummy byt nachschieben */
 		bra	scsiweiter
 scsirdloop:
@@ -1406,7 +1407,7 @@ scsirdlb:
 		move.b  (a0),(a1)+		/* byt verschieben */
 		bra		scsirdloop		/* wiederholen bis fertig */
 scsirddone:
-		bset	#0,sctr2.w		/* count0 on */
+		bset	#0,dma_sctr2.w		/* count0 on */
 		move.b	(a0),(a1)+		/* dummy byt nachschieben */
 		move.l  a1,d2
 		andi.b	#$fc,d2			/* letztes long */
@@ -1415,7 +1416,7 @@ scsirddone:
 scsiweiter:
 		moveq	#0,d1			/* fertig */
 scsiend:
-        bset	#1,sctr1.w		/* dma on = ein int 7 scharf */
+        bset	#1,dma_sctr1.w		/* dma on = ein int 7 scharf */
         Dn_DTT0(3)				/* dtt0 zurueck */
 		Dn_ITT0(6)				/* itt0 zurueck */
 		D7_CACR					/* cacr zurueck */
@@ -1443,7 +1444,7 @@ scsiend:
 scsibuserror:
 		cmp.w	#40,_longframe.w		/* mc68040? */
 		bne.s	scsibuer60              /* nein-> mc68060 */
-		btst	#0,sctr1.w		/* read? */
+		btst	#0,dma_sctr1.w		/* read? */
 		beq.s	scbueread40		/* ja-> */
 		move.b	15(a7),d0		/* wb3s? */
 		bpl.s   scb2			/* nein */
@@ -1473,14 +1474,14 @@ scbuer40w:
 		cmp.l	20(a7),a0		/* scsidaten bereich? */
 		beq.s	scsitimeout	     	/* ja -> timout */
 scsibuerer:
-		bset	#1,sctr1.w		/* dma on = ein, int 7 scharf */
+		bset	#1,dma_sctr1.w		/* dma on = ein, int 7 scharf */
         move.l	a2,a7           /* alter stack */
         Dn_DTT0(3)				/* dtt0 zurueck */
         Dn_ITT0(6)				/* itt0 zurueck */
         D7_CACR					/* cacr zurueck */
         CPUSHA_BC
         nop
-		ori.b	#$03,sctr2.w  		/* buserror- und eop-bit setzen */
+		ori.b	#$03,dma_sctr2.w  		/* buserror- und eop-bit setzen */
 		move.l  (sp)+,_buserror.w		/* alter buserrorvector wieder herstellen */
 		movem.l (sp)+,d0-d7/a0-a4
 		rte

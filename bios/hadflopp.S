@@ -1,3 +1,4 @@
+#include "hades.inc"
 
 defhdinf	equ $302		/*  Default hdinf. byt 0 -> anzahl versuche byt 1 -> taktrate (hd default) */
 save1		equ $f8		/*  L:ablageregister */

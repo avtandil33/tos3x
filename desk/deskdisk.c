@@ -182,7 +182,7 @@ PP(int16_t op;)
 	obj[FCBOXF].ob_flags |= HIDETREE;
 	obj[FCBOXC].ob_flags |= HIDETREE;
 #else
-#if HADES & BINEXACT & (FCBOXF == 9)
+#if HADES & BINEXACT & (FCBOXF == 9) & !RAMVERSION
 	/*
 	 * orignal was "move.w     #$0080,$e0(a4)"
 	 * which apparently was wrongly relocated due to a missing entry
@@ -236,7 +236,7 @@ PP(int16_t op;)
 			obj[FCBOXF].ob_flags &= ~HIDETREE;
 #else
 			obj[FCBOXC].ob_flags = HIDETREE;
-#if HADES & BINEXACT & (FCBOXF == 9)
+#if HADES & BINEXACT & (FCBOXF == 9) & !RAMVERSION
 			/* see comments above about TOSPATCH usage */
 			obj[1364].ob_next = 0;
 #else
@@ -253,7 +253,7 @@ PP(int16_t op;)
 			obj[FCBOXF].ob_flags |= HIDETREE;
 			obj[FCBOXC].ob_flags &= ~HIDETREE;
 #else
-#if HADES & BINEXACT & (FCBOXF == 9)
+#if HADES & BINEXACT & (FCBOXF == 9) & !RAMVERSION
 			/* see comments above about TOSPATCH usage */
 			obj[1364].ob_next = HIDETREE;
 #else

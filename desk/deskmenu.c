@@ -1541,7 +1541,7 @@ VOID av_desk(NOTHING)
 	obj[AP1].ob_state = NORMAL;
 	obj[WI1].ob_state = NORMAL;
 	obj[DEFFULL].ob_state = NORMAL;
-#if HADES & BINEXACT & (DEFFILE == 9)
+#if HADES & BINEXACT & (DEFFILE == 9) & !RAMVERSION
 	/*
 	 * orignal was "clr.w     $e2(a5)"
 	 * which apparently was wrongly relocated due to a missing entry
@@ -1561,7 +1561,7 @@ VOID av_desk(NOTHING)
 	if (s_fullpath)
 		obj[DEFFULL].ob_state = SELECTED;
 	else
-#if HADES & BINEXACT & (DEFFILE == 9)
+#if HADES & BINEXACT & (DEFFILE == 9) & !RAMVERSION
 		/* see comments above about TOSPATCH */
 		obj[1364].ob_head = SELECTED;
 #else
@@ -1582,7 +1582,7 @@ VOID av_desk(NOTHING)
 	f = 0;
 	fm_draw(SSYSTEM);					/* save the string  */
 #if !BINEXACT
-	fi = 0; /* quite compiler */
+	fi = 0; /* quiet compiler */
 #endif
 	goto ad_2;
 

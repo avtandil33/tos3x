@@ -42,7 +42,7 @@ hadesid		equ $68616465 /* 'hade' */
 /* offsets to emulator binaries */
 #define mach64_pci_offset $70000
 #define mach64_isa_offset $72000
-/* absolue address where it will be executed */
+/* absolute address where it will be executed */
 #define mach64_org $300000
 
 /*

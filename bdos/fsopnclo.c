@@ -282,7 +282,7 @@ PP(int8_t attr;)
 	int32_t pos;
 	ERROR rc;
 	
-#if HADES & BINEXACT
+#if HADES & BINEXACT & !RAMVERSION
 	/* apparently wrongly "relocated" from move.b #$E5,-6(a6) */
 	asm("dc.w $1d7c,$7fe5,-6");
 #else

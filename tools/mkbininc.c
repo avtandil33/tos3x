@@ -217,7 +217,7 @@ PP(char **argv;)
 	
 	fprintf(fp, "};\n");
 	
-	fprintf(fp, "#ifdef HADES\n");
+	fprintf(fp, "#if HADES\n");
 	fprintf(fp, "char const end_of_resource[2] = { 0xff, 0xff };\n");
 	fprintf(fp, "#else\n");
 	fprintf(fp, "char const edata[2] = { 0xff, 0xff };\n");

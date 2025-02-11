@@ -8,18 +8,70 @@
 #define MACH64_PCI 0
 #endif
 
+/*
+ * rename symbols, because this file is included twice
+ */
 #if MACH64_PCI
-#define vga_base pci_vga_base
-#define vga_reg  pci_vga_reg
+#define vga_base           pci_vga_base
+#define vga_reg            pci_vga_reg
+#define mach64_init        mach64_pci_init
+
+#define read_vga_byte      pci_read_vga_byte
+#define write_vga_byte     pci_write_vga_byte
+#define read_vga_byte      pci_read_vga_word
+#define write_vga_byte     pci_write_vga_word
+#define write_idx_register pci_write_idx_register
 #else
-#define vga_base isa_vga_base
-#define vga_reg  isa_vga_reg+$10000
+#define vga_base           isa_vga_base
+#define vga_reg            isa_vga_reg+$10000
+#define mach64_init        mach64_isa_init
+
+#define read_vga_byte      isa_read_vga_byte
+#define write_vga_byte     isa_write_vga_byte
+#define read_vga_word      isa_read_vga_word
+#define write_vga_word     isa_write_vga_word
+#define write_idx_register isa_write_idx_register
 #endif
 
+#undef mach64_off
+#define mach64_off mach64_org-mach64_init
 
-#define mach64_off mach64_org-mach64_isa_init
+/* Attribute Address Rsgister */
+#define ATTRX         $83C0
+/* Attribute Data Register */
+#define ATTRD         $83C1
+#define VGA_DAC_MASK  $83C6
+#define VGA_DAC_WRITE $83C8
+/* Graphics Address register */
+#define GRAX          $83CE
+/* Graphics Data register */
+#define GRAD          $83CF
+/* Sequencer Address register */
+#define SEQX          $83C4
+/* Sequencer Data register */
+#define SEQD          $83C5
 
-mach64_isa_init:
+/* ATI VGA Extended Regsiters */
+#define sioATIEXT     $81ce
+#define bioATIEXT     $83ce
+
+#define EXT_GE_STATUS $E2EE
+
+/*
+9EEC
+9EEF
+C6E8
+CAEC
+D2EC
+DEEC
+DEED
+DEEE
+DEEF
+E2EC
+E6ED
+*/
+
+mach64_init:
 		suba.l     a0,a0
 		bsr        x100f2
 		lea.l      x117c6+mach64_off,a0
@@ -28,6 +80,7 @@ mach64_isa_init:
 		lea.l      x117c9+mach64_off,a0
 		moveq.l    #1,d0
 		bsr.w      x10026
+		/* return framebuffer address */
 		lea.l      vga_base+$A0000,a0
 		rts
 
@@ -59,15 +112,22 @@ x10026_5:
 		move.b     (a0)+,vga_reg+$5EED
 		rts
 
-x10064:
+/*
+ * Input:  d0.w = vga register offset
+ *         d1.w = starting register index
+ *         d2.w = number of values to write
+ *         a1.l = table with values
+ *         a0.l = register base
+ */
+write_idx_register:
 		movem.l    d3-d6,-(a7)
 		move.b     d1,d3
-		bra.s      x10064_1
-x10064_2:
+		bra.s      write_idx_register2
+write_idx_register1:
 		move.b     d3,0(a0,d0.w)
 		move.b     (a1)+,1(a0,d0.w)
 		addq.b     #1,d3
-x10064_1:
+write_idx_register2:
 		move.b     d3,d4
 		ext.w      d4
 		move.b     d1,d5
@@ -76,18 +136,24 @@ x10064_1:
 		ext.w      d6
 		add.w      d6,d5
 		cmp.w      d5,d4
-		blt.s      x10064_2
+		blt.s      write_idx_register1
 		movem.l    (a7)+,d3-d6
 		rts
 
 x1008e:
-		clr.b      $83C4(a0)
-		move.b     #1,$83C5(a0)
-		clr.b      $83C4(a0)
-		move.b     #3,$83C5(a0)
+		clr.b      SEQX(a0)
+		move.b     #1,SEQD(a0)
+		clr.b      SEQX(a0)
+		move.b     #3,SEQD(a0)
 		rts
 
-x100a4:
+/*
+ * Input:  d0.w = vga register offset
+ *         d1.w = value
+ * Output: -
+ * Clobbers: a0,d0,d1
+ */
+write_vga_word:
 		move.l     d4,-(a7)
 		move.w     d0,d4
 		move.w     d1,d0
@@ -98,27 +164,43 @@ x100a4:
 		move.l     (a7)+,d4
 		rts
 
-x100bc:
+/*
+ * Input:  d0.w = vga register offset
+ * Output: d0.w = value
+ * Clobbers: a0,d1
+ */
+read_vga_word:
 		moveq.l    #8,d1
 		movea.l    vga_reg_ptr+mach64_off,a0
 		move.w     0(a0,d0.w),d0
 		rol.w      d1,d0
 		rts
 
-x100cc:
+/*
+ * Input:  d0.w = vga register offset
+ *         d1.b = value
+ * Output: -
+ * Clobbers: a0
+ */
+write_vga_byte:
 		movea.l    vga_reg_ptr+mach64_off,a0
 		move.b     d1,0(a0,d0.w)
 		rts
 
-x100d8:
+/*
+ * Input:  d0.w = vga register offset
+ * Output: d0.b = value
+ * Clobbers: a0
+ */
+read_vga_byte:
 		movea.l    vga_reg_ptr+mach64_off,a0
 		move.b     0(a0,d0.w),d0
 		rts
 
 x100e4:
-		move.w     #$E2EE,d0
-		bsr.w      x100d8
-		and.b      #$07,d0
+		move.w     #EXT_GE_STATUS,d0
+		bsr.w      read_vga_byte
+		and.b      #7,d0
 		rts
 
 x100f2:
@@ -189,42 +271,42 @@ x10142:
 		move.l     a2,-(a7)
 		move.b     #$F1,d1
 		move.w     #$CEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #32,d1
 		move.w     #$CEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.w      d3
 		lea.l      x118b0+mach64_off,a2
 		bra.s      x10142_1
 x10142_2:
 		dc.w $3232,$3202		/* move.w     2(a2,d3.w*2),d1 68020+ only */
 		dc.w $3032,$3200		/* move.w     0(a2,d3.w*2),d0 68020+ only */
-		bsr        x100a4
+		bsr        write_vga_word
 		addq.w     #2,d3
 x10142_1:
 		dc.w $3032,$3200		/* move.w     0(a2,d3.w*2),d0 68020+ only */
 		bne.s      x10142_2
 		clr.b      d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		movea.l    (a7)+,a2
 		move.l     (a7)+,d3
 		rts
 
 x1018a:
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		rts
 
 x10194:
 		move.l     d3,-(a7)
 		move.w     #$9EEF,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d3
 		moveq.l    #1,d1
 		or.b       d0,d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     d3,d0
 		move.l     (a7)+,d3
 		rts
@@ -235,7 +317,7 @@ x101b2:
 		bsr.w      x1018a
 		move.b     d3,d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     (a7)+,d3
 		rts
 
@@ -248,11 +330,11 @@ x101c8:
 		move.w     d0,d3
 		clr.b      d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bsr        x10304
 		moveq.l    #1,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bsr        x10304
 		moveq.l    #1,d0
 		bsr        x10320
@@ -347,14 +429,14 @@ x102bc:
 		move.l     d3,-(a7)
 		move.b     d0,d3
 		move.w     #$CAEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$FB,d1
 		move.b     d3,d0
 		lsl.b      #2,d0
 		or.b       d0,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     (a7)+,d3
 		rts
 
@@ -362,25 +444,25 @@ x102e0:
 		move.l     d3,-(a7)
 		move.b     d0,d3
 		move.w     #$CAEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F7,d1
 		move.b     d3,d0
 		lsl.b      #3,d0
 		or.b       d0,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     (a7)+,d3
 		rts
 
 x10304:
 		bsr.w      x10378
 		move.w     #$CAEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		or.b       #$40,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		rts
 
 x10320:
@@ -396,11 +478,11 @@ x10320:
 x1033a:
 		move.l     d3,-(a7)
 		move.w     #$CAEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d3
 		clr.b      d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     d3,d0
 		move.l     (a7)+,d3
 		rts
@@ -409,13 +491,13 @@ x10356:
 		moveq.l    #64,d1
 		or.b       d0,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		rts
 
 x10364:
 		tst.w      d0
 		beq.s      x10364_1
-		mulu.w     #$07D0,d0
+		mulu.w     #2000,d0
 x10364_2:
 		tst.b      $FFFFFC00
 		subq.l     #1,d0
@@ -487,37 +569,37 @@ x10390_6:
 x10390_7:
 		moveq.l    #1,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     d6,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		dc.w $1232,$7203			/* move.b     3(a2,d7.w*2),d1 68020+ only */
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		dc.w $3232,$7202			/* move.w     2(a2,d7.w*2),d1 68020+ only */
 		lsr.w      #8,d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		cmp.b      #$10,d6
 		bge.s      x10390_8
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     #$80,d1
 		or.b       d6,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10390_8:
 		clr.b      d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10390_2:
 		move.b     d4,d0
 		bsr        x101b2
@@ -536,23 +618,23 @@ x10496:
 		move.b     d0,d4
 		moveq.l    #1,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d5,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     d4,d0
 		bsr        x101b2
 		move.b     d3,d0
@@ -589,7 +671,7 @@ x10500_1:
 		move.w     36(a0),d1
 		moveq.l    #18,d0
 		bsr        x101c8
-		cmpi.b     #$05,x11a0e-x11a06(a2)
+		cmpi.b     #5,x11a0e-x11a06(a2)
 		bne.s      x10500_3
 		move.w     #$1568,d1
 		moveq.l    #19,d0
@@ -609,7 +691,7 @@ x10500_4:
 
 x10594:
 		move.w     #$F2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		clr.w      d1
 		move.b     d0,d1
 		move.w     d1,d0
@@ -631,48 +713,48 @@ x105bc:
 		move.w     d0,d4
 		move.w     d1,d3
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F8,d1
 		moveq.l    #7,d0
 		and.b      d4,d0
 		or.b       d0,d1
 		move.w     #$D2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.w      d1
 		move.w     #$C2EC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     d3,d1
 		move.w     #$C2EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     #$1234,d4
 		move.w     d4,d1
 		move.w     #$C6EC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     #$E6EE,d0
-		bsr        x100bc
+		bsr        read_vga_word
 		move.w     d0,d5
 		and.w      #$FC8F,d5
 		or.w       #$0310,d5
 		move.w     d5,d1
 		move.w     #$E6EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.w      d1
 		move.w     #$C2EC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     d3,d1
 		move.w     #$C2EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     #$E6EE,d0
-		bsr        x100bc
+		bsr        read_vga_word
 		move.w     d0,d5
 		and.w      #$FC8F,d5
 		or.w       #$0210,d5
 		move.w     d5,d1
 		move.w     #$E6EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		move.w     #$C6EC,d0
-		bsr        x100bc
+		bsr        read_vga_word
 		cmp.w      d0,d4
 		beq.s      x105bc_1
 		clr.w      d0
@@ -815,69 +897,69 @@ x1072e_3:
 		move.w     d0,d3
 x1072e_4:
 		move.w     #$E6EE,d0
-		bsr        x100bc
+		bsr        read_vga_word
 		move.w     d0,d3
 		and.w      #$FC8F,d3
 		lea.l      x119fa+mach64_off,a2
-		cmpi.b     #$05,x11a0e-x119fa(a2)
+		cmpi.b     #5,x11a0e-x119fa(a2)
 		bne.s      x1072e_5
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F8,d1
 		or.b       #3,d1
 		move.w     #$D2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     #$00400000,(a2)
 		bsr        x106ca
 		tst.w      d0
 		bne.s      x1072e_6
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F8,d1
 		or.b       #2,d1
 		move.w     #$D2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     #$00200000,(a2)
 		bra.s      x1072e_6
 x1072e_5:
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F8,d1
 		or.b       #2,d1
 		move.w     #$D2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     #$00200000,(a2)
 		tst.w      d0
 		bne.s      x1072e_7
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$F8,d1
 		or.b       #1,d1
 		move.w     #$D2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     #$00100000,(a2)
 x1072e_7:
-		ori.b      #$03,x11a11-x119fa(a2)
+		ori.b      #3,x11a11-x119fa(a2)
 x1072e_6:
 		move.w     d3,d1
 		move.w     #$E6EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.w      d1
 		move.w     #$C2EC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.w      d1
 		move.w     #$C2EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.w      d1
 		move.w     #$C6EC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.w      d1
 		move.w     #$C6EE,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		movea.l    (a7)+,a2
 		move.l     (a7)+,d3
 		rts
@@ -885,147 +967,147 @@ x1072e_6:
 x10866:
 		moveq.l    #22,d1
 		move.w     #$C6E8,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #1,d1
 		move.w     #$8102,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #14,d1
 		move.w     #$C6E8,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		rts
 
 x10886:
-		moveq.l    #80,d1
-		move.w     #$83CE,d0
-		bsr        x100cc
+		moveq.l    #$50,d1
+		move.w     #GRAX,d0
+		bsr        write_vga_byte	/* select ATI extended register base I/O address lobyte */
 		move.b     #$CE,d1
-		move.w     #$83CF,d0
-		bsr        x100cc
-		moveq.l    #81,d1
-		move.w     #$83CE,d0
-		bsr        x100cc
+		move.w     #GRAD,d0
+		bsr        write_vga_byte	/* write lobyte */
+		moveq.l    #$51,d1
+		move.w     #GRAX,d0
+		bsr        write_vga_byte	/* select ATI extended register base I/O address hibyte */
 		move.b     #$81,d1
-		move.w     #$83CF,d0
-		bsr        x100cc
+		move.w     #GRAD,d0
+		bsr        write_vga_byte	/* write hibyte; select range $80-$BF */
 		rts
 
 x108b4:
 		moveq.l    #1,d1
-		move.w     #$83C4,d0
-		bsr        x100cc
+		move.w     #SEQX,d0
+		bsr        write_vga_byte
 		moveq.l    #32,d1
-		move.w     #$83C5,d0
-		bsr        x100cc
+		move.w     #SEQD,d0
+		bsr        write_vga_byte
 		rts
 
 x108ca:
 		moveq.l    #4,d1
 		move.w     #$83C2,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.w     #$83DA,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$83BA,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		clr.b      d1
-		move.w     #$83C0,d0
-		bsr        x100cc
+		move.w     #ATTRX,d0
+		bsr        write_vga_byte
 		bsr.w      x108b4
 		move.b     #$A0,d1
-		move.w     #$81CE,d0
-		bsr        x100cc
+		move.w     #sioATIEXT,d0
+		bsr        write_vga_byte
 		moveq.l    #72,d1
-		move.w     #$81CF,d0
-		bsr        x100cc
+		move.w     #sioATIEXT+1,d0
+		bsr        write_vga_byte
 		moveq.l    #29,d1
-		move.w     #$83C6,d0
-		bsr        x100cc
+		move.w     #VGA_DAC_MASK,d0
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$83C7,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d1
-		move.w     #$83C8,d0
-		bsr        x100cc
+		move.w     #VGA_DAC_WRITE,d0
+		bsr        write_vga_byte
 		move.b     #$A0,d1
-		move.w     #$81CE,d0
-		bsr        x100cc
+		move.w     #sioATIEXT,d0
+		bsr        write_vga_byte
 		moveq.l    #104,d1
-		move.w     #$81CF,d0
-		bsr        x100cc
+		move.w     #sioATIEXT+1,d0
+		bsr        write_vga_byte
 		moveq.l    #97,d1
-		move.w     #$83C8,d0
-		bsr        x100cc
+		move.w     #VGA_DAC_WRITE,d0
+		bsr        write_vga_byte
 		move.b     #$A0,d1
-		move.w     #$81CE,d0
-		bsr        x100cc
+		move.w     #sioATIEXT,d0
+		bsr        write_vga_byte
 		moveq.l    #8,d1
-		move.w     #$81CF,d0
-		bsr        x100cc
+		move.w     #sioATIEXT+1,d0
+		bsr        write_vga_byte
 		moveq.l    #1,d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #3,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #97,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #29,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     #$80,d1
 		move.w     #$DEEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #3,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #101,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #32,d1
 		move.w     #$E2ED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #77,d1
 		move.w     #$CAEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     #$FF,d1
-		move.w     #$83C6,d0
-		bsr        x100cc
+		move.w     #VGA_DAC_MASK,d0
+		bsr        write_vga_byte
 		clr.b      d1
-		move.w     #$83C8,d0
-		bsr        x100cc
+		move.w     #VGA_DAC_WRITE,d0
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$83C9,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		rts
 
 x10a02:
 		move.l     a2,-(a7)
 		movea.l    #vga_base+$BFC00,a2
 		move.w     #$CEEC,d0
-		bsr        x100bc
+		bsr        read_vga_word
 		move.w     d0,d1
 		or.w       #$00A0,d1
 		move.w     #$CEEC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		clr.b      d1
 		move.w     #$E6ED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #1,d1
 		move.w     #$E6ED,d0
-		bsr        x100cc
-		move.l     #$FFFFFFFF,712(a2)
+		bsr        write_vga_byte
+		move.l     #-1,712(a2)
 		clr.l      776(a2)
 		movea.l    (a7)+,a2
 		rts
@@ -1042,13 +1124,13 @@ x10a44:
 		bsr        x10194
 		move.b     d0,d4
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		cmp.b      #$C0,d0
 		bne.s      x10a44_2
 		clr.b      (a2)
@@ -1058,7 +1140,7 @@ x10a44_2:
 		move.b     d3,d0
 		bsr        x10356
 x10a44_1:
-		cmpi.b     #05,(a2)
+		cmpi.b     #5,(a2)
 		bne        x10a44_3
 		bsr        x10194
 		move.b     d0,d4
@@ -1066,35 +1148,35 @@ x10a44_1:
 		bsr        x10ba2
 		clr.b      d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     #$FF,d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     #$FF,d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     #$FF,d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d0
 		bsr        x10ba2
 		move.b     #$80,d1
 		move.w     #$DEED,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d0
 		bsr        x10ba2
 		move.b     #$EC,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d0
 		bsr        x10ba2
 		move.b     d4,d0
@@ -1109,14 +1191,14 @@ x10b2e:
 		bsr        x10a44
 		bsr        x10886
 		move.b     #$B9,d1
-		move.w     #$81CE,d0
-		bsr        x100cc
+		move.w     #sioATIEXT,d0
+		bsr        write_vga_byte
 		moveq.l    #64,d1
-		move.w     #$81CF,d0
-		bsr        x100cc
+		move.w     #sioATIEXT+1,d0
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$CAE8,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bsr        x10866
 		bsr        x108ca
 		move.w     #1,x11a0a+mach64_off
@@ -1139,18 +1221,18 @@ x10ba2:
 		move.l     d3,-(a7)
 		move.b     d0,d3
 		move.w     #$E2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$FC,d1
 		or.b       d3,d1
 		move.w     #$E2EC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.l     (a7)+,d3
 		rts
 
 x10bc2:
 		move.w     #$D2EC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		and.b      #$07,d0
 		rts
 
@@ -1169,16 +1251,16 @@ x10bd0_1:
 		moveq.l    #3,d0
 		bsr.w      x10ba2
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d1
 		and.b      #$FD,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d0
 		bsr.w      x10ba2
 		moveq.l    #29,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     (a2),d4
 		moveq.l    #96,d0
 		and.b      d4,d0
@@ -1190,10 +1272,10 @@ x10bd0_1:
 x10bd0_2:
 		move.b     d4,d1
 		move.w     #$DEEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #2,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #3,d0
 		bsr        x10ba2
 		bsr        x10bc2
@@ -1219,10 +1301,10 @@ x10bd0_4:
 		and.b      #$FE,d4
 x10bd0_6:
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     #$EC,d1
 		move.w     #$DEEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d0
 		bsr        x10ba2
 		movem.l    (a7)+,d3-d4/a2
@@ -1230,15 +1312,15 @@ x10bd0_6:
 
 x10c96:
 		move.w     #$DEEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		rts
 
 x10cc0:
@@ -1253,7 +1335,7 @@ x10cc0:
 		bsr.w      x10c96
 		moveq.l    #25,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bra        x10cc0_2
 x10cc0_1:
 		moveq.l    #32,d0
@@ -1267,33 +1349,33 @@ x10cc0_3:
 		beq.s      x10cc0_4
 		moveq.l    #26,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bra.s      x10cc0_5
 x10cc0_4:
 		moveq.l    #24,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10cc0_5:
 		bsr.w      x10c96
 		move.w     #$DEEE,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		moveq.l    #3,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		clr.b      d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     (a3),d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		move.b     (a3),d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		cmpi.b     #$05,(a3)
 		bne.s      x10cc0_6
 		moveq.l    #2,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bra.s      x10cc0_2
 x10cc0_6:
 		cmpi.b     #$09,(a3)
@@ -1308,7 +1390,7 @@ x10cc0_6:
 x10cc0_7:
 		move.b     d3,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10cc0_2:
 		movem.l    (a7)+,d3/a2-a3
 		rts
@@ -1333,7 +1415,7 @@ x10d88_1:
 x10d88_2:
 		move.b     d4,d1
 		move.w     #$DEEE,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		movem.l    (a7)+,d3-d4/a2
 		rts
 
@@ -1378,20 +1460,20 @@ x10e14:
 		and.b      d1,d2
 		beq.s      x10e14_1
 		move.w     #$9EEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d4
 		and.b      #$DF,d4
 		move.b     d4,d1
 		move.w     #$9EEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		moveq.l    #3,d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bra.s      x10e14_2
 x10e14_1:
 		clr.b      d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10e14_2:
 		bsr        x10194
 		move.b     d0,d5
@@ -1412,7 +1494,7 @@ x10e14_4:
 		and.b      d3,d0
 		beq.s      x10e14_5
 		move.w     #$9EEC,d0
-		bsr        x100d8
+		bsr        read_vga_byte
 		move.b     d0,d4
 		and.b      #$9F,d4
 		moveq.l    #32,d0
@@ -1422,7 +1504,7 @@ x10e14_4:
 x10e14_6:
 		move.b     d4,d1
 		move.w     #$9EEC,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 x10e14_5:
 		movem.l    (a7)+,d3-d6
 		rts
@@ -1792,7 +1874,7 @@ x11244_1:
 x11244_2:
 		moveq.l    #17,d1
 		move.w     #$EAEC,d0
-		bsr        x100a4
+		bsr        write_vga_word
 		moveq.l    #1,d1
 		moveq.l    #2,d0
 		bsr        x10e14
@@ -1810,7 +1892,7 @@ x11244_2:
 		move.w     #5,20(a7)
 		moveq.l    #2,d1
 		move.w     #$9EEF,d0
-		bsr        x100cc
+		bsr        write_vga_byte
 		bsr        x10866
 		move.b     #1,$83C3(a3)
 		bsr        x10886
@@ -1842,9 +1924,9 @@ x11244_5:
 		moveq.l    #4,d2
 		moveq.l    #1,d1
 		movea.l    a4,a1
-		move.w     #$83C4,d0
+		move.w     #SEQX,d0
 		movea.l    a3,a0
-		bsr        x10064
+		bsr        write_idx_register
 		move.b     56(a2),$83C2(a3)
 		move.b     #$11,$83D4(a3)
 		andi.b     #$7F,$83D5(a3)
@@ -1854,49 +1936,49 @@ x11244_5:
 		lea.l      57(a2),a1
 		move.w     #$83D4,d0
 		movea.l    a3,a0
-		bsr        x10064
-		move.b     #$86,$81CE(a3)
-		move.b     #$7A,$81CF(a3)
-		move.b     #$A3,$81CE(a3)
-		clr.b      $81CF(a3)
-		move.b     #$AD,$81CE(a3)
-		clr.b      $81CF(a3)
-		move.b     #$AE,$81CE(a3)
-		clr.b      $81CF(a3)
-		move.b     #$B0,$81CE(a3)
-		move.b     #$08,$81CF(a3)
+		bsr        write_idx_register
+		move.b     #$86,sioATIEXT(a3)
+		move.b     #$7A,sioATIEXT+1(a3)
+		move.b     #$A3,sioATIEXT(a3)
+		clr.b      sioATIEXT+1(a3)
+		move.b     #$AD,sioATIEXT(a3)
+		clr.b      sioATIEXT+1(a3)
+		move.b     #$AE,sioATIEXT(a3)
+		clr.b      sioATIEXT+1(a3)
+		move.b     #$B0,sioATIEXT(a3)
+		move.b     #$08,sioATIEXT+1(a3)
 		move.b     #$B1,d0
 		bra.s      x11244_6
 x11244_7:
-		move.b     d0,$81CE(a3)
-		clr.b      $81CF(a3)
+		move.b     d0,sioATIEXT(a3)
+		clr.b      sioATIEXT+1(a3)
 		addq.b     #1,d0
 x11244_6:
 		cmp.b      #$B5,d0
 		bls.s      x11244_7
-		move.b     #$B6,$81CE(a3)
-		move.b     #1,$81CF(a3)
-		move.b     #$B8,$81CE(a3)
-		clr.b      $81CF(a3)
-		move.b     #$BD,$81CE(a3)
-		move.b     #$04,$81CF(a3)
-		move.b     #$BE,$81CE(a3)
+		move.b     #$B6,sioATIEXT(a3)
+		move.b     #1,sioATIEXT+1(a3)
+		move.b     #$B8,sioATIEXT(a3)
+		clr.b      sioATIEXT+1(a3)
+		move.b     #$BD,sioATIEXT(a3)
+		move.b     #$04,sioATIEXT+1(a3)
+		move.b     #$BE,sioATIEXT(a3)
 		moveq.l    #4,d0
 		and.w      22(a7),d0
 		beq.s      x11244_8
-		move.b     #$0A,$81CF(a3)
+		move.b     #$0A,sioATIEXT+1(a3)
 		bra.s      x11244_9
 x11244_8:
-		move.b     #$08,$81CF(a3)
+		move.b     #$08,sioATIEXT+1(a3)
 x11244_9:
-		move.b     #$BF,$81CE(a3)
-		move.b     #1,$81CF(a3)
+		move.b     #$BF,sioATIEXT(a3)
+		move.b     #1,sioATIEXT+1(a3)
 		moveq.l    #9,d2
 		clr.b      d1
 		lea.l      x1182a-x11824(a4),a1
-		move.w     #$83CE,d0
+		move.w     #GRAX,d0
 		movea.l    a3,a0
-		bsr        x10064
+		bsr        write_idx_register
 		movea.l    a3,a0
 		bsr.w      x11472
 		move.b     #$FF,$deee(a3)
@@ -1944,13 +2026,13 @@ x11472:
 		clr.b      d0
 		bra.s      x11472_1
 x11472_2:
-		move.b     d0,$83C0(a0)
-		move.b     (a1)+,$83C0(a0)
+		move.b     d0,ATTRX(a0)
+		move.b     (a1)+,ATTRX(a0)
 		addq.b     #1,d0
 x11472_1:
 		cmp.b      #$14,d0
 		ble.s      x11472_2
-		move.b     #$20,$83C0(a0)
+		move.b     #$20,ATTRX(a0)
 		rts
 
 x11498:
@@ -1962,27 +2044,27 @@ x11498:
 		move.w     d2,d0
 		lea.l      vga_reg_ptr+mach64_off,a0
 		movea.l    (a0),a1
-		clr.b      $83C4(a1)
+		clr.b      SEQX(a1)
 		movea.l    (a0),a1
-		move.b     #1,$83C5(a1)
+		move.b     #1,SEQD(a1)
 		movea.l    (a0),a1
-		move.b     #$B9,$81CE(a1)
+		move.b     #$B9,sioATIEXT(a1)
 		lea.l      x1184e+mach64_off,a1
 		moveq.l    #4,d2
 		dc.w $c471,$0200			/* and.w      0(a1,d0.w*2),d2 68020+ only */
 		asr.w      #1,d2
 		or.b       #$40,d2
 		movea.l    (a0),a2
-		move.b     d2,$81CF(a2)
+		move.b     d2,sioATIEXT+1(a2)
 		movea.l    (a0),a2
-		move.b     #$B8,$81CE(a2)
+		move.b     #$B8,sioATIEXT(a2)
 		moveq.l    #16,d2
 		dc.w $c431,$0201			/* and.b      1(a1,d0.w*2),d2 68020+ only */
 		lsl.b      #2,d2
 		movea.l    (a0),a2
-		move.b     d2,$81CF(a2)
+		move.b     d2,sioATIEXT+1(a2)
 		movea.l    (a0),a2
-		move.b     #$BE,$81CE(a2)
+		move.b     #$BE,sioATIEXT(a2)
 		moveq.l    #8,d2
 		dc.w $c431,$0201 			/* and.b      1(a1,d0.w*2),d2 68020+ only */
 		add.b      d2,d2
@@ -1997,7 +2079,7 @@ x11498_2:
 		add.b      d2,d2
 		or.b       (a7)+,d2
 		movea.l    (a0),a2
-		move.b     d2,$81CF(a2)
+		move.b     d2,sioATIEXT+1(a2)
 		movea.l    (a0),a2
 		move.b     $83CC(a2),d1
 		and.b      #$F3,d1
@@ -2007,9 +2089,9 @@ x11498_2:
 		or.b       d2,d1
 		move.b     d1,$83C2(a2)
 		movea.l    (a0),a1
-		clr.b      $83C4(a1)
+		clr.b      SEQX(a1)
 		movea.l    (a0),a1
-		move.b     #$03,$83C5(a1)
+		move.b     #3,SEQD(a1)
 		movea.l    (a7)+,a2
 		rts
 
@@ -2026,12 +2108,12 @@ x11544_4:
 x11544_3:
 		addq.w     #1,d1
 x11544_2:
-		cmp.w      #$03E8,d1
+		cmp.w      #1000,d1
 		blt.s      x11544_3
 		move.b     $deee(a0),d2
 		addq.b     #1,d0
 x11544_1:
-		cmp.b      #$04,d0
+		cmp.b      #4,d0
 		bcs.s      x11544_4
 		move.b     d2,d0
 		rts
@@ -2300,7 +2382,9 @@ x11746_1:
 x117c6:
 	dc.b $ff,$ff,$ff
 x117c9:
-	dc.b $00,$00,$00,$ff,$ff
+	dc.b $00,$00,$00
+	dc.b $ff,$ff
+
 x117ce:
 			dc.w $0000
 			dc.w $0000
@@ -2563,3 +2647,15 @@ x11a12: ds.b 1
         even
 vga_reg_ptr: ds.l 1
 x11a18: ds.b 28 /* unused? */
+
+
+
+#undef vga_base
+#undef vga_reg
+#undef mach64_init
+
+#undef read_vga_byte
+#undef write_vga_byte
+#undef read_vga_word
+#undef write_vga_word
+#undef write_idx_register

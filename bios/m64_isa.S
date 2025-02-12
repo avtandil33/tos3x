@@ -79,13 +79,14 @@ R_MISC_CNTL     equ $92EE-$8000
 
 
 /* Mach64 only */
+M64_CONFIG_CTRL     equ $6AEC-$8000
 M64_CONFIG_CHIP_ID  equ $6EEC-$8000
 M64_SCRATCH_REG_1   equ $46EC-$8000
 M64_MEM_CNTL        equ $52EC-$8000
 M64_DAC_W_INDEX     equ $5EEC-$8000		/* same as DAC_IW */
 M64_DAC_DATA        equ $5EED-$8000		/* same as DAC_D */
 M64_DAC_MASK        equ $5EEE-$8000		/* same as DAC_PEL */
-M64_DAC_R_INDEX     equ $5EEE-$8000		/* same as DAC_IR */
+M64_DAC_R_INDEX     equ $5EEF-$8000		/* same as DAC_IR */
 M64_CRTC_GEN_CNTL   equ $1EEC-$8000
 M64_CLOCK_CNTL      equ $4AEC-$8000
 M64_CRTC_INT_CNTL   equ $1AEC-$8000
@@ -106,13 +107,6 @@ ATI_DAC_STG1702     equ 7
 
 ACIA_IKBD_BASE equ $fffffc00
 
-/*
-DEEC
-DEED
-DEEF
-E2EC
-E6ED
-*/
 
 mach64_init:
 		suba.l     a0,a0
@@ -327,10 +321,10 @@ x10142:
 		move.l     d3,-(a7)
 		move.l     a2,-(a7)
 		move.b     #$F1,d1
-		move.w     #$CEEC,d0
+		move.w     #M64_BUS_CNTL,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #32,d1
-		move.w     #$CEED,d0
+		moveq.l    #$20,d1
+		move.w     #M64_BUS_CNTL+1,d0
 		bsr        ISA_write_vga_byte
 		clr.w      d3
 		lea.l      x118b0+mach64_off,a2
@@ -350,8 +344,8 @@ x10142_1:
 		move.l     (a7)+,d3
 		rts
 
-x1018a:
-		move.w     #$DEEC,d0
+ISA_m64_read_daci:
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		rts
 
@@ -371,7 +365,7 @@ ISA_display_vga:
 x101b2:
 		move.l     d3,-(a7)
 		move.b     d0,d3
-		bsr.w      x1018a
+		bsr.w      ISA_m64_read_daci
 		move.b     d3,d1
 		move.w     #M64_CRTC_GEN_CNTL+3,d0
 		bsr        ISA_write_vga_byte
@@ -630,37 +624,37 @@ x10390_6:
 		moveq.l    #16,d6
 x10390_7:
 		moveq.l    #1,d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		move.b     d6,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		dc.w $1232,$7203			/* move.b     3(a2,d7.w*2),d1 68020+ only */
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		dc.w $3232,$7202			/* move.w     2(a2,d7.w*2),d1 68020+ only */
 		lsr.w      #8,d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		cmp.b      #$10,d6
 		bge.s      x10390_8
 		move.w     #MEM_CFG,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		move.b     #$80,d1
 		or.b       d6,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 x10390_8:
 		clr.b      d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 x10390_2:
 		move.b     d4,d0
@@ -679,23 +673,23 @@ x10496:
 		bsr        ISA_display_vga
 		move.b     d0,d4
 		moveq.l    #1,d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		move.w     #MEM_CFG,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		move.b     d5,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		move.b     d4,d0
 		bsr        x101b2
@@ -772,7 +766,7 @@ x10594_2:
 
 /*
  * Input:  d0.w = value for video memory size
- *         d1.w = value for MEM_BNDRY register
+ *         d1.w = value for M64_SCRATCH_REG0+2 register
  * Output: d0.w = 0: error, 1: ok
  */
 ISA_try_vidmemsize:
@@ -792,7 +786,7 @@ ISA_try_vidmemsize:
 		move.w     #M64_SCRATCH_REG0,d0
 		bsr        ISA_write_vga_word
 		move.w     d3,d1
-		move.w     #MEM_BNDRY,d0
+		move.w     #M64_SCRATCH_REG0+2,d0
 		bsr        ISA_write_vga_word
 		move.w     #$1234,d4				/* test pattern */
 		move.w     d4,d1
@@ -810,7 +804,7 @@ ISA_try_vidmemsize:
 		move.w     #M64_SCRATCH_REG0,d0
 		bsr        ISA_write_vga_word
 		move.w     d3,d1
-		move.w     #MEM_BNDRY,d0
+		move.w     #M64_SCRATCH_REG0+2,d0
 		bsr        ISA_write_vga_word
 		move.w     #M64_GEN_TEST_CNTL+2,d0
 		bsr        ISA_read_vga_word
@@ -878,49 +872,49 @@ x10666_8:
 		moveq.l    #1,d0
 		rts
 
-x106ca:
+ISA_memtest:
 		clr.w      d0
 		movea.l    #vga_base+$600000,a0
-		bra.s      x106ca_1
-x106ca_2:
+		bra.s      ISA_memtest_1
+ISA_memtest_2:
 		move.b     #$55,(a0)+
 		addq.w     #1,d0
-x106ca_1:
+ISA_memtest_1:
 		cmp.w      #10,d0
-		blt.s      x106ca_2
+		blt.s      ISA_memtest_2
 		clr.w      d0
 		movea.l    #vga_base+$600000,a0
-		bra.s      x106ca_3
-x106ca_5:
+		bra.s      ISA_memtest_3
+ISA_memtest_5:
 		cmpi.b     #$55,(a0)+
-		bne.s      x106ca_4
+		bne.s      ISA_memtest_err
 		addq.w     #1,d0
-x106ca_3:
+ISA_memtest_3:
 		cmp.w      #10,d0
-		blt.s      x106ca_5
+		blt.s      ISA_memtest_5
 		clr.w      d0
 		movea.l    #vga_base+$600000,a0
-		bra.s      x106ca_6
-x106ca_7:
+		bra.s      ISA_memtest_6
+ISA_memtest_7:
 		move.b     #$AA,(a0)+
 		addq.w     #1,d0
-x106ca_6:
+ISA_memtest_6:
 		cmp.w      #10,d0
-		blt.s      x106ca_7
+		blt.s      ISA_memtest_7
 		clr.w      d0
 		movea.l    #vga_base+$600000,a0
-		bra.s      x106ca_8
-x106ca_10:
+		bra.s      ISA_memtest_8
+ISA_memtest_10:
 		cmpi.b     #$AA,(a0)+
-		beq.s      x106ca_9
-x106ca_4:
+		beq.s      ISA_memtest_9
+ISA_memtest_err:
 		clr.w      d0
 		rts
-x106ca_9:
+ISA_memtest_9:
 		addq.w     #1,d0
-x106ca_8:
+ISA_memtest_8:
 		cmp.w      #10,d0
-		blt.s      x106ca_10
+		blt.s      ISA_memtest_10
 		moveq.l    #1,d0
 		rts
 
@@ -978,7 +972,7 @@ x1072e_4:
 		move.w     #M64_MEM_CNTL,d0
 		bsr        ISA_write_vga_byte
 		move.l     #$00400000,(a2)
-		bsr        x106ca
+		bsr        ISA_memtest
 		tst.w      d0
 		bne.s      x1072e_6
 		move.w     #M64_MEM_CNTL,d0
@@ -1019,13 +1013,13 @@ x1072e_6:
 		move.w     #M64_SCRATCH_REG0,d0
 		bsr        ISA_write_vga_word
 		clr.w      d1
-		move.w     #MEM_BNDRY,d0
+		move.w     #M64_SCRATCH_REG0+2,d0
 		bsr        ISA_write_vga_word
 		clr.w      d1
 		move.w     #M64_SCRATCH_REG_1,d0
 		bsr        ISA_write_vga_word
 		clr.w      d1
-		move.w     #$C6EE,d0
+		move.w     #M64_SCRATCH_REG_1+2,d0
 		bsr        ISA_write_vga_word
 		movea.l    (a7)+,a2
 		move.l     (a7)+,d3
@@ -1058,13 +1052,13 @@ ISA_set_iobase:
 		bsr        ISA_write_vga_byte	/* write hibyte; select range $80-$BF */
 		rts
 
-x108b4:
+ISA_disable_screen:
 		moveq.l    #1,d1
 		move.w     #TS_I,d0
-		bsr        ISA_write_vga_byte
-		moveq.l    #32,d1
+		bsr        ISA_write_vga_byte	/* select Clocking Mode Register */
+		moveq.l    #$20,d1
 		move.w     #TS_D,d0
-		bsr        ISA_write_vga_byte
+		bsr        ISA_write_vga_byte	/* disable screen output */
 		rts
 
 x108ca:
@@ -1078,14 +1072,14 @@ x108ca:
 		clr.b      d1
 		move.w     #ATC_IW,d0
 		bsr        ISA_write_vga_byte
-		bsr.w      x108b4
+		bsr.w      ISA_disable_screen
 		move.b     #$A0,d1
 		move.w     #ATI_I,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #72,d1
+		moveq.l    #$48,d1
 		move.w     #ATI_D,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #29,d1
+		moveq.l    #$1d,d1
 		move.w     #DAC_PEL,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
@@ -1097,7 +1091,7 @@ x108ca:
 		move.b     #$A0,d1
 		move.w     #ATI_I,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #104,d1
+		moveq.l    #$68,d1
 		move.w     #ATI_D,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #97,d1
@@ -1112,35 +1106,35 @@ x108ca:
 		moveq.l    #1,d1
 		move.w     #M64_CRTC_GEN_CNTL+3,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #3,d1
-		move.w     #$E2EC,d0
+		moveq.l    #$03,d1
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #97,d1
-		move.w     #$DEEC,d0
+		moveq.l    #$61,d1
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #29,d1
 		move.w     #MEM_CFG,d0
 		bsr        ISA_write_vga_byte
 		move.b     #$80,d1
-		move.w     #$DEEF,d0
+		move.w     #M64_DAC_R_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #3,d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #101,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
-		moveq.l    #32,d1
-		move.w     #$E2ED,d0
+		moveq.l    #$20,d1
+		move.w     #M64_DAC_CNTL+1,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
 		move.w     #M64_CRTC_GEN_CNTL+3,d0
@@ -1162,17 +1156,17 @@ x108ca:
 x10a02:
 		move.l     a2,-(a7)
 		movea.l    #vga_base+$BFC00,a2
-		move.w     #$CEEC,d0
+		move.w     #M64_BUS_CNTL,d0
 		bsr        ISA_read_vga_word
 		move.w     d0,d1
 		or.w       #$00A0,d1
-		move.w     #$CEEC,d0
+		move.w     #M64_BUS_CNTL,d0
 		bsr        ISA_write_vga_word
 		clr.b      d1
-		move.w     #$E6ED,d0
+		move.w     #M64_GEN_TEST_CNTL+1,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #1,d1
-		move.w     #$E6ED,d0
+		move.w     #M64_GEN_TEST_CNTL+1,d0
 		bsr        ISA_write_vga_byte
 		move.l     #-1,712(a2)
 		clr.l      776(a2)
@@ -1214,35 +1208,35 @@ x10a44_1:
 		moveq.l    #1,d0
 		bsr        x10ba2
 		clr.b      d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		move.b     #$FF,d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		move.b     #$FF,d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		move.b     #$FF,d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d0
 		bsr        x10ba2
 		move.b     #$80,d1
-		move.w     #$DEED,d0
+		move.w     #M64_DAC_DATA,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d0
 		bsr        x10ba2
 		move.b     #$EC,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d0
 		bsr        x10ba2
@@ -1287,12 +1281,12 @@ x10b2e_2:
 x10ba2:
 		move.l     d3,-(a7)
 		move.b     d0,d3
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_read_vga_byte
 		move.b     d0,d1
 		and.b      #$FC,d1
 		or.b       d3,d1
-		move.w     #$E2EC,d0
+		move.w     #M64_DAC_CNTL,d0
 		bsr        ISA_write_vga_byte
 		move.l     (a7)+,d3
 		rts
@@ -1317,11 +1311,11 @@ x10bd0:
 x10bd0_1:
 		moveq.l    #3,d0
 		bsr.w      x10ba2
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		move.b     d0,d1
 		and.b      #$FD,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d0
 		bsr.w      x10ba2
@@ -1338,10 +1332,10 @@ x10bd0_1:
 		or.b       #$10,d4
 x10bd0_2:
 		move.b     d4,d1
-		move.w     #$DEEF,d0
+		move.w     #M64_DAC_R_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #2,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		moveq.l    #3,d0
 		bsr        x10ba2
@@ -1367,10 +1361,10 @@ x10bd0_4:
 		beq.s      x10bd0_6
 		and.b      #$FE,d4
 x10bd0_6:
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		move.b     #$EC,d1
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_write_vga_byte
 		clr.b      d0
 		bsr        x10ba2
@@ -1378,7 +1372,7 @@ x10bd0_6:
 		rts
 
 x10c96:
-		move.w     #$DEEC,d0
+		move.w     #M64_DAC_W_INDEX,d0
 		bsr        ISA_read_vga_byte
 		move.w     #MEM_CFG,d0
 		bsr        ISA_read_vga_byte
@@ -1909,12 +1903,12 @@ x10ea6_16:
 x11224:
 		lea.l      vga_reg_ptr+mach64_off,a0
 		movea.l    (a0),a1
-		clr.b      $deec(a1)
+		clr.b      M64_DAC_W_INDEX(a1)
 		clr.w      d1
 		bra.s      x11224_1
 x11224_2:
 		movea.l    (a0),a1
-		move.b     d0,$deed(a1)
+		move.b     d0,M64_DAC_DATA(a1)
 		addq.w     #1,d1
 x11224_1:
 		cmp.w      #$0300,d1
@@ -1943,7 +1937,7 @@ x11244_1:
 		bsr        x10390
 x11244_2:
 		moveq.l    #17,d1
-		move.w     #$EAEC,d0
+		move.w     #M64_CONFIG_CTRL,d0
 		bsr        ISA_write_vga_word
 		moveq.l    #1,d1
 		moveq.l    #2,d0
@@ -2124,9 +2118,9 @@ x11498:
 		move.w     d2,d0
 		lea.l      vga_reg_ptr+mach64_off,a0
 		movea.l    (a0),a1
-		clr.b      TS_I(a1)
+		clr.b      TS_I(a1)			/* select reset register */
 		movea.l    (a0),a1
-		move.b     #1,TS_D(a1)
+		move.b     #1,TS_D(a1)		/* stop sequencer */
 		movea.l    (a0),a1
 		move.b     #$B9,ATI_I(a1)
 		lea.l      x1184e+mach64_off,a1
@@ -2169,14 +2163,14 @@ x11498_2:
 		or.b       d2,d1
 		move.b     d1,MISC_W(a2)
 		movea.l    (a0),a1
-		clr.b      TS_I(a1)
+		clr.b      TS_I(a1)			/* select reset register */
 		movea.l    (a0),a1
-		move.b     #3,TS_D(a1)
+		move.b     #3,TS_D(a1)		/* enable sequencer again */
 		movea.l    (a7)+,a2
 		rts
 
-x1153e:
-		move.b     $deec(a0),d0
+ISA_m64_get_daci:
+		move.b     M64_DAC_W_INDEX(a0),d0
 		rts
 
 x11544:
@@ -2217,7 +2211,7 @@ x11564:
 		cmp.b      d7,d6
 		bne.s      x11564_1
 		movea.l    a2,a0
-		bsr.w      x1153e
+		bsr.w      ISA_m64_get_daci
 		bra        x11564_2
 x11564_1:
 		move.b     #$E0,d0
@@ -2273,7 +2267,7 @@ x11564_4:
 		cmp.b      d0,d6
 		beq.s      x11564_3
 		movea.l    a2,a0
-		bsr        x1153e
+		bsr        ISA_m64_get_daci
 		move.b     #$FF,MEM_CFG(a2)
 		movea.l    a2,a0
 		bsr        x11544
@@ -2322,7 +2316,7 @@ x11564_2:
 x116aa:
 		move.l     a2,-(a7)
 		movea.l    a0,a2
-		bsr        x1153e
+		bsr        ISA_m64_get_daci
 		movea.l    a2,a0
 		bsr        x11544
 		movea.l    (a7)+,a2
@@ -2335,7 +2329,7 @@ x116bc:
 		bsr.w      x116aa
 		move.b     MEM_CFG(a2),d3
 		movea.l    a2,a0
-		bsr        x1153e
+		bsr        ISA_m64_get_daci
 		move.b     d3,d0
 		movea.l    (a7)+,a2
 		move.l     (a7)+,d3
@@ -2349,7 +2343,7 @@ x116d8:
 		bsr.w      x116aa
 		move.b     d3,MEM_CFG(a2)
 		movea.l    a2,a0
-		bsr        x1153e
+		bsr        ISA_m64_get_daci
 		movea.l    (a7)+,a2
 		move.l     (a7)+,d3
 		rts
@@ -2360,7 +2354,7 @@ x116f4:
 		move.b     d0,d4
 		move.b     d1,d3
 		move.b     d2,d5
-		bsr        x1153e
+		bsr        ISA_m64_get_daci
 		move.b     d4,d0
 		and.b      d3,d0
 		move.b     d0,MEM_CFG(a2)
@@ -2610,11 +2604,11 @@ x118b0: 	dc.w M64_BUS_CNTL+2,$890e
 			dc.w M64_MEM_CNTL,$01f0
 			dc.w ROM_ADDR_1,$0000
 			dc.w M64_SCRATCH_REG0,$0000
-			dc.w MEM_BNDRY,$0000
+			dc.w M64_SCRATCH_REG0+2,$0000
 			dc.w M64_SCRATCH_REG_1,$0000
-			dc.w $c6ee,$0000
-			dc.w $e2ec,$0000
-			dc.w $eaec,$0011
+			dc.w M64_SCRATCH_REG_1+2,$0000
+			dc.w M64_DAC_CNTL,$0000
+			dc.w M64_CONFIG_CTRL,$0011
 			dc.w 0,0           /* end of table */
 
 x118e8:		dc.w $000e,$c848

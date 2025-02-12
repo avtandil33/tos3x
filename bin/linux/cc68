@@ -140,7 +140,7 @@ if $compile; then
 				fi
 			fi
 		fi
-		rm -f ${base}.i
+		test $status = 0 && rm -f ${base}.i
 		;;
 	*.s)
 		base=${infile%.s}

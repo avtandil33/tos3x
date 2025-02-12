@@ -1757,6 +1757,12 @@ tbev:		DC.B 'Access fault (Bus Error) !',0
 
 		even
 
+/*
+ * Actually 0x4758, but we read it as little-endian value
+ */
+/* mach64GX (ATI888GX00) */
+#define PCI_MACH64_GX_ID	$5847
+
 /* grafik karte initialisieren */
 		xdef screen_init
 screen_init:
@@ -1774,13 +1780,13 @@ screen_init:
 		beq.s	config
 
 pcim64t:
-		cmp.w	#$5847,pci_conf1+2
+		cmp.w	#PCI_MACH64_GX_ID,pci_conf1+2
 		beq.s	m64init
-		cmp.w	#$5847,pci_conf2+2
+		cmp.w	#PCI_MACH64_GX_ID,pci_conf2+2
 		beq.s	m64init
-		cmp.w	#$5847,pci_conf3+2
+		cmp.w	#PCI_MACH64_GX_ID,pci_conf3+2
 		beq.s	m64init
-		cmp.w	#$5847,pci_conf4+2
+		cmp.w	#PCI_MACH64_GX_ID,pci_conf4+2
 		bne		isainit
 
 m64init:
@@ -2513,9 +2519,13 @@ hadeslogo:
 #if BINEXACT
 	/* fill up space between here and start of pci emulation */
 	dcb.b hades_xbios-HADES_XBIOS+mach64_pci_offset-*,-1
+#undef PCI
+#define PCI 1
 #include "m64_pci.sa"
 	/* fill up space between here and start of isa emulation */
 	dcb.b hades_xbios-HADES_XBIOS+mach64_isa_offset-*,-1
+#undef PCI
+#define PCI 0
 #include "m64_isa.sa"
 #else
 #include "m64_pci.sa"

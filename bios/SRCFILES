@@ -38,6 +38,8 @@ BIOS_ASRCS = \
 	floppy.S \
 	hadxbios.S \
 	hadflopp.S \
+	m64_isa.S \
+	m64_pci.S \
 	prt.S \
 	memtest.S \
 	${empty}

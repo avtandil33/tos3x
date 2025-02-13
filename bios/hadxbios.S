@@ -47,7 +47,7 @@ hadesid		equ $68616465 /* 'hade' */
 #define mach64_org $300000
 
 /*
- * Yes, we assemble to the data segment here, so that the codes ends up at the end of the ROM image
+ * Yes, we assemble to the data segment here, so that the code ends up at the end of the ROM image
  */
 	data
 
@@ -2519,17 +2519,6 @@ hadeslogo:
 #if BINEXACT
 	/* fill up space between here and start of pci emulation */
 	dcb.b hades_xbios-HADES_XBIOS+mach64_pci_offset-*,-1
-#undef PCI
-#define PCI 1
-#include "m64_pci.sa"
-	/* fill up space between here and start of isa emulation */
-	dcb.b hades_xbios-HADES_XBIOS+mach64_isa_offset-*,-1
-#undef PCI
-#define PCI 0
-#include "m64_isa.sa"
-#else
-#include "m64_pci.sa"
-#include "m64_isa.sa"
 #endif
 
 #endif

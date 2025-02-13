@@ -16,7 +16,7 @@ LIBS =
 CPPFLAGS = -I$(top_srcdir)/common -I$(INC)
 CFLAGS = $(OPTS) $(WARN)
 
-all:: bios.a hadxbios.o
+all:: bios.a hadxbios.o m64_pci.o m64_isa.o
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
@@ -50,7 +50,8 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 
 keytbl.o: $(top_srcdir)/common/config.h
 
-hadxbios.o: hadxbios.S $(FPSP060) m64_pci.sa m64_isa.sa
+hadxbios.o: hadxbios.S $(FPSP060)
+m64_isa.o: m64_isa.S m64_pci.S
 
 prtkeys$(EXEEXT): prtkeys.o
 	$(AM_V_LD)${LD} ${LDFLAGS} -o $@ prtkeys.o

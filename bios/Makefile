@@ -4,7 +4,7 @@ include $(top_srcdir)/Makefile.cmn
 include $(top_srcdir)/Makefile.sil
 include optimize.mak
 
-all:: $(top_srcdir)/common/config.h bios.a hadxbios.o
+all:: $(top_srcdir)/common/config.h bios.a hadxbios.o m64_pci.o m64_isa.o
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
@@ -76,7 +76,17 @@ floppy.o: floppy.S hadflopp.S
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i
 
-hadxbios.o: hadxbios.S $(FPSP060) m64_pci.sa m64_isa.sa
+hadxbios.o: hadxbios.S $(FPSP060)
+	$(AM_V_AS)$(CPP) $< $*.i
+	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
+	$(AM_V_at)${RM} $*.i
+
+m64_pci.o: m64_pci.S
+	$(AM_V_AS)$(CPP) $< $*.i
+	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
+	$(AM_V_at)${RM} $*.i
+
+m64_isa.o: m64_isa.S m64_pci.S
 	$(AM_V_AS)$(CPP) $< $*.i
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
 	$(AM_V_at)${RM} $*.i

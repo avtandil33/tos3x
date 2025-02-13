@@ -51,6 +51,7 @@ TS_D            equ $03C5-$8000      /* SEQD: Sequencer Data register */
 MISC_W          equ $03C2-$8000      /* GENMO: Misc Output Write Register */
 VIDSUB          equ $03C3-$8000      /* Video Subsystem register */
 IS1_RC          equ $03DA-$8000      /* Input Status Register 1: color emulation */
+R_GENMO         equ $03CC-$8000      /* Misc Output Read Register */
 
 /* ATI VGA Extended Registers */
 SETUP_CONTROL   equ $0102-$8000
@@ -2052,7 +2053,7 @@ x11244_9:
 		move.b     85(a2),d1
 		and.w      #$0080,d1
 		move.w     20(a7),d0
-		bsr.w      x11498
+		bsr.w      ISA_selectclock
 		move.b     ISA_dactype+mach64_off,d0
 		bne.s      x11244_10
 		moveq.l    #5,d0
@@ -2109,7 +2110,13 @@ ISA_write_atcregs_1:
 		move.b     #$20,ATC_IW(a0)          /* enable screen output */
 		rts
 
-x11498:
+/* 
+ * Input:  d0.w = frequency index
+ *         d1.w = interlace
+ * Output: -
+ * Clobbers: d0,d1,d2,d4,a0,a1,a2
+ */
+ISA_selectclock:
 		move.l     a2,-(a7)
 		move.w     d0,d2
 		add.w      d2,d2
@@ -2121,47 +2128,51 @@ x11498:
 		clr.b      TS_I(a1)			/* select reset register */
 		movea.l    (a0),a1
 		move.b     #1,TS_D(a1)		/* stop sequencer */
+
 		movea.l    (a0),a1
-		move.b     #$B9,ATI_I(a1)
-		lea.l      x1184e+mach64_off,a1
-		moveq.l    #4,d2
+		move.b     #$B9,ATI_I(a1)	/* select ATI register $39 */
+		lea.l      ISA_clocktab+mach64_off,a1
+		moveq.l    #$04,d2
 		dc.w $c471,$0200			/* and.w      0(a1,d0.w*2),d2 68020+ only */
 		asr.w      #1,d2
-		or.b       #$40,d2
+		or.b       #$40,d2			/* set 16bit I/O */
 		movea.l    (a0),a2
-		move.b     d2,ATI_D(a2)
+		move.b     d2,ATI_D(a2)		/* write bit #3 of clock select */
+
 		movea.l    (a0),a2
-		move.b     #$B8,ATI_I(a2)
-		moveq.l    #16,d2
+		move.b     #$B8,ATI_I(a2)	/* select Clock Select register */
+		moveq.l    #$10,d2
 		dc.w $c431,$0201			/* and.b      1(a1,d0.w*2),d2 68020+ only */
 		lsl.b      #2,d2
 		movea.l    (a0),a2
-		move.b     d2,ATI_D(a2)
+		move.b     d2,ATI_D(a2)		/* write clock divider */
+
 		movea.l    (a0),a2
 		move.b     #$BE,ATI_I(a2)
-		moveq.l    #8,d2
+		moveq.l    #$08,d2
 		dc.w $c431,$0201 			/* and.b      1(a1,d0.w*2),d2 68020+ only */
 		add.b      d2,d2
 		move.b     d2,-(a7)
 		tst.w      d1
-		beq.s      x11498_1
+		beq.s      ISA_selectclock_1
 		moveq.l    #1,d2
-		bra.s      x11498_2
-x11498_1:
+		bra.s      ISA_selectclock_2
+ISA_selectclock_1:
 		clr.w      d2
-x11498_2:
+ISA_selectclock_2:
 		add.b      d2,d2
 		or.b       (a7)+,d2
 		movea.l    (a0),a2
-		move.b     d2,ATI_D(a2)
+		move.b     d2,ATI_D(a2)		/* write bit #2 of clock select */
+
 		movea.l    (a0),a2
-		move.b     $83CC(a2),d1
+		move.b     R_GENMO(a2),d1
 		and.b      #$F3,d1
 		moveq.l    #3,d2
 		dc.w $c431,$0201			/* and.b      1(a1,d0.w*2),d2 68020+ only */
 		lsl.b      #2,d2
 		or.b       d2,d1
-		move.b     d1,MISC_W(a2)
+		move.b     d1,MISC_W(a2)	/* write bit #0-1 of clock select */
 		movea.l    (a0),a1
 		clr.b      TS_I(a1)			/* select reset register */
 		movea.l    (a0),a1
@@ -2393,20 +2404,20 @@ x11746:
 		move.l     d4,-(a7)
 		move.w     #$270F,d1
 		clr.w      d2
-		lea.l      x1184e+mach64_off,a0
+		lea.l      ISA_clocktab+mach64_off,a0
 		bra.s      x11746_1
 x11746_7:
 		move.w     d2,d4
 		add.w      d4,d4
 		add.w      d2,d4
-		add.w      d4,d4
+		add.w      d4,d4			/* d4 = d2 * 6 */
 		move.w     0(a0,d4.w),d4
 		sub.w      d0,d4
 		bpl.s      x11746_2
 		move.w     d2,d4
 		add.w      d4,d4
 		add.w      d2,d4
-		add.w      d4,d4
+		add.w      d4,d4			/* d4 = d2 * 6 */
 		move.w     0(a0,d4.w),d4
 		neg.w      d4
 		sub.w      d0,d4
@@ -2415,7 +2426,7 @@ x11746_2:
 		move.w     d2,d4
 		add.w      d4,d4
 		add.w      d2,d4
-		add.w      d4,d4
+		add.w      d4,d4			/* d4 = d2 * 6 */
 		move.w     0(a0,d4.w),d4
 		sub.w      d0,d4
 x11746_3:
@@ -2424,7 +2435,7 @@ x11746_3:
 		move.w     d2,d1
 		add.w      d1,d1
 		add.w      d2,d1
-		add.w      d1,d1
+		add.w      d1,d1			/* d1 = d2 * 6 */
 		move.w     0(a0,d1.w),d4
 		sub.w      d0,d4
 		bpl.s      x11746_5
@@ -2436,7 +2447,7 @@ x11746_5:
 		move.w     d2,d4
 		add.w      d4,d4
 		add.w      d2,d4
-		add.w      d4,d4
+		add.w      d4,d4			/* d4 = d2 * 6 */
 		move.w     0(a0,d4.w),d1
 		sub.w      d0,d1
 x11746_6:
@@ -2444,7 +2455,7 @@ x11746_6:
 x11746_4:
 		addq.w     #1,d2
 x11746_1:
-		cmp.w      #$000E,d2
+		cmp.w      #14,d2
 		blt.s      x11746_7
 		move.w     d3,d0
 		move.l     (a7)+,d4
@@ -2546,48 +2557,22 @@ x11849:	dc.b $00
 		dc.b $ff,$00
 
 		even
-x1184e:		dc.w $0019
-			dc.w $0000
-			dc.w $0010
-			dc.w $001c
-			dc.w $0000
-			dc.w $0011
-			dc.w $0020
-			dc.w $0000
-			dc.w $0012
-			dc.w $0024
-			dc.w $0000
-			dc.w $0013
-			dc.w $0028
-			dc.w $0000
-			dc.w $0004
-			dc.w $002d
-			dc.w $0000
-			dc.w $0005
-			dc.w $0032
-			dc.w $0000
-			dc.w $0007
-			dc.w $0039
-			dc.w $0000
-			dc.w $0001
-			dc.w $0041
-			dc.w $0000
-			dc.w $000f
-			dc.w $004b
-			dc.w $0000
-			dc.w $000e
-			dc.w $0050
-			dc.w $0000
-			dc.w $000d
-			dc.w $006e
-			dc.w $0000
-			dc.w $000a
-			dc.w $007e
-			dc.w $0000
-			dc.w $000a
-			dc.w $0087
-			dc.w $0000
-			dc.w $000b
+ISA_clocktab:
+			dc.w $0019,$0000,$0010
+			dc.w $001c,$0000,$0011
+			dc.w $0020,$0000,$0012
+			dc.w $0024,$0000,$0013
+			dc.w $0028,$0000,$0004
+			dc.w $002d,$0000,$0005
+			dc.w $0032,$0000,$0007
+			dc.w $0039,$0000,$0001
+			dc.w $0041,$0000,$000f
+			dc.w $004b,$0000,$000e
+			dc.w $0050,$0000,$000d
+			dc.w $006e,$0000,$000a
+			dc.w $007e,$0000,$000a
+			dc.w $0087,$0000,$000b
+
 x118a2: 	dc.w $0598
 x118a4:		dc.w $0001
 			dc.w $0307

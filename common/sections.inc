@@ -622,6 +622,25 @@
 #endif /* TOSVERSION == 0x162 */
 
 
+/*
+ * The value of the base address of a RAMVERSION
+ * actually depends on the physical amount of ST-RAM available:
+ * - 4MB:   $00380000
+ * - 16MB:  $00D80000
+ * Other values depend on where the alternate RAM is located.
+ * If it starts at $01000000 (like on TT or Falcon), use
+ * - 64MB:  $04F80000
+ * - 128MB: $08F80000
+ * - 256MB: $10F80000
+ * - 512MB: $20F80000
+ * On Hades (with linear memory), use
+ * - 64MB:  $03F80000
+ * - 128MB: $07F80000
+ * - 256MB: $0FF80000
+ * - 512MB: $1FF80000
+ * loadtos.prg from the TOSPATCH package can be used
+ * to load such a TOS.
+ */
 #ifndef BIOSTBASE
 #if RAMVERSION
 #define BIOSTBASE   $00380000

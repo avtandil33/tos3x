@@ -37,6 +37,8 @@ BINEXACT=1
 # Note that the PL version is not an official TOS, it is
 # an image found on the net on several sites, and contains
 # some patches for the BIOS.
+# If you need to change the base address for such an image,
+# common/sections.inc must be modified (search for RAMVERSION there)
 #
 RAMVERSION=0
 

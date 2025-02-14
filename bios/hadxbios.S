@@ -1687,73 +1687,73 @@ zei_out:
 
 
 /* THO: FIXME: needs translation */
-tb1:		DC.B 27,'H',10,10,10,10,10,10,27,'p',27,'KException ausgel',$94,'st durch: ',0
-tb2:		DC.B 10,13,27,'K',10,13,27,'KPC=',0,' SR=',0,' USP=',0,' Formatword=',0,' (PC-4)=',0
-tb3:		DC.B 10,13,27,'KD0-D7=',0,10,13,27,'KA0-A7=',0,10,13,27,'KStack=',0
-tb4:		DC.B 10,13,27,'K',10,13,27,'K < weiter mit beliebiger Taste >',27,'q',0
-tbuv:		DC.B 'Vector nummer $',0
-tbev:		DC.B 'Access fault (Bus Error) !',0
-		DC.B 'Adress error !',0
-		DC.B 'Illegal instruction !',0
-		DC.B 'Integer divide by zero !',0
-		DC.B 'CHK, CHK2 instruction !',0
-		DC.B 'FTRAPcc, TRAPcc, TRAPV instruction !',0
-		DC.B 'Privileg violation !',0
-		DC.B 'Trace !',0
-		DC.B 'Line A Emulator !',0
-		DC.B 'Line F Emulator !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Coprocessor protocol violation !',0
-		DC.B 'Format error !',0
-		DC.B 'Uninitialized interrupt !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Spurious interrupt !',0
-		DC.B 'Level 1 interrupt autovektor !',0
-		DC.B 'Level 2 interrupt autovektor !',0
-		DC.B 'Level 3 interrupt autovektor !',0
-		DC.B 'Level 4 interrupt autovektor !',0
-		DC.B 'Level 5 interrupt autovektor !',0
-		DC.B 'Level 6 interrupt autovektor !',0
-		DC.B 'Level 7 interrupt autovektor !',0
-		DC.B 'Trap #0 instruction vector !',0
-		DC.B 'Trap #1 instruction vector !',0
-		DC.B 'Trap #2 instruction vector !',0
-		DC.B 'Trap #3 instruction vector !',0
-		DC.B 'Trap #4 instruction vector !',0
-		DC.B 'Trap #5 instruction vector !',0
-		DC.B 'Trap #6 instruction vector !',0
-		DC.B 'Trap #7 instruction vector !',0
-		DC.B 'Trap #8 instruction vector !',0
-		DC.B 'Trap #9 instruction vector !',0
-		DC.B 'Trap #10 instruction vector !',0
-		DC.B 'Trap #11 instruction vector !',0
-		DC.B 'Trap #12 instruction vector !',0
-		DC.B 'Trap #13 instruction vector !',0
-		DC.B 'Trap #14 instruction vector !',0
-		DC.B 'Trap #15 instruction vector !',0
-		DC.B 'FPCP Branch or Set on unordered condition !',0
-		DC.B 'FPCP inexact result !',0
-		DC.B 'FPCP divide by zero !',0
-		DC.B 'FPCP underflow !',0
-		DC.B 'FPCP operand error !',0
-		DC.B 'FPCP overflow !',0
-		DC.B 'FPCP signaling NAN !',0
-		DC.B 'FPCP unimplemented data type !',0
-		DC.B '68030/68851 PMMU configuration error !',0
-		DC.B 'Unassigned, reserved for 68851 !',0
-		DC.B 'Unassigned, reserved for 68851 !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Addressing mode unimplemented in 68060 !',0
-		DC.B 'Integer instruction unimplemented in 68060 !',0
-		DC.B 'Unassigned, reserved !',0
-		DC.B 'Unassigned, reserved !',0
+tb1:		dc.b 27,'H',10,10,10,10,10,10,27,'p',27,'KException ausgel',$94,'st durch: ',0
+tb2:		dc.b 10,13,27,'K',10,13,27,'KPC=',0,' SR=',0,' USP=',0,' Formatword=',0,' (PC-4)=',0
+tb3:		dc.b 10,13,27,'KD0-D7=',0,10,13,27,'KA0-A7=',0,10,13,27,'KStack=',0
+tb4:		dc.b 10,13,27,'K',10,13,27,'K < weiter mit beliebiger Taste >',27,'q',0
+tbuv:		dc.b 'Vector nummer $',0
+tbev:		dc.b 'Access fault (Bus Error) !',0
+		dc.b 'Adress error !',0
+		dc.b 'Illegal instruction !',0
+		dc.b 'Integer divide by zero !',0
+		dc.b 'CHK, CHK2 instruction !',0
+		dc.b 'FTRAPcc, TRAPcc, TRAPV instruction !',0
+		dc.b 'Privileg violation !',0
+		dc.b 'Trace !',0
+		dc.b 'Line A Emulator !',0
+		dc.b 'Line F Emulator !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Coprocessor protocol violation !',0
+		dc.b 'Format error !',0
+		dc.b 'Uninitialized interrupt !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Spurious interrupt !',0
+		dc.b 'Level 1 interrupt autovektor !',0
+		dc.b 'Level 2 interrupt autovektor !',0
+		dc.b 'Level 3 interrupt autovektor !',0
+		dc.b 'Level 4 interrupt autovektor !',0
+		dc.b 'Level 5 interrupt autovektor !',0
+		dc.b 'Level 6 interrupt autovektor !',0
+		dc.b 'Level 7 interrupt autovektor !',0
+		dc.b 'Trap #0 instruction vector !',0
+		dc.b 'Trap #1 instruction vector !',0
+		dc.b 'Trap #2 instruction vector !',0
+		dc.b 'Trap #3 instruction vector !',0
+		dc.b 'Trap #4 instruction vector !',0
+		dc.b 'Trap #5 instruction vector !',0
+		dc.b 'Trap #6 instruction vector !',0
+		dc.b 'Trap #7 instruction vector !',0
+		dc.b 'Trap #8 instruction vector !',0
+		dc.b 'Trap #9 instruction vector !',0
+		dc.b 'Trap #10 instruction vector !',0
+		dc.b 'Trap #11 instruction vector !',0
+		dc.b 'Trap #12 instruction vector !',0
+		dc.b 'Trap #13 instruction vector !',0
+		dc.b 'Trap #14 instruction vector !',0
+		dc.b 'Trap #15 instruction vector !',0
+		dc.b 'FPCP Branch or Set on unordered condition !',0
+		dc.b 'FPCP inexact result !',0
+		dc.b 'FPCP divide by zero !',0
+		dc.b 'FPCP underflow !',0
+		dc.b 'FPCP operand error !',0
+		dc.b 'FPCP overflow !',0
+		dc.b 'FPCP signaling NAN !',0
+		dc.b 'FPCP unimplemented data type !',0
+		dc.b '68030/68851 PMMU configuration error !',0
+		dc.b 'Unassigned, reserved for 68851 !',0
+		dc.b 'Unassigned, reserved for 68851 !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Addressing mode unimplemented in 68060 !',0
+		dc.b 'Integer instruction unimplemented in 68060 !',0
+		dc.b 'Unassigned, reserved !',0
+		dc.b 'Unassigned, reserved !',0
 
 		even
 
@@ -1823,17 +1823,17 @@ config:
 		cmp.b	#8,2(a3)                /* et6000? */
 		bne		no_et6000		/* nein-> */
 		move.b	#3,$40(a3)              /* et6000 init */
-		move.b  #$78,65(a3)
-		clr.b   66(a3)
-		move.b  #$02,67(a3)
+		move.b  #$78,$41(a3)
+		clr.b   $42(a3)
+		move.b  #$02,$43(a3)
 		moveq.l #8,d0
 		lea.l   et6000tab(pc),a1
 et6000_1:
-		move.b  (a1)+,104(a3)
-		move.b  (a1)+,105(a3)
-		move.b  (a1)+,105(a3)
+		move.b  (a1)+,$68(a3)
+		move.b  (a1)+,$69(a3)
+		move.b  (a1)+,$69(a3)
 		dbf     d0,et6000_1
-		move.b  #$65,69(a3)
+		move.b  #$65,$45(a3)
 		nop
 		nop
 		tst.b   $803FFF00
@@ -1842,7 +1842,7 @@ et6000_1:
 		tst.b   $803FFF80
 		nop
 		nop
-		move.b  #$75,69(a3)
+		move.b  #$75,$45(a3)
 		nop
 		nop
 		cmpi.b  #$60,8(a3)
@@ -1853,7 +1853,7 @@ et6000_1:
 		tst.b   $80000080
 		nop
 		nop
-		move.b  #$14,68(a3)
+		move.b  #$14,$44(a3)
 		bra.s   et6000_3
 et6000_2:
 		tst.b   $80000200
@@ -1864,11 +1864,11 @@ et6000_2:
 		nop
 		move.b	#$15,$44(a3)		/* et6000 init */
 et6000_3:
-		move.b  #$05,69(a3)
-		move.b  #$40,70(a3)
-		move.b  #$07,71(a3)
-		move.b  #$03,78(a3)
-		move.b  #$02,88(a3)
+		move.b  #$05,$45(a3)
+		move.b  #$40,$46(a3)
+		move.b  #$07,$47(a3)
+		move.b  #$03,$4e(a3)
+		move.b  #$02,$58(a3)
 
 no_et6000:
 		move.b	#$27,$03C2(a2)		/* misc */
@@ -1968,15 +1968,15 @@ loop_dac:
 		lea		pci_vga_base,a0
 		jmp		(a6)			/* back to caller */
 
-atc:	DC.B $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
-		DC.B $01,$00,$0F,$00,$00,$00,$00,$00
-crtc:	DC.B $60,$4F,$4F,$84,$56,$86,$c1,$1F,$00,$40,$00,$00,$00,$00,$07,$30
-		DC.B $98,$00,$8F,$28,$40,$8F,$C2,$a3,$FF,$00,$00,$00,$00,$00,$00,$00
-		DC.B $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-		DC.B $00,$80,$28,$00,$00,$00,$13,$09,$00,$00,$00,$00,$00,$00,$00,$00
-gdc:	DC.B $00,$00,$00,$00,$00,$00,$01,$0F,$FF
-ts:		DC.B $03,$01,$0F,$00,$06,$00,$00,$B4
-ts6:	DC.B $03,$05,$0F,$00,$06,$00,$00,$B4
+atc:	dc.b $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
+		dc.b $01,$00,$0F,$00,$00,$00,$00,$00
+crtc:	dc.b $60,$4F,$4F,$84,$56,$86,$c1,$1F,$00,$40,$00,$00,$00,$00,$07,$30
+		dc.b $98,$00,$8F,$28,$40,$8F,$C2,$a3,$FF,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$80,$28,$00,$00,$00,$13,$09,$00,$00,$00,$00,$00,$00,$00,$00
+gdc:	dc.b $00,$00,$00,$00,$00,$00,$01,$0F,$FF
+ts:		dc.b $03,$01,$0F,$00,$06,$00,$00,$B4
+ts6:	dc.b $03,$05,$0F,$00,$06,$00,$00,$B4
 		even
 
 /* isa et4000 grafikkarte initialisieren */
@@ -2077,17 +2077,17 @@ isaloop_dac:
 		jmp		(a6)			/* back to caller */
 
 isaatc:
-		DC.B $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
-		DC.B $01,$FF,$0F,$00,$00,$00,$00,$00
+		dc.b $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
+		dc.b $01,$FF,$0F,$00,$00,$00,$00,$00
 isacrtc:
-		DC.B $6A,$4F,$4F,$8E,$59,$87,$BF,$1F,$00,$40,$00,$00,$00,$00,$00,$00
-		DC.B $9A,$04,$8F,$28,$00,$8F,$C0,$C3,$FF,$00,$00,$00,$00,$00,$00,$00
-		DC.B $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-		DC.B $00,$00,$00,$00,$00,$10,$70,$0F
+		dc.b $6A,$4F,$4F,$8E,$59,$87,$BF,$1F,$00,$40,$00,$00,$00,$00,$00,$00
+		dc.b $9A,$04,$8F,$28,$00,$8F,$C0,$C3,$FF,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$00,$00,$00,$00,$10,$70,$0F
 isagdc:
-		DC.B $00,$00,$00,$00,$00,$00,$01,$0F,$FF,0
+		dc.b $00,$00,$00,$00,$00,$00,$01,$0F,$FF,0
 isats:
-		DC.B $03,$09,$0F,$00,$06,$00,$00,$A4
+		dc.b $03,$09,$0F,$00,$06,$00,$00,$A4
 		even
 
 	xdef check_hardware

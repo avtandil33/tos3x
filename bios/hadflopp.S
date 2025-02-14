@@ -230,6 +230,9 @@ int_status:
 sendcom:
 		move.l	_hz_200.w,d6
 		addi.l	#100,d6                 /* 0.5 sec */
+#if 0
+		bsr		wait_mast
+#endif
 sdloop:
 		cmp.l	_hz_200.w,d6		/* zeit abgelaufen? */
 		bcs	end_err			/* ja */
@@ -977,6 +980,10 @@ fdc_format:
 		move.l	fd_buffer.w,a0                    /* bufferregister holen */
 		move.w	fd_spt.w,d0			/* anzahl sectoren */
 		subq.w	#1,d0				/* -1 wegen dbf */
+#if 0
+		btst	#5,main_status                  /* daten? */
+		beq	form2                           /* nein -> fertig */
+#endif
 		bra.w	form3
 form1:
 		bsr.s	formintwaitb

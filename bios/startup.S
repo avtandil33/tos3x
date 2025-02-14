@@ -197,6 +197,12 @@ _main:
 /* maschinen und tos id */
 hadesid		equ $68616465 /* 'hade' */
 
+sweite		equ  $20000			;schrittweite ramtest
+mtadr1		equ  $8000000			;doppelseitig
+mtadr2		equ  $2000000			;4mx32
+mtadr3		equ  $400000                    ;1mx32
+mem_set_adr	equ  $70000000
+
 		/* special hades initialisation */
         reset                  /* reset all hardware */
 		move.l  #$00FFC040,d0  /* no cache serialized */
@@ -210,69 +216,69 @@ hadesid		equ $68616465 /* 'hade' */
         D0_VBR           /* initialise VBR to zero */
         move.l  #$00000210,d0
         D0_TC            /* set no cache, precise for mc68060 (also works for mc68040) */
-        lea.l   $70000000,a0 /* mem_set_adr */
+        lea.l   mem_set_adr,a0 /* set addresses */
         lea.l   $08000000,a1 /* mtadr1: doppelseitig */
         lea.l   $02000000,a2 /* mtadr2: 4mx32 */
         lea.l   $00400000,a3 /* mtadr3: */
-        move.l  #hadesid,d3
-        move.l  #-hadesid,d4
-        clr.b   (a0)
-        clr.l   d6
+        move.l  #hadesid,d3		/* test pattern */
+        move.l  #-hadesid,d4	/* test pattern */
+        clr.b   (a0)		/* default maximum */
+        clr.l   d6			/* default 32mx32 module */
         clr.l   (4).w
         clr.l   (a1)
         clr.l   (a2)
         clr.l   (a3)
-        clr.b   $70800000
+        clr.b   mem_set_adr+$800000
         clr.l   (a1)
         clr.l   (a2)
         clr.l   (a3)
         nop
         nop
-        move.l  d3,(0).w
+        move.l  d3,(0).w 	/* start mit testmuster -> spiegelung eruieren */
         nop
         nop
 		cmp.l   (a2),d3
-		beq.s   hades1
+		beq.s   non32mx32
 		tst.l   (a2)
 		beq.s   hades3
-hades1:
+non32mx32:
 		addq.w  #2,d6
 		cmp.l   (a3),d3
-		beq.s   hades2
+		beq.s   non4mx32
 		tst.l   (a3)
 		beq.s   hades3
-hades2:
+non4mx32:
 		addq.w  #2,d6
 hades3:
 		clr.b   (a0)
 		nop
 		nop
-		move.l  d3,(a1)
-		move.l  d3,(4).w
+		move.l  d3,(a1)		/* zweiseitig */
+		move.l  d3,(4).w	/* zweiseitig modul 2 */
 		nop
 		cmp.l   (a1),d3
-		beq.s   hades4
+		beq.s   not_zweiseitig
 		addq.w  #1,d6
-hades4:
+not_zweiseitig:
 		cmp.l   (4).w,d3
-		beq.s   hades5
-		moveq.l #9,d6
-		bra.s   hades7
-hades5:
+		beq.s   zweiseitig
+		moveq.l #9,d6		/* nur ein modul einseitig */
+		bra.s   mem_set_end
+zweiseitig:
 		cmpi.w  #2,d6
-		bgt.s   hades7
-		beq.s   hades6
+		bgt.s   mem_set_end
+		beq.s   mem_set_fertig
 		tst.w   d6
-		bne.s   hades7
+		bne.s   mem_set_end
 		cmp.l   (a2),d3
-		bne.s   hades7
+		bne.s   mem_set_end
 		moveq.l #9,d6
-		bra.s   hades7
-hades6:
+		bra.s   mem_set_end
+mem_set_fertig:
 		cmp.l   $00800000,d3
-		bne.s   hades7
+		bne.s   mem_set_end
 		moveq.l #11,d6
-hades7:
+mem_set_end:
 		move.l  d6,d0
 		swap    d0
 		lsl.l   #4,d0
@@ -316,7 +322,7 @@ memcret2:
 		move.l  #-hadesid,d4
 		clr.l   (_shell_p).w
 		move.l  #idinerr,(_buserror).w
-		move.l  #$00020000,d7            /* startadresse und schrittweite */
+		move.l  #sweite,d7               /* startadresse und schrittweite */
 		movea.l d7,a0                    /* startadresse setzen */
 		movea.l a0,a1
 		nop     
@@ -399,7 +405,7 @@ hadret1:
 		move.l     a0,d0
 		bne.s      hadret2
 		lea.l      hadret2(pc),a6
-		jmp        screen_init
+		jmp        screen_init		/* screen karte initialisieren */
 hadret2: ds.b 0
 
 /* clear screen memory */

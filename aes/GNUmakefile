@@ -21,12 +21,6 @@ all:: aes.a
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
 
-ifeq ($(USE_CROSS_ALCYON),1)
-ifeq ($(TOSVERSION),104)
-CPPFLAGS += -A
-endif
-endif
-
 include SRCFILES
 
 STARTUP =	gemjstrt.o
@@ -36,11 +30,11 @@ aes.a: $(STARTUP) $(AES_OBJS) ${MAKEFILE}
 
 ifeq ($(USE_CROSS_ALCYON),1)
 # sections.mak might have just been generated, make sure it is reread
-aes.o: $(VARS_OBJS) $(STARTUP) $(AES_OBJS) aesext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
+aes.o: vars.o $(STARTUP) $(AES_OBJS) aesext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
 	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
 
-single: $(VARS_OBJS) $(STARTUP) $(AES_OBJS) aesext.o
-	$(LD) -l -s -o aes.o -a $(aes_tbase) $(aes_dbase) 0 $(VARS_OBJS) $(STARTUP) $(AES_OBJS) aesext.o
+single: vars.o $(STARTUP) $(AES_OBJS) aesext.o
+	$(LD) -l -s -o aes.o -a $(aes_tbase) $(aes_dbase) 0 vars.o $(STARTUP) $(AES_OBJS) aesext.o
 
 endif
 
@@ -48,9 +42,6 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
-	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-vars1x.o: $(top_srcdir)/common/vars1x.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 aesext.o: aesext.S $(top_srcdir)/common/sections.inc $(top_srcdir)/common/config.h

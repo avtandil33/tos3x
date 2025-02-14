@@ -16,9 +16,6 @@ include SRCFILES
 
 CPPFLAGS +=
 
-AESFLAGS_104 = -A
-CPPFLAGS += $(AESFLAGS_$(TOSVERSION))
-
 STARTUP =	gemjstrt.o
 
 aes.a: $(STARTUP) $(AES_OBJS) ${MAKEFILE}
@@ -26,11 +23,11 @@ aes.a: $(STARTUP) $(AES_OBJS) ${MAKEFILE}
 	$(AR) $(ARFLAGS) $@ $(STARTUP) $(AES_OBJS)
 
 # sections.mak might have just been generated, make sure it is reread
-aes.o: $(VARS_OBJS) $(STARTUP) $(AES_OBJS) aesext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
+aes.o: vars.o $(STARTUP) $(AES_OBJS) aesext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
 	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
 
 single:
-	$(LD) -u -s -l -o aes.o -a $(aes_tbase) $(aes_dbase) 0 $(VARS_OBJS) $(STARTUP) $(AES_OBJS) aesext.o
+	$(LD) -u -s -l -o aes.o -a $(aes_tbase) $(aes_dbase) 0 vars.o $(STARTUP) $(AES_OBJS) aesext.o
 
 #
 # need to repeat the default suffix rule here,
@@ -110,11 +107,6 @@ linefhdl.o: linefhdl.S
 
 
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
-	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $< $*.i
-	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i $@
-	$(AM_V_at)${RM} $*.i
-
-vars1x.o: $(top_srcdir)/common/vars1x.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $< $*.i
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i $@
 	$(AM_V_at)${RM} $*.i

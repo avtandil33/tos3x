@@ -24,11 +24,11 @@ include SRCFILES
 bdos.a: $(BDOS_OBJS) ${MAKEFILE}
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(BDOS_OBJS)
 
-$(BDOS_OBJS) $(VARS_OBJS) vdidsp.o: $(top_srcdir)/common/config.h
+$(BDOS_OBJS) vars.o vdidsp.o: $(top_srcdir)/common/config.h
 
 ifeq ($(USE_CROSS_ALCYON),1)
 # sections.mak might have just been generated, make sure it is reread
-bdos.o: $(top_srcdir)/common/config.h tosvars.o $(VARS_OBJS) vdidsp.o $(top_srcdir)/common/sections.mak $(BDOS_OBJS) ${MAKEFILE}
+bdos.o: $(top_srcdir)/common/config.h tosvars.o vars.o vdidsp.o $(top_srcdir)/common/sections.mak $(BDOS_OBJS) ${MAKEFILE}
 	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
 
 osmem.o: osmem.c
@@ -38,8 +38,8 @@ osmem.o: osmem.c
 	$(AM_V_at)$(AS) $(ASFLAGS) -c $*.s
 	$(AM_V_at)$(RM) $*.s
 
-single: tosvars.o $(VARS_OBJS) vdidsp.o $(BDOS_OBJS) ${MAKEFILE}
-	$(LD) -s -l -o bdos.o -a $(bdos_tbase) $(bdos_dbase) 0 tosvars.o $(VARS_OBJS) vdidsp.o $(BDOS_OBJS)
+single: tosvars.o vars.o vdidsp.o $(BDOS_OBJS) ${MAKEFILE}
+	$(LD) -s -l -o bdos.o -a $(bdos_tbase) $(bdos_dbase) 0 tosvars.o vars.o vdidsp.o $(BDOS_OBJS)
 endif
 
 ifeq ($(HADES),1)
@@ -56,9 +56,6 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
-	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-vars1x.o: $(top_srcdir)/common/vars1x.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 dist::

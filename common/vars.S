@@ -9,7 +9,7 @@
  * ROM version. This is because, due to the way the linker works,
  * it is impossible to get the same order of symbols in the bss section.
  *
- * This file is for version 2.x/3.x only. For 1.x, see vars1x.S.
+ * This file is for version 2.x/3.x only.
  */
 
 #include "config.h"

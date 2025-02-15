@@ -194,261 +194,7 @@ _main:
         move    #$2700,sr
 
 #if HADES
-/* maschinen und tos id */
-hadesid		equ $68616465 /* 'hade' */
-
-sweite		equ  $20000			;schrittweite ramtest
-mtadr1		equ  $8000000			;doppelseitig
-mtadr2		equ  $2000000			;4mx32
-mtadr3		equ  $400000                    ;1mx32
-mem_set_adr	equ  $70000000
-
-		/* special hades initialisation */
-        reset                  /* reset all hardware */
-		move.l  #$00FFC040,d0  /* no cache serialized */
-		D0_DTT1
-		D0_ITT1
-		D0_DTT0
-		D0_ITT0
-		clr.l d0		/* all caches off */
-        D0_CACR
-        CINVA_BC
-        D0_VBR           /* initialise VBR to zero */
-        move.l  #$00000210,d0
-        D0_TC            /* set no cache, precise for mc68060 (also works for mc68040) */
-        lea.l   mem_set_adr,a0 /* set addresses */
-        lea.l   $08000000,a1 /* mtadr1: doppelseitig */
-        lea.l   $02000000,a2 /* mtadr2: 4mx32 */
-        lea.l   $00400000,a3 /* mtadr3: */
-        move.l  #hadesid,d3		/* test pattern */
-        move.l  #-hadesid,d4	/* test pattern */
-        clr.b   (a0)		/* default maximum */
-        clr.l   d6			/* default 32mx32 module */
-        clr.l   (4).w
-        clr.l   (a1)
-        clr.l   (a2)
-        clr.l   (a3)
-        clr.b   mem_set_adr+$800000
-        clr.l   (a1)
-        clr.l   (a2)
-        clr.l   (a3)
-        nop
-        nop
-        move.l  d3,(0).w 	/* start mit testmuster -> spiegelung eruieren */
-        nop
-        nop
-		cmp.l   (a2),d3
-		beq.s   non32mx32
-		tst.l   (a2)
-		beq.s   hades3
-non32mx32:
-		addq.w  #2,d6
-		cmp.l   (a3),d3
-		beq.s   non4mx32
-		tst.l   (a3)
-		beq.s   hades3
-non4mx32:
-		addq.w  #2,d6
-hades3:
-		clr.b   (a0)
-		nop
-		nop
-		move.l  d3,(a1)		/* zweiseitig */
-		move.l  d3,(4).w	/* zweiseitig modul 2 */
-		nop
-		cmp.l   (a1),d3
-		beq.s   not_zweiseitig
-		addq.w  #1,d6
-not_zweiseitig:
-		cmp.l   (4).w,d3
-		beq.s   zweiseitig
-		moveq.l #9,d6		/* nur ein modul einseitig */
-		bra.s   mem_set_end
-zweiseitig:
-		cmpi.w  #2,d6
-		bgt.s   mem_set_end
-		beq.s   mem_set_fertig
-		tst.w   d6
-		bne.s   mem_set_end
-		cmp.l   (a2),d3
-		bne.s   mem_set_end
-		moveq.l #9,d6
-		bra.s   mem_set_end
-mem_set_fertig:
-		cmp.l   $00800000,d3
-		bne.s   mem_set_end
-		moveq.l #11,d6
-mem_set_end:
-		move.l  d6,d0
-		swap    d0
-		lsl.l   #4,d0
-		adda.l  d0,a0
-		clr.b   (a0)
-
-        data
-zero:
-	    dc.l 0
-		text
-
-/* =========================================================================== */
-/* ==== memconf for Hades ==================================================== */
-/* =========================================================================== */
-
-        lea       memcret(pc),a6
-        bra       memchk
-memcret:
-        bne.s      noreset
-
-resetvec:
-        cmpi.l   #$31415926,(resvalid).w  /* Jump to resetvector? */
-        bne.s    noreset                /* No --> noreset */
-        move.l   (resvector).w,d0       /* Yes: old resvec to d0 */
-        btst     #0,d0                  /* Address odd ? */
-        bne.s    noreset                /* Yes --> noreset */
-        movea.l  d0,a0                  /* resvec */
-        lea      resetvec(pc),a6        /* save return address */
-/* Note: the return address intentionally points to the resvalid test. */
-/* So the reset routine must explicitly clear resvalid before returning */
-/* to a6, otherwise there will be an infinite loop. */
-        jmp      (a0)                   /* jump to resvec */
-noreset:
-        lea       memcret2(pc),a6               /* load return address */
-        bra       memchk                        /* check if the memory configuration is valid */
-memcret2:
-        beq       nomemchk
-
-		lea.l   (SUPSIZ*2+_supstk).w,a7  /* stack init */
-		move.l  #hadesid,d3              /* bit pattern */
-		move.l  #-hadesid,d4
-		clr.l   (_shell_p).w
-		move.l  #idinerr,(_buserror).w
-		move.l  #sweite,d7               /* startadresse und schrittweite */
-		movea.l d7,a0                    /* startadresse setzen */
-		movea.l a0,a1
-		nop     
-		cmpi.l  #idinerr,(_buserror).w
-		bne.s   tt_ramsize_done
-idin:
-		move.l  d3,-4(a1)
-		move.l  d4,-8(a1)
-		adda.l  d7,a1
-		bra.s   idin
-idinerr:
-		move.l  #tt_ramsize_done,(_buserror).w
-zonecheck:
-		movea.l a0,a1			/* test auf spiegelung. wenn nicht da dann spiegelung */
-		cmp.l   -4(a1),d3       
-		bne.s   tt_ramsize_done
-		cmp.l   -8(a1),d4
-		bne.s   tt_ramsize_done
-		move.l  d0,d2			/* 0->d2 */
-		moveq.l #21,d1			/* loop counter */
-store_mem:
-		move.l  d2,-(a1)		/* write bit pattern */
-		add.l   d3,d2			/* change pattern */
-		dbf     d1,store_mem	/* next */
-		movea.l a0,a1
-		moveq.l #21,d1			/* loop counter */
-check_mem:
-		cmp.l   -(a1),d0		/* compare pattern */
-		bne.s   tt_ramsize_done	/* not equal -> done */
-		add.l   d3,d0
-		dbf     d1,check_mem
-		adda.l  d7,a0			/* next 128KB */
-		bra.s   zonecheck
-tt_ramsize_done:
-		suba.l  d7,a0
-		move.l  a0,d4
-		lea.l   256,a0
-		moveq.l #0,d0
-		moveq.l #0,d1
-		moveq.l #0,d2
-		moveq.l #0,d3
-clrmem:
-		movem.l d0-d3,0(a0)
-		movem.l d0-d3,16(a0)
-		movem.l d0-d3,32(a0)
-		movem.l d0-d3,48(a0)
-		movem.l d0-d3,64(a0)
-		movem.l d0-d3,80(a0)
-		movem.l d0-d3,96(a0)
-		movem.l d0-d3,112(a0)
-		adda.l  #128,a0
-		cmpa.l  #$00400000,a0
-		blt.s   clrmem
-		move.b  d6,(memctrl).w             /* set copy of hw memory config */
-		move.l  d4,(_phystop).w            /* highest address as phystop */
-		clr.l   (_ramtop).w				   /* no TT-RAM */
-
-        move.l    #$752019F3,(_memvalid).w /* set memvalid to ok */
-        move.l    #$237698AA,(_memval2).w  /* set memval2 to ok */
-        move.l    #$5555AAAA,(_memval3).w  /* set memval3 to ok */
-        move.l    #$1357BD13,(_ramvalid).w   /* ramtop is valid (ramvalid == RAMMAGIC) */
-
-nomemchk:
-
-		lea.l   (SUPSIZ*2+_supstk),a7  		/* reset supervisor stack */
-
-/* clear the remainder of the BSS section */
-
-        lea       (_has_dmasound).w,a0
-        lea       __ebss,a1
-clrbss:
-        clr.w     (a0)+
-        cmpa.l    a0,a1
-        bne.s     clrbss
-
-		move.l     #$ABCDEF42,d0
-		lea.l      hadret1(pc),a6
-		jmp        pcicheck
-hadret1:
-		move.l     a0,d0
-		bne.s      hadret2
-		lea.l      hadret2(pc),a6
-		jmp        screen_init		/* screen karte initialisieren */
-hadret2: ds.b 0
-
-/* clear screen memory */
-#if hades_vidmo == 2
-scrsize equ ((640*400)/8)
-#else
-scrsize equ ((1280*960)/8)
-#endif
-        move.w     #(scrsize/16)-1,d1
-        move.l     a0,(_v_bas_ad).w
-        movea.l    a0,a1
-clrscr:
-        clr.l      (a0)+
-        clr.l      (a0)+
-        clr.l      (a0)+
-        clr.l      (a0)+
-        dbf        d1,clrscr
-
-		lea.l      hadret3(pc),a6
-		jmp        check_hardware
-hadret3:
-		move.b     #$0A,ldor /* floppy reset */
-		
-        lea.l     (psgsel).w,a0
-        move.b    #$07,(a0)  /* select mixer control */
-        move.b    #$C0,2(a0) /* Port A+B = output */
-        move.b    #$0E,(a0)  /* select Port A */
-        move.b    #7,2(a0) /* deselect floppy drives */
-
-		move.b     #$0e,ldor /* floppy normal int activ */
-		clr.b      fd_desel.l
-		clr.b      (dma_sctr2).l  /* vme int off, scsi count0/eop und buserror off */
-		move.l     _os_entry,(0).w
-		move.l     reseth,(4).w
-
-		bra.s      hadret4
-
-		RESERVE_SPACE(_main,$e00030,$e002c8)
-
-hadret4: ds.b 0
-
-		/* end special hades initialisation */
-
+#include "hadesmm.S"
 #else
 
 /* special TT reset */
@@ -485,15 +231,15 @@ nodiag:
 
 #if TP_50 /* PAK */
 /*
- * Stack einrichten, um die Prozessorunabh„ngigkeiten in den Griff zu bekommen.
- * Aužerdem muž die MCU initialisiert werden, damit der Speicher berhaupt
+ * Stack einrichten, um die Prozessorunabhaengigkeiten in den Griff zu bekommen.
+ * Ausserdem muss die MCU initialisiert werden, damit der Speicher ueberhaupt
  * benutzbar ist. Falls das TOS im ST-RAM ist, wird das jedoch unterlassen, da
- * es nur mit 4MB-Rechner funktionieren wrde und das RAM sowieso initialisiert
+ * es nur mit 4MB-Rechner funktionieren wuerde und das RAM sowieso initialisiert
  * ist.
  *
- * Falls wir in Wirklichkeit einen Warmstart machen, so fhrt das zu keinen
- * Problemen, da kurz sp„ter bei gltigen memvalid, memval2 und memval3 die
- * MCU noch einmal mit dem Wert aus memcntrl ($424) gefttert wird.
+ * Falls wir in Wirklichkeit einen Warmstart machen, so fuehrt das zu keinen
+ * Problemen, da kurz spaeter bei gueltigen memvalid, memval2 und memval3 die
+ * MCU noch einmal mit dem Wert aus memcntrl ($424) gefuettert wird.
  *
  * Dazu den Zugriff auf DMA entfernt und zuerst den Reset gemacht.
  */
@@ -535,7 +281,7 @@ no020:
  */
 #if TP_50 /* PAK */
 /*
- * Prozessorunabh„ngiges 3.06.
+ * Prozessorunabhaengiges 3.06.
  * Initialisierung der 68030 MMU nach Reset.
  */
 		lea    nommu(pc),a0
@@ -568,8 +314,8 @@ nommur:
 /*
  * c't 9/92:
  * SCU: General-Purpose-Register checken, ob es ein Power-On war.
- * Da wir das Register nicht haben, mssen wir immer die Power-On-Checks
- * durchfhren.
+ * Da wir das Register nicht haben, muessen wir immer die Power-On-Checks
+ * durchfuehren.
  */
 #if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
 #if (TOSVERSION >= 0x306)
@@ -720,6 +466,9 @@ initpal2:
         move.b    #$01,(v_bas_h).w
         clr.b     (v_bas_m).w
 
+#if MEDUSA
+#include "medusamm.S"
+#else
 #if TP_03 /* RAMRESET */
 #include "../tospatch/patches/ramres.S"
 #else
@@ -764,8 +513,8 @@ ret_2b:     lea       $8000,sp
 
 #else
 #if (TOSVERSION < 0x300) | TP_50
-/* First we try to configure the memory controller */
 
+/* First we try to configure the memory controller */
             clr.w     d6
             move.b    #$a,(memconf).w			/* default: setup controller for 2Mb/2Mb */
 
@@ -778,7 +527,7 @@ chkpatloop: move.w    d0,(a0)+					/* fill 512-8 bytes with a test pattern */
             cmpa.w    #$200,a0
             bne.s     chkpatloop
 
-            move.b    #90,(v_bas_l).w			/* wrote low byte of video address */
+            move.b    #90,(v_bas_l).w			/* write low byte of video address */
             tst.b     (v_bas_m).w				/* touch the middle byte (this should reset the low byte) */
             move.b    (v_bas_l).w,d0
             cmp.b     #90,d0					/* low byte not reset? */
@@ -858,8 +607,9 @@ set_8MB:
         move.w    #$000A,d6           /* set 8MB memcntlr value */
 set_2MB:
         move.b    d6,(memconf).w    /* update memcntlr */
-#endif
-#endif
+#endif /* (TOSVERSION < 0x300) | TP_50 */
+#endif /* STBOOK */
+
 
 #if !STBOOK
 /*
@@ -985,7 +735,7 @@ clrmem:
 		adda.l    a5,a4
 		dbf       d4,clrmem
 
-#endif
+#endif /* TOSVERSION < 0x400 */
 
         move.l  d5,(_phystop).w            /* highest address as phystop */
 
@@ -1153,7 +903,8 @@ tconl:      move.l    (a0)+,(a1)+
 #endif
 vmeinit:    move.l    a0,(_buserror).w
             movea.l   a1,sp
-#endif
+#endif /* STBOOK | (TOSVERSION >= 0x400) */
+
 
 #if (TOSVERSION < 0x400)
 
@@ -1196,22 +947,22 @@ nodmasound:
         movea.l   a6,a7
 
 #if (TOSVERSION < 0x300) | TP_50
-			move.b    #90,(v_bas_l).w           /* write low byte of video address */
-			tst.b     (v_bas_m).w               /* access the medium byte */
-			move.b    (v_bas_l).w,d0            /* (which should reset the low byte on an STE!) */
-			cmp.b     #90,d0                    /* reset? */
-			bne.s     nostedetect               /* yes => STE detected */
-			clr.b     (v_bas_l).w               /* clear the low byte again */
-			tst.w     (palette).w               /* access the color palette */
-			tst.b     (v_bas_l).w
+		move.b    #90,(v_bas_l).w           /* write low byte of video address */
+		tst.b     (v_bas_m).w               /* access the medium byte */
+		move.b    (v_bas_l).w,d0            /* (which should reset the low byte on an STE!) */
+		cmp.b     #90,d0                    /* reset? */
+		bne.s     nostedetect               /* yes => STE detected */
+		clr.b     (v_bas_l).w               /* clear the low byte again */
+		tst.w     (palette).w               /* access the color palette */
+		tst.b     (v_bas_l).w
 nostedetect:
-            sne       STEFlag               /* <>0 => no STE hardware available */
+        sne       STEFlag               	/* <>0 => no STE hardware available */
 #else
         sf        STEFlag
 #endif
 #endif /* STBOOK */
 
-#else /* STBOOK | (TOSVERSION >= 0x400) */
+#else /* TOSVERSION < 0x400 */
 
 		move.b    ($FFFF8006).w,d0
 		move.b    d0,d1
@@ -1273,7 +1024,11 @@ clrscr:
         move.l    d0,(a0)+
         dbf       d1,clrscr
 
+#endif /* MEDUSA */
+
 #endif /* HADES */
+
+gemchk:
 
 /* does os_magic indicate GEM in ROM? */
         movea.l   _os_magic(pc),a0
@@ -1303,7 +1058,8 @@ gemok:
         move.l    #_bscr_dump,(_scr_dmp).w
 
 /* --- Randoms: */
-#if HADES
+#if HADES | MEDUSA
+/* memtop kommt woanders her */
         move.l    (_phystop).w,(_memtop).w
 #else
         move.l    (_v_bas_ad).w,(_memtop).w
@@ -1403,13 +1159,37 @@ la_rts:
 exc_wei: ds.b 0
 
 #else
+#if MEDUSA
+/* Prozessortest abaendern,cache und transparent translation setzen */
+        moveq #40,d1                    /* prozessor = 68040 */
+        moveq #0,d0
+        D0_CACR                         /* cache aus */
+        D0_TC                           /* translation aus */
+        D0_ITT1                         /* itt1 aus */
+        D0_DTT1                         /* dtt1 aus */
+        CINVA_BC                        /* caches  invalid */
+        PFLUSHA
+        move.l #$ffc040,d0              /* no cache serialized */
+        D0_DTT0                         /* dtt0 setzen */
+        D0_ITT0                         /* itt0 setzen */
+        moveq #0,d0                     /* beide cache aus */
+        move.l d0,hades_cacr.w          /* cacr save setzen */
+        D0_CACR                         /* cacr setzen */
+#if BINEXACT
+        bra.s setcpu
+        dc.w 2 /* remains of original code */
+        movea.l   a1,a7         /* restore SP */
+        move.l    a3,(a2)       /* save illegal instruction vector */
+setcpu:
+#endif
+#else
         moveq.l   #0,d1         /* assume 68000 */
         movea.w   #_illinst,a2
         movea.l   (a2),a3       /* save illegal instruction vector */
         movea.l   a7,a1         /* save SP */
         move.l    #cpuexit,(a2)
         CCR_D0                  /* move.w ccr,d0 legal on 68010+ */
-        moveq.l   #10,d1        /* assume 68000 */
+        moveq.l   #10,d1        /* assume 68010 */
         dc.w $49c0              /* extb.l    d0 */
         moveq.l   #20,d1        /* assume 68020 */
         CACR_D0
@@ -1423,6 +1203,7 @@ exc_wei: ds.b 0
 cpuexit:
         movea.l   a1,a7         /* restore SP */
         move.l    a3,(a2)       /* save illegal instruction vector */
+#endif
         move.l    d1,(a0)+      /* set _CPU cookie */
         sne       (_longframe+1).w
 
@@ -1521,7 +1302,7 @@ cooFPU3:    move.l    a1,(_buserror).w
 			clr.l     (a0)+                     /* 0,0 = Atari ST */
 			bra.s     cooSWI
 
-cooVDO:	    move.l    #$5F56444F,(a0)+
+cooVDO:	    move.l    #$5F56444F,(a0)+			/* '_VDO' */
 			move.l    #$10000,(a0)+             /* 1,0 = STE Shifter */
 
 			move.l    #$10000,d0                /* x = $00 = regular STE */
@@ -1538,7 +1319,7 @@ cooMCH1:	clr.w     d0
 			move.w    #8,d0                     /* x = $08 = STE with IDE (unknown machine) */
 cooMCH2:	move.l    a1,(_buserror).w
 			movea.l   a2,sp
-			move.l    #$5F4D4348,(a0)+
+			move.l    #$5F4D4348,(a0)+			/* '_MCH' */
 			move.l    d0,(a0)+                  /* 1,x = STE (520, 1040, 2080, 4160, Mega STE, ST Book) */
 
 #else
@@ -1597,7 +1378,7 @@ nofdc:
 #if TP_50 /* PAK */
 /*
  * SE: (29.10.93)
- * Cookie-Test der FPU pr„zisiert
+ * Cookie-Test der FPU praezisiert
  */
 			moveq     #0,d1
 			dc.w      $f327      /* fsave -(a7) */
@@ -1616,12 +1397,18 @@ nofpu:		swap      d1
 			move.l    d1,(a0)+
 #else
 
+#if MEDUSA
+/* FPU Test Fehler korrigieren und bit fuer 68040 setzen */
+        D0_FP0
+        move.l    #$00080000,(a0)+             /* 68040 present */
+#else
 #if (OS_COUNTRY == CTRY_PL) | TP_61 /* FPU_TEST */
         D0_FP0
 #else
         FP0_D0
 #endif
         move.l    #$00020000,(a0)+             /* 6888x present */
+#endif
         bra.s     fpudone
 nofpu:
         clr.l     (a0)+
@@ -1663,12 +1450,22 @@ frbdone:
         move.l    #NCOOKIES,(a0)+
 
 /* =========================================================================== */
-/* initialize exception vectors */
+/* iniitalize exception vectors */
 /* =========================================================================== */
 
 #if !STBOOK & (TOSVERSION < 0x400)
         lea.l     just_rte(pc),a3
         lea.l     bios_unimpl(pc),a4
+#if MEDUSA
+        lea medusa_exception,a1        /* neuer vektor */
+        lea (2*4).w,a0              /* beginn mit bus error */
+        move.w #64-3,d0
+initexc:
+		move.l a1,(a0)+         /* vektoren setzen */
+        dbf d0,initexc
+        bra initexc1
+        dc.w $0,$51c8,$fff6 /* remains of original code */
+#else
         lea.l     any_vec(pc),a1            /* default to exception handler displaying bombs */
 #if !P68010
 		adda.l    #$2000000,a1				/* exception number in top 8 bits of the address */
@@ -1681,7 +1478,9 @@ initexc:
 		adda.l    #$1000000,a1				/* increment the exception number */
 #endif
         dbf       d0,initexc
+#endif
 
+initexc3:
         move.l    a3,(_zerodiv).w      /* ignore zero divide */
         move.l    a3,(_lvl7vec).w      /* ignore NMI */
 
@@ -1932,15 +1731,15 @@ clockdone:
 
 /* medusa logo ausgeben 376x135 Pixel = 47 Byts x 135 Zeilen */
 lolo0:
-		lea 	medusalogo,a0 		;logo 
+		lea 	medusalogo,a0 		/* logo  */
 		move.l 	_v_bas_ad.w,a1
 		move.l 	a1,a2
 		move.w 	#135-1,d1
 lolo1:	
 #if hades_vidmo == 2
-        add.w 	#80-47,a2       ;ST hoch
+        add.w 	#80-47,a2       /* ST hoch */
 #else
-        add.w 	#160-47,a2      ;TT hoch
+        add.w 	#160-47,a2      /* TT hoch */
 #endif
         	
 		moveq 	#46,d2
@@ -1949,16 +1748,16 @@ lolo2:
 		dbf 	d2,lolo2
 		dbf 	d1,lolo1
 
-		lea 	hadeslogo,a0 	;hades logo 
+		lea 	hadeslogo,a0 	/* hades logo  */
 		move.l 	_v_bas_ad.w,a1
 		move.l 	a1,a2
-		add.w   #240+27,a2	;4.Zeile 4.byt
+		add.w   #240+27,a2	/* 4.Zeile 4.byt */
 		move.w 	#102-1,d1
 lolo3:	
 #if hades_vidmo == 2
-        add.w 	#80-23,a2       ;ST hoch
+        add.w 	#80-23,a2       /* ST hoch */
 #else 
-        add.w 	#160-23,a2      ;TT hoch
+        add.w 	#160-23,a2      /* TT hoch */
 #endif
 
 		moveq 	#22,d2
@@ -2159,7 +1958,11 @@ notlow:
 #else
         cmpi.l    #80*200,_hz_200       /* system running for >80s? */
 #endif
+#if MEDUSA
+        bra       ptch_term             /* no crc test */
+#else
         bcc       ptch_term             /* (then no ROM CRC check) */
+#endif
 #endif
 
 /*
@@ -2237,7 +2040,7 @@ chipE2:
         addq.l    #1,a5
 #if TP_50 /* PAK */
 /*
- * Wegen der Static-RAMs erh”htes Risiko fr zerschossenes TOS
+ * Wegen der Static-RAMs erhoehtes Risiko fuer zerschossenes TOS
  * daher nach der Warnung eine Endlosschleife.
  */
 #if !TP_51 /* StaticRam */
@@ -2550,17 +2353,17 @@ dmadone:
         jsr       scsirst
 /* no TT-SCU and start with IDE */
         moveq.l   #16,d4     /* d4 = device (IDE0) */
-		moveq #0,d0			;dma boot
+		moveq #0,d0			/* dma boot */
 		move.w d0,_bootpref.w
 		bra.s confdone
 boot1:
-		cmpi.w #$11,d4			;ide 1?
-		bne.s confdone			;nein -> weiter
+		cmpi.w #$11,d4			/* ide 1? */
+		bne.s confdone			/* nein -> weiter */
 boot2:
-		moveq #8,d4			;ja bei scsi 0 weitermachen
+		moveq #8,d4			/* ja bei scsi 0 weitermachen */
 		bra.s confdone
 boot3:
-		moveq #0,d4			;bei acsi 0 weitermachen
+		moveq #0,d4			/* bei acsi 0 weitermachen */
 		bra.s confdone
 		RESERVE_SPACE(dmadone,$e00b0c,$e00b3e)
 #else
@@ -2648,12 +2451,12 @@ nextdev:
         addq.w    #1,d4
 #if HADES
 hades_acsi_boot:
-		cmpi.w #7,d4		;acsi 7?
-		bne.s no_ni_fer		;nein->
-		rts			;sonst fertig
+		cmpi.w #7,d4		/* acsi 7? */
+		bne.s no_ni_fer		/* nein-> */
+		rts			/* sonst fertig */
 no_ni_fer:
-		cmpi.w #$f,d4		;scsi 7?
-		beq.s boot3		;ja ->
+		cmpi.w #$f,d4		/* scsi 7? */
+		beq.s boot3		/* ja -> */
 		bra.s boot1
 		RESERVE_SPACE(hades_acsi_boot,$e00b80,$e00b94)
 #else
@@ -3179,11 +2982,17 @@ bx_sp_ok:
         bclr      #0,d1                  /* indirect call? */
         movea.l   d1,a0
         beq.s     bx_notindirect
+        movea.l   (a0),a0                /* call indirect through system variable */
 #else
         movea.l   d1,a0                  /* (quick and dirty test-for-negative) */
+#if MEDUSA
+/* indirekte Sprungadresse bei (X)Bios anders bestimmen */
+        bmi       jmp_ind
+#else
         bpl.s     bx_notindirect         /* points to code */
-#endif
         movea.l   (a0),a0                /* call indirect through system variable */
+#endif
+#endif
 bx_notindirect:
         suba.l    a5,a5                  /* a5 -> zero page */
         jsr       (a0)                   /* call BIOS/XBIOS function */
@@ -3667,15 +3476,22 @@ _tickcal:
 /* 104de: 00fc0a5c */
 _physbase:
 #if HADES
-		move.l hades_physbase.w,d0        		;phys base holen
+		move.l hades_physbase.w,d0        		/* phys base holen */
         rts
         RESERVE_SPACE(_physbase,$e01144,$e01160)
+#else
+#if MEDUSA
+		move.l (v_bas_h-1).w,d0
+		lsl.w #8,d0
+		andi.l #medusa_stram_start+$ffff00,d0
+		nop
 #else
         moveq.l   #0,d0             /* cleanup pointer-to-be */
         move.b    (v_bas_h).w,d0    /* load and shift bits 16..23 */
         lsl.w     #8,d0
         move.b    (v_bas_m).w,d0    /* load and shift bits 8..15 */
         lsl.l     #8,d0
+#endif
 #if TOSVERSION >= 0x200
         tst.b     STEFlag
         bne.s     physbas1
@@ -3877,6 +3693,66 @@ puntaes1:
 /* 306de: 00e0121c */
 /* 206de: 00e010e2 */
 /* 104de: 00fc0b0a */
+#if MEDUSA
+/* Space for new program parts on old exception handler */
+jmp_ind:
+        add.l #INDIRECT,a0
+        move.l (a0),a0
+        bra bx_notindirect
+
+	xdef cache_aus
+cache_aus:
+		st 	_flock.w
+		move.l 	d0,-(sp)
+#if 0 /* THO: BUG: missing */
+		CACR_D0
+		move.l 	d0,hades_cacr.w
+#endif
+		moveq 	#0,d0
+		D0_CACR
+		CPUSHA_BC
+		move.l 	(sp)+,d0
+		rts
+
+	xdef cache_ein
+cache_ein:
+		sf 	_flock.w
+		move.l 	d0,-(sp)
+		move.l 	hades_cacr.w,d0
+		D0_CACR
+		move.l 	(sp)+,d0
+		rts
+
+/* neuer kaltstart */
+	xdef medusa_coldboot
+medusa_coldboot:
+        move.w #$2700,sr
+        moveq #0,d0
+        D0_CACR         /* cache aus */
+        PFLUSHA         /* cache invalid */
+        D0_TC           /* mmu aus */
+        CINVA_BC        /* mmu invalid */
+        D0_ITT0         /* transparent translation aus */
+        D0_ITT1
+        D0_DTT0
+        D0_DTT1
+        rts
+
+mod_cod_jsr:
+        CPUSHA_BC
+        jmp privinst.w
+
+initexc1:
+		lea.l      ($3c).w,a1
+		moveq.l    #16-1,d0
+initexc2:
+		move.l     a3,(a1)+
+		dbf        d0,initexc2
+		bra        initexc3
+
+		RESERVE_SPACE(jmp_ind,$e010e2,$e011ba)
+#else
+
 any_vec:
 #if !P68010
 		jsr       savp_2                     /* stack PC */
@@ -3946,6 +3822,7 @@ any_vec1:
         move.w    #$004C,-(a7)                          /* Pterm */
         trap      #1
         bra       _main
+#endif /* MEDUSA */
 
 /*
  * do_shroom - draw little mushroom clouds on the screen
@@ -3962,7 +3839,7 @@ any_vec1:
 drawbombs:
 #if (TP_50 & TP_52) | TP_62 /* (PAK & Grafik_Bombs) | LOGO */
 /*
- * Bombenausgabe auf Grafikkarten/Grafikerweiterungen u.„.
+ * Bombenausgabe auf Grafikkarten/Grafikerweiterungen u.ae.
  *
  * Schwierigkeiten:
  * Auf Grafikkarten ohne Bitplanes (zB MegaVision300) werden die Bomben in
@@ -4501,9 +4378,9 @@ mfpdelay:
  * SE: (13.10.93)
  * Delay-Routine:
  * Zeitmessung von Timer C im TT-MFP auf Timer C im ST-MFP verlegt.
- * Zur Messung wird Polling von TCDR verwendet (Aufl”sung 26 usec).
+ * Zur Messung wird Polling von TCDR verwendet (Aufloesung 26 usec).
  *
- * Nicht n”tig, wenn ein TT-MFP existiert.
+ * Nicht noetig, wenn ein TT-MFP existiert.
  *
  * FIXME: bad idea, Timer-C is also used for 200hz timer
  * could just use MFP Timer-A, as the 2.06 version

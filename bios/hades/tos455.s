@@ -304,7 +304,7 @@ L0018:
 		movem.l D0-D3,112(a0)		;l”schen
 		add.l	#128,a0
 		cmp.l 	#$400000,a0		;schon fertig (nur erste 8 MB loeschen -> geht sonst zu lang und zudem wird der speicher vom memtest geloescht!)
-		blt 	L0018			;nein -> wiederhohlen
+		blt 	L0018			;nein -> wiederholen
 		move.b 	d6,$424.w		;config sichern
 		move.l 	d4,$42e.w		;memtop sichern
 		clr.l 	$5a4.w			;kein TT Ram
@@ -7707,18 +7707,18 @@ bomb_fa3:	move.b	(A0)+,D6	;n„chstes zeichen
 bomb_fa2:	bsr	string_out	;text ausgeben
 bomb_fa5:	lea	tb2(PC),A0	;zeiger auf text
 		bsr	string_out	;text ausgeben PC=
-		move.l	proc_pc.w,D2	;pc wert hohlen
+		move.l	proc_pc.w,D2	;pc wert holen
 		bsr	reg_aus 	;ausgeben
 		bsr	string_out	;sr=
-		move.w	proc_stk.w,D2	;sr hohlen
+		move.w	proc_stk.w,D2	;sr holen
 		swap	D2		;an richtige position bringen
 		moveq	#3,D0		;nur 4 stellen
 		bsr	reg_aus1	;ausgeben
 		bsr	string_out	;usp=
-		move.l	proc_usp.w,D2	;usp wert hohlen
+		move.l	proc_usp.w,D2	;usp wert holen
 		bsr	reg_aus 	;und ausgeben
 		bsr	string_out	;formatword=
-		move.w	proc_stk+6.w,D2 ;formatword hohlen
+		move.w	proc_stk+6.w,D2 ;formatword holen
 		swap	D2		;an richtige position bringen
 		moveq	#3,D0		;nur 4 stellen
 		bsr	reg_aus1	;und ausgeben
@@ -7738,13 +7738,13 @@ bomb_fa6:	move.l	a4,Buserr.w		;alter buserrorvektor
 		moveq	#2,D4		;daten,adressregister und stack
 bomb_fa8:	bsr	string_out	;text ausgeben
 		moveq	#7,D3		;8 register
-bomb_fa7:	move.l	(A1)+,D2	;wert hohlen
+bomb_fa7:	move.l	(A1)+,D2	;wert holen
 		bsr	reg_aus 	;und ausgeben
 		dbra	D3,bomb_fa7	;
 		subq.l	#1,D4		;-1
-		bgt	bomb_fa8	;>0 wiederhohlen
+		bgt	bomb_fa8	;>0 wiederholen
 		lea	proc_stk.w,A1	;zeiger auf stackwert
-		beq	bomb_fa8	;=0->wiederhohlen
+		beq	bomb_fa8	;=0->wiederholen
 		lea	tb4(PC),A0	;zeiger auf text
 		bsr	string_out	;text ausgeben
 		move	#$2100,SR	;Interrupts erlauben
@@ -7773,7 +7773,7 @@ reg_aus1:	rol.l	#4,D2		;next hex zahl
 		ble	reg_aus2	;ja,ok->
 		add.b	#'A'-'9'-1,D6	;sonst differenz zuaddieren
 reg_aus2:	bsr	zei_out 	;ausgeben
-		dbra	D0,reg_aus1	;wiederhohlen bis fertig
+		dbra	D0,reg_aus1	;wiederholen bis fertig
 		moveq	#32,D6
 		bra	zei_out 	;ein leerschlag
 

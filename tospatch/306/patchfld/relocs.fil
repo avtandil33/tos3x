@@ -183,3 +183,18 @@ _ENDSWITCH
 !3E514+.d2 .. 3E532+.d2 ; desktop keyboard table
 !3EA2A+.d2 .. .INFDATA+2C ; desktop strings
 !.RSC_TAB .. .ROMTOP ; resource data
+
+; new addresses originating from hades patches
+!003C2 ; move.l     d0,($000000E4).w
+!0122E ; move.l     d0,($000000E4).w
+!01244 ; move.l     ($000000E4).w,d0
+!031E4 .. 03204 ; scc baud table
+!03D38+.d1 ; andi.b     #$E0,d0
+!03D84+.d1 ; andi.b     #$E0,d0
+!03DB6+.d1 ; andi.b     #$E0,d0
+!03E90+.d1 ; move.b     5(a1),$FFF000E0
+!04264+.d1 ; move.b     5(a1),$FFF000E0
+
+!49C02 .. 4B502 ; Integer support package
+!4B57A .. 58A8A ; FPSP060
+!70000 .. 74000 ; mach64 init

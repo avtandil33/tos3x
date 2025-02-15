@@ -1584,18 +1584,18 @@ bomb_fa2:
 bomb_fa5:
 		lea	tb2(pc),a0	/* zeiger auf text */
 		bsr	string_out	/* text ausgeben PC= */
-		move.l	_proc_enum.w,d2	/* pc wert hohlen */
+		move.l	_proc_enum.w,d2	/* pc wert holen */
 		bsr	reg_aus 	/* ausgeben */
 		bsr	string_out	/* sr= */
-		move.w	_proc_stk.w,d2	/* sr hohlen */
+		move.w	_proc_stk.w,d2	/* sr holen */
 		swap	d2		/* an richtige position bringen */
 		moveq	#3,d0		/* nur 4 stellen */
 		bsr	reg_aus1	/* ausgeben */
 		bsr	string_out	/* usp= */
-		move.l	_proc_usp.w,d2	/* usp wert hohlen */
+		move.l	_proc_usp.w,d2	/* usp wert holen */
 		bsr	reg_aus 	/* und ausgeben */
 		bsr	string_out	/* formatword= */
-		move.w	(_proc_stk+6).w,d2 /* formatword hohlen */
+		move.w	(_proc_stk+6).w,d2 /* formatword holen */
 		swap	d2		/* an richtige position bringen */
 		moveq	#3,d0		/* nur 4 stellen */
 		bsr	reg_aus1	/* und ausgeben */
@@ -1622,9 +1622,9 @@ bomb_fa7:
 		bsr.s	reg_aus 	/* und ausgeben */
 		dbra	d3,bomb_fa7
 		subq.l	#1,d4		/* -1 */
-		bgt.s	bomb_fa8	/* >0 wiederhohlen */
+		bgt.s	bomb_fa8	/* >0 wiederholen */
 		lea	_proc_stk.w,a1	/* zeiger auf stackwert */
-		beq.s	bomb_fa8	/* =0->wiederhohlen */
+		beq.s	bomb_fa8	/* =0->wiederholen */
 		lea	tb4(pc),a0	/* zeiger auf text */
 		bsr.s	string_out	/* text ausgeben */
 		move	#$2100,SR	/* Interrupts erlauben */
@@ -1657,7 +1657,7 @@ reg_aus1:
 		addi.b	#'A'-'9'-1,d6	/* sonst differenz zuaddieren */
 reg_aus2:
 		bsr.s	zei_out 	/* ausgeben */
-		dbra	d0,reg_aus1	/* wiederhohlen bis fertig */
+		dbra	d0,reg_aus1	/* wiederholen bis fertig */
 		moveq	#32,d6
 		bra.s	zei_out 	/* ein leerschlag */
 

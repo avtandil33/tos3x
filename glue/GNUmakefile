@@ -23,7 +23,11 @@ include $(top_srcdir)/config.mak
 ifeq ($(HADES),1)
 IMG = hades$(COUNTRY).img
 else
+ifeq ($(MEDUSA),1)
+IMG = medusa$(TOSVERSION)$(COUNTRY).img
+else
 IMG = tos$(TOSVERSION)$(COUNTRY).img
+endif
 endif
 
 all:: $(IMG)
@@ -32,7 +36,7 @@ include SRCFILES
 
 STARTUP = startup.o
 
-LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a ../bios/hadxbios.o ../bios/m64_pci.o ../bios/m64_isa.o
+LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a ../bios/hadxbios.o ../bios/m64_pci.o ../bios/m64_isa.o ../bios/medxbios.o
 OBJS = $(STARTUP) $(BIOS_OBJS) $(VDI_OBJS) $(BDOS_OBJS) $(AES_OBJS) $(DESK_OBJS)
 
 ROMSIZE_206 = 256k
@@ -61,22 +65,22 @@ CARTBASE = E40000
 ifeq ($(USE_CROSS_ALCYON),1)
 tos.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o tosvars.o GNUmakefile
 ifeq ($(HADES),1)
-	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 	end_of_resource=`$(BIN)cnm $@ | $(GREP) end_of_resource | $(SED) -e 's/ .*$$//' -e 's/^00//' | $(TR) abcdef ABCDEF`; \
 	fill=`echo "16 i $(rombase) $(HADES_XBIOS) + $$end_of_resource - 2 - p" | $(DC)`; \
 	if test $$fill -lt 0; then echo "TOS.IMG is too large" >&2; exit 1; fi; \
 	echo "  data" > hadestmp.S; \
 	echo "  dcb.b $$fill,-1" >> hadestmp.S
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o hadestmp.o hadestmp.S
-	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,hadestmp.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,hadestmp.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 	$(RM) hadestmp.S hadestmp.o
 else
-	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/medxbios.o
 endif
 
 # For the PAK/BootJmp option, we need to know the start of the resource area first
 tosimg.tmp: $(STARTUP) $(LIBS) rscend.o vars.o tosvars.o
-	$(AM_V_LD)$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,tosvars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 
 rscend.h: tosimg.tmp
 	$(AM_V_GEN)tosrsc=`$(BIN)cnm $< | $(GREP) tosrsc | $(SED) -e 's/ .*$$//' -e 's/^00//' | $(TR) abcdef ABCDEF`; \

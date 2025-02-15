@@ -17,7 +17,7 @@ include SRCFILES
 
 STARTUP = startup.o
 
-LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a ../bios/hadxbios.o ../bios/m64_pci.o ../bios/m64_isa.o
+LIBS = ../bios/bios.a ../vdi/vdi.a ../bdos/bdos.a ../aes/aes.a ../desk/desk.a ../bios/hadxbios.o ../bios/m64_pci.o ../bios/m64_isa.o ../bios/medxbios.o
 LIBSNDX = ../bios/bios.ndx ../vdi/vdi.ndx ../bdos/bdos.ndx ../aes/aes.ndx ../desk/desk.ndx
 OBJS = $(STARTUP) $(BIOS_OBJS) $(VDI_OBJS) $(BDOS_OBJS) $(AES_OBJS) $(DESK_OBJS)
 
@@ -37,7 +37,7 @@ $(IMG): tos$(HADES).img $(MKROM)
 	$(MKROM) pad $(ROMSIZE) $< $@
 
 tos0.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o
-	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 
 #
 # For hades, linking is done in two steps
@@ -51,7 +51,7 @@ tos0.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o
 #   expected address
 #
 tos1.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o
-	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 	$(AM_V_at)$(BIN)cnm $@ > rscend.1
 	$(AM_V_at)$(GREP) end_of_resource rscend.1 > rscend.2
 	$(AM_V_at)$(SED) -e 's/ .*$$//' -e 's/^00//' rscend.2 > rscend.1
@@ -61,11 +61,11 @@ tos1.img: $(STARTUP) $(LIBS) tosimg.tmp tosrsc$(COUNTRY).o vars.o
 	$(AM_V_at)$(DC) < rscend.2 > rscend.1
 	$(AM_V_at)$(SED) -e 's/\(.*\)/  data\n  dcb.b \1,-1'/ rscend.1 > hadestmp.S
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} hadestmp.S $@
-	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,hadestmp.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(AM_V_LD)$(LINK68) '[abs,symbols,locals,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],tosrsc$(COUNTRY).o,hadestmp.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 	$(RM) hadestmp.S hadestmp.o rscend.1 rscend.2
 
 tosimg.tmp: $(STARTUP) $(LIBS) rscend.o vars.o
-	$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o
+	$(LINK68) '[abs,symbols,text[$(rombase)],bss[0]]' $@=$(STARTUP),vars.o,../bios/bios.a[all],../vdi/vdi.a[all],../bdos/bdos.a[all],../aes/aes.a[all],../desk/desk.a[all],rscend.o,../bios/hadxbios.o,../bios/m64_pci.o,../bios/m64_isa.o,../bios/medxbios.o
 
 # For the PAK/BootJmp option, we need to know the start of the resource area first
 rscend.h: tosimg.tmp

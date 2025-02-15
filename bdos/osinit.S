@@ -336,8 +336,15 @@ _gouser:
 gousr: ds.b 0
 #if !P68000
 #if !P68010
+#if MEDUSA
+	/* cache push bei programmstart */
+	tst.w   _longframe.w
+	beq.s   noclr
+	CPUSHA_BC
+#else
 	tst.w   _longframe
 	beq     noclr
+#endif
 #endif
     clr.w   -(a7)
 noclr:

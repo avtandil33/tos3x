@@ -16,7 +16,7 @@ LIBS =
 CPPFLAGS = -I$(top_srcdir)/common -I$(INC)
 CFLAGS = $(OPTS) $(WARN)
 
-all:: bios.a hadxbios.o m64_pci.o m64_isa.o
+all:: bios.a hadxbios.o m64_pci.o m64_isa.o medxbios.o
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
@@ -30,7 +30,7 @@ endif
 bios.a: $(BIOS_OBJS) ${MAKEFILE}
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(BIOS_OBJS)
 
-startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc intpriv.inc
+startup.o: startup.S $(top_srcdir)/common/config.h header.h scrdmp.inc mmu030.inc romcrc.inc dma.inc intpriv.inc hadesmm.S medusamm.S
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(NO_BRANCH_OPT) $(CPPFLAGS) -c -o $@ $<
 
 floppy.o: floppy.S hadflopp.S $(top_srcdir)/common/config.h

@@ -337,10 +337,14 @@ acsiab1:
 /* 206de: 00e01754 */
 _hdone:
         move.w    #$0080,($FFFF8606).w      /* Landon's code seems to presume we put $80 there */
+#if MEDUSA
+	bsr       cache_ein
+#else
 #if (TOSVERSION >= 0x300) | !BINEXACT
         clr.w     (_flock).w                /* NOW, signal that we are done */
 #else
         sf        (_flock).w                /* NOW, signal that we are done */
+#endif
 #endif
         rts
 
@@ -376,7 +380,11 @@ rcvacsi:
         tst.w     ($FFFF8606).w             /* harmless or bus erorr */
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
+#if MEDUSA
+        bsr       cache_aus
+#else
         st        (_flock).w                /* lock FIFO */
+#endif
         bsr.s     acsibeg                   /* delay if necessary */
         movea.w   #$8604,a1                 /* a1 = pointer to DMA chip */
         bsr       setdmaaddr                /* set DMA pointer */
@@ -407,7 +415,11 @@ wrtacsi:
         tst.w     ($FFFF8604).w             /* harmless or bus erorr */
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
+#if MEDUSA
+        bsr       cache_aus
+#else
         st        (_flock).w                /* lock FIFO */
+#endif
         bsr.s     acsibeg
         movea.w   #$8604,a1                 /* a1 = pointer to DMA chip */
         bsr.s     setdmaaddr                /* set DMA pointer */
@@ -494,7 +506,12 @@ setdmaaddr:
         move.l    a0,-(a7)
         move.b    3(a7),($FFFF860D).w
         move.b    2(a7),($FFFF860B).w
+#if MEDUSA
+	/* high byt resp. word setzen */
+        move.w    0(a7),($FFFF8608).w
+#else
         move.b    1(a7),($FFFF8609).w
+#endif
         addq.l    #4,a7
         rts
 

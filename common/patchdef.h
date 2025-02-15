@@ -14,6 +14,14 @@
 #endif
 #endif
  
+#if MEDUSA
+/* Medusa patches can only be applied to 2.06 */
+#if TOSVERSION != 0x206
+#undef MEDUSA
+#define MEDUSA 0
+#endif
+#endif
+ 
 /*
  * TP_01: KILL_RESET: Omit RESET instruction for RAM-TOS on older ST's
  */

@@ -34,6 +34,9 @@ BIOS_ASRCS = \
 	floppy.S \
 	hadxbios.S \
 	hadflopp.S \
+	hadesmm.S \
+	medusamm.S \
+	medxbios.S \
 	m64_isa.S \
 	m64_pci.S \
 	prt.S \

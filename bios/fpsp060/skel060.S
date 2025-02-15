@@ -201,7 +201,7 @@ xI_CALL_TOP:
 	dc.l	x060_dmem_write_word-xI_CALL_TOP
 	dc.l	x060_dmem_write_long-xI_CALL_TOP
 	dc.l	0,0,0
-	dc.b	"XBRA"
+	dc.b	"XBRA" /* THO: this is actually nonsense since there is no slot for the old vector */
 	dc.l	hadesid
 	xdef unim_int_instr
 unim_int_instr:

@@ -3626,7 +3626,12 @@ mousekey:  dc.b      $47,$c7,$52,$d2
 /* 404: 00e0398c */
 	xdef coldboot
 coldboot:
+#if MEDUSA
+/* neuer kaltstart */
+		bsr medusa_coldboot
+#else
         move.w    #$2700,sr                 /* disable all IRQSR */
+#endif
 
 #if STBOOK
             move.l    ABSW($0004),ABSW(_buserror) /* a bus error triggers a reset */

@@ -125,7 +125,12 @@ flopini1:
         move.w    #$FF00,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
 #endif
         bsr       restore                       /* attempt restore */
+#if MEDUSA
+		/* nur ein restore ausfuehren um zu testen ob floppy angeschlossen */
+        bra.s     flopini2
+#else
         beq.s     flopini2                      /* (quick exit if that won) */
+#endif
         moveq.l   #10,d7                        /* attempt seek to track 10 */
         bsr       hardsee1                      /* (hard seek to 'd7') */
         bne.s     flopini3                      /* (failed: drive unusable) */
@@ -220,7 +225,13 @@ _floprd:
         bsr       fdchange                      /* test for disk change */
         moveq.l   #-11,d0                       /* set default error# E_READF */
 #if TOSVERSION >= 0x200
+#if MEDUSA
+		/* FRB not needed */
+		nop
+		nop
+#else
         bsr       frbrdcheck
+#endif
 #endif
         bsr       floplock                      /* lock floppies, setup parameters */
 floprd1:
@@ -361,7 +372,13 @@ _flopwrt:
         bsr       fdchange                      /* check for disk swap */
         moveq.l   #-10,d0                       /* set default error number E_WRITF */
 #if TOSVERSION >= 0x200
+#if MEDUSA
+		/* FRB not needed */
+		nop
+		nop
+#else
         bsr       frbwrcheck
+#endif
 #endif
         bsr       floplock                      /* lock floppies */
 /*
@@ -490,7 +507,13 @@ _flopfmt:
         bsr       fdchange                      /* check for disk flip */
         moveq.l   #-1,d0                        /* set default error number */
 #if TOSVERSION >= 0x200
+#if MEDUSA
+		/* FRB not needed */
+		nop
+		nop
+#else
         bsr       frbfmtcheck
+#endif
 #endif
         bsr       floplock
         bsr       select                        /* select drive and side */
@@ -669,7 +692,12 @@ fmtrack6:
 /* --- setup to write the track: */
         move.b    ABSW(fd_buffer+3),ABSW($FFFF860D) /* load dma pointer */
         move.b    ABSW(fd_buffer+2),ABSW($FFFF860B)
+#if MEDUSA
+		/* high byt resp. word setzen */
+        move.w    ABSW(fd_buffer),ABSW($FFFF8608)
+#else
         move.b    ABSW(fd_buffer+1),ABSW($FFFF8609)
+#endif
 #if TOSVERSION >= 0x200
         move.w    #$0090,(a6)                   /* toggle R/W flag */
         tst.b     ABSW(MFP_GPIP)
@@ -772,7 +800,13 @@ _flopver:
         bsr       fdchange
         moveq.l   #-11,d0       /* set default error: E_READF */
 #if TOSVERSION >= 0x200
+#if MEDUSA
+		/* FRB not needed */
+		nop
+		nop
+#else
         bsr       frbfmtcheck   /* setup FRB if needed */
+#endif
 #endif
         bsr       floplock      /* lock floppies, setup parameters */
         bsr       select        /* select floppy */
@@ -811,7 +845,12 @@ verify2:
 verify3:
         move.b    ABSW(fd_buffer+3),ABSW($FFFF860D) /* set DMA address */
         move.b    ABSW(fd_buffer+2),ABSW($FFFF860B)
+#if MEDUSA
+		/* high byt resp. word setzen */
+        move.w    ABSW(fd_buffer),ABSW($FFFF8608)
+#else
         move.b    ABSW(fd_buffer+1),ABSW($FFFF8609)
+#endif
 #if TOSVERSION >= 0x200
         move.w    #$0190,(a6)                   /* toggle R/W (leave in W state) */
         tst.b     ABSW(MFP_GPIP)
@@ -985,7 +1024,12 @@ floplock:
         st        ABSW(fd_motoron)              /* kludge motor state = ON */
         move.w    d0,ABSW(fd_deferr)            /* set default error number */
         move.w    d0,ABSW(fd_curerr)            /* set current error number */
+#if MEDUSA
+		bsr       cache_aus
+		nop
+#else
         move.w    #$0001,ABSW(_flock)           /* tell vbl not to touch floppies */
+#endif
         move.l    8(a7),ABSW(fd_buffer)         /* cdma -> /even/ DMA address */
         move.w    16(a7),ABSW(fd_dev)           /* save devide# (0 . 1) */
         move.w    18(a7),ABSW(fd_sect)          /* save sector# (1 . 9, usually) */
@@ -1069,7 +1113,12 @@ flopok1:
 flopok2:
         move.l    (a7)+,d0                      /* restore return value */
         movem.l   ABSW(flopsregs),d3-d7/a3-a6   /* restore C registers */
+#if MEDUSA
+		bsr       cache_ein
+		nop
+#else
         clr.w     _flock                        /* unlock floppies */
+#endif
 #if TOSVERSION >= 0x200
         bsr       frbbackcopy                   /* if necessary copy FRB buffer back */
 #endif
@@ -1398,7 +1447,12 @@ select1:
             bsr.s     wrfdcd7
             move.b    ABSW(fd_buffer+3),ABSW($FFFF860D) /* setup DMA chip's DMA pointer */
             move.b    ABSW(fd_buffer+2),ABSW($FFFF860B)
+#if MEDUSA
+			/* high byt resp. word setzen */
+    	    move.w    ABSW(fd_buffer),ABSW($FFFF8608)
+#else
             move.b    ABSW(fd_buffer+1),ABSW($FFFF8609)
+#endif
             rts
 
 /*

@@ -10,8 +10,14 @@ flushCaches:
 	rts
 	RESERVE_SPACE(flushCaches,$e005f2,$e0060a)
 #else
+#if MEDUSA
+	CPUSHA_BC
+	rts
+	dc.w $700 /* remains of orignal code */
+#else
         move.w    sr,-(a7)
         ori.w     #$0700,sr
+#endif
         CACR_D0
         or.l      #$00000808,d0           /* CI (Clear Instruction Cache), DI (Clear Data Cache) */
         D0_CACR
@@ -83,7 +89,12 @@ int_p3:
         bsr       flushCaches
 #endif
         move.w    20(a7),d0        /* d0 = SR */
+#if MEDUSA
+/* bevor modifizierter code angesprungen wird cache push */
+        bsr       mod_cod_jsr
+#else
         jsr       privinst.w       /* execute: MOVE D0,d(A1,Dn); NOP; RTS or MOVE D0,d(A1); NOP; RTS */
+#endif
         move.l    a1,usp           /* restore USP, but shouldn't have changed anyway */
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
@@ -98,7 +109,12 @@ int_p4:
 #endif
         lea.l     20(a7),a0           /* a0 = address of SR from stack frame */
         movem.l   8(a7),d0-d2
+#if MEDUSA
+/* bevor modifizierter code angesprungen wird cache push */
+        bsr       mod_cod_jsr
+#else
         jsr       privinst.w          /* execute: MOVE (A0),Dn; NOP; NOP; RTS */
+#endif
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
         adda.w    #$000C,a7           /* skip d0-d2, because they have already been restored */
@@ -111,16 +127,25 @@ int_p5:
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
         move.w    12(a7),d0
+#if MEDUSA
+/* bevor modifizierter code angesprungen wird cache push */
+        bsr       mod_cod_jsr
+#else
         jsr       privinst.w          /* execute: MOVE D0,<ea>; ...; RTS */
+#endif
         movem.l   (a7)+,d0-d2
         rte
 pi_back:
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
         movem.l   (a7)+,d0-d2
+#if MEDUSA
+	/* nach privileg violation neue exception adresse setzen */
+	jmp medusa_exception
+#else
 #if TOSVERSION < 0x300
-        jmp       any_vec+$08000000             /* illegal instruction => _term; $80000000 to get exception number in high byte */
+        jmp       any_vec+$08000000             /* illegal instruction => _term; $08000000 to get exception number in high byte */
 #else
         jmp       any_vec            /* illegal instruction => _term */
 #endif
-
+#endif

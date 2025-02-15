@@ -89,6 +89,7 @@
 #define CINVA_IC            dc.w $f498            /* 68040 */
 #define CINVA_BC            dc.w $f4d8            /* 68040 */
 #define CPUSHA_BC           dc.w $f4f8            /* 68040 */
+#define PFLUSHA             dc.w $f518            /* 68040: ATC invalid */
 
 /*
  * set to 1 if we run on plain 68k only

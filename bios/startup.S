@@ -3822,7 +3822,6 @@ any_vec1:
         move.w    #$004C,-(a7)                          /* Pterm */
         trap      #1
         bra       _main
-#endif /* MEDUSA */
 
 /*
  * do_shroom - draw little mushroom clouds on the screen
@@ -3924,6 +3923,7 @@ dwidthtab:        /* number of bytes per screen line, indexed by resolution */
 #endif
 
 #endif /* HADES */
+#endif /* MEDUSA */
 
 /*
  * _fastcpy - "fast" 512-byte copy

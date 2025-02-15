@@ -53,6 +53,10 @@ checkall::
 		done; \
 	done
 	$(MAKE) clean
+	$(MAKE) TOSVERSION=306 COUNTRY=uk HADES=1 MEDUSA=0 check
+	$(MAKE) clean
+	$(MAKE) TOSVERSION=206 COUNTRY=de HADES=0 MEDUSA=1 check
+	$(MAKE) clean
 
 rsync::
 	for i in $(SUBDIRS) include GNUmakefile GNUmakefile.cmn config.mak; do sudo rsync -vzrlpt $$i $(LOCAL_WWWDIR); done

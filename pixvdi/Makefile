@@ -348,12 +348,14 @@ spxtxtbl.o: spxtxtbl.S $(top_srcdir)/common/config.h
 	$(AM_V_at)${RM} $*.i
 
 screen.prg: $(SCREEN_OBJS) $(VDI_OBJS) ${MAKEFILE}
-	$(LD) -s -l -o $@ $(SCREEN_OBJS) tosvars.o $(VDI_OBJS)
+	$(LINK68) '[sy,locals]' $*.68k=$(SCREEN_OBJS) tosvars.o $(VDI_OBJS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 check::
 
 clean:
-	$(RM) *.o *.a *.i *.1 *.2 *.rel *.mod $(PROGRAMS) $(top_srcdir)/common/config.h
+	$(RM) *.o *.a *.i *.1 *.2 *.rel *.mod *.68k $(PROGRAMS) $(top_srcdir)/common/config.h
 
 distclean: clean
 	$(RM) $(top_srcdir)/common/sections.mak

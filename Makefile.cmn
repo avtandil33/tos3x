@@ -2,13 +2,11 @@
 BS=\${empty}
 QBS=\\${empty}
 
-BIN=..\bin\tos${BS}
-LIB=..\lib${BS}
-INC=..\common${BS}
+BIN=$(top_srcdir)\bin\tos${BS}
+LIB=$(top_srcdir)\lib${BS}
+INC=$(top_srcdir)\common${BS}
 EXEEXT=.ttp
 BUILD_EXEEXT=$(EXEEXT)
-ALNPATH=${LIB}
-export ALNPATH
 
 CC=NYI
 CFLAGS= -f 
@@ -17,23 +15,18 @@ CPPFLAGS = -I ${INC}
 
 AR = ${BIN}ar68${EXEEXT}
 ARFLAGS = -r
-RANLIB = ${BIN}doindex${EXEEXT}
 
-LD=${BIN}aln${EXEEXT}
 LINK68=${BIN}link68${EXEEXT}
 RELMOD=${BIN}relmod${EXEEXT}
 CPP=${BIN}cp68${EXEEXT} ${CPPFLAGS} -P
-CRT0=crt0.o
-LIBC=libc.a
-LIBC_NDX=libc.ndx
-DEPLIBC=${LIB}${LIBC}
-LIBM=libm.a
-LIBM_NDX=libm.ndx
-DEPLIBM=${LIB}${LIBM}
-GEMLIB=gem.a
-GEMLIB_NDX=gem.ndx
-DEPGEMLIB=${LIB}${GEMLIB}
-NOFLOAT=nofloat.o
+CRT0=$(LIB)crt0.o
+LIBC=$(LIB)libc.a
+DEPLIBC=${LIBC}
+LIBM=${LIB}libm.a
+DEPLIBM=${LIBM}
+GEMLIB=${LIB}gem.a
+DEPGEMLIB=${GEMLIB}
+NOFLOAT=${LIB}nofloat.o
 LDFLAGS=
 
 # 
@@ -51,8 +44,7 @@ DC    = ${BIN}dc
 GREP  = ${BIN}grep
 TR    = ${BIN}tr
 
-# FIXME: something wrong with freshly compiled cmprom for alcyon
-CMP      = ${BIN}cmprom$(BUILD_EXEEXT)
+CMP      = $(top_srcdir)$(BS)tools$(BS)cmprom$(BUILD_EXEEXT)
 MKGLUE   = $(top_srcdir)$(BS)tools$(BS)newglue$(BUILD_EXEEXT)
 MKBININC = $(top_srcdir)$(BS)tools$(BS)mkbininc$(BUILD_EXEEXT)
 MKASMINC = $(top_srcdir)$(BS)tools$(BS)mkasminc$(BUILD_EXEEXT)

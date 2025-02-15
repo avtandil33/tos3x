@@ -5,9 +5,9 @@ all::
 
 include SRCFILES
 
-all:: ${LIBC} ${LIBC_NDX} ${LIBM} ${LIBM_NDX} ${OPTIONOBJS} ${CRT0}
+all:: libc.a libm.a crt0.o ${OPTIONOBJS}
 
-${LIBC}: $(OBJS) ${OPTIONOBJS} ${MAKEFILE}
+libc.a: $(OBJS) ${OPTIONOBJS} ${MAKEFILE}
 	$(AM_V_at)$(RM) $@
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(COBJS1)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(COBJS2)
@@ -30,10 +30,7 @@ ${LIBC}: $(OBJS) ${OPTIONOBJS} ${MAKEFILE}
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(AOBJS1)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(AOBJS2)
 
-${LIBC_NDX}: ${LIBC}
-	$(AM_V_RANLIB)$(RANLIB) $<
-
-${LIBM}: $(MOBJS) ${MAKEFILE}
+libm.a: $(MOBJS) ${MAKEFILE}
 	$(AM_V_at)$(RM) $@
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(MCOBJS1)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(MCOBJS2)
@@ -42,15 +39,9 @@ ${LIBM}: $(MOBJS) ${MAKEFILE}
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(MAOBJS3)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(MAOBJS4)
 
-${LIBM_NDX}: ${LIBM}
-	$(AM_V_RANLIB)$(RANLIB) $<
-
 install: all
-	$(CP) ${LIBC} ${LIBC_NDX} ${CRT0} nofloat.o $(LIB)
+	$(CP) libc.a libm.a crt0.o nofloat.o $(LIB)
 
 
 clean:
 	$(RM) *.o *.a *.ndx
-
-strtol.ttp: strtol.o libc.ndx
-	aln -u -o $@ crt0.o strtol.o libc.a

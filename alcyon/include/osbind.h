@@ -155,6 +155,7 @@ __extension__								\
 #ifndef t1_wwll
 #define t1_w gemdos
 #define t1_wlw gemdos
+#define t1_wl gemdos
 #define t1_ww gemdos
 #define t1_wwll gemdos
 #define t14_wl xbios
@@ -247,13 +248,6 @@ __extension__								\
 #define	Dcreate(a)	gemdos(0x39,a)
 #define	Ddelete(a)	gemdos(0x3a,a)
 #define	Dsetpath(a)	gemdos(0x3b,a)
-#define	Fcreate(fn, mode)	t1_wlw(0x3C,(long)(fn),(short)(mode))
-#define	Fopen(fn, mode)	t1_wlw(0x3D,(long)(fn),(short)(mode))
-#define	Fclose(handle)	t1_ww(0x3E,(short)(handle))
-#define	Fread(a,b,c)	gemdos(0x3f,a,b,c)
-#define	Fwrite(handle,cnt,buf)	t1_wwll(0x40,(short)(handle), (long)(cnt),(long)(buf))
-#define	Fdelete(a)	gemdos(0x41,a)
-#define	Fseek(a,b,c)	gemdos(0x42,a,b,c)
 #define	Fattrib(a,b,c)	gemdos(0x43,a,b,c)
 #define	Mxalloc(a,b)	gemdos(0x44,a,b)
 #define	Fdup(a)		gemdos(0x45,a)
@@ -264,9 +258,19 @@ __extension__								\
 #define	Mshrink(a,b)	gemdos(0x4a,0,a,b)	/* NOTE:Null parameter added */
 #define	Pexec(a,b,c,d)	gemdos(0x4b,a,b,c,d)
 #define	Pterm(a)	gemdos(0x4c,a)
-#define	Fsfirst(a,b)	gemdos(0x4e,a,b)
-#define	Fsnext()	gemdos(0x4f)
 #define	Frename(a,b,c)	gemdos(0x56,a,b,c)
 #define	Fdatime(a,b,c)	gemdos(0x57,a,b,c)
+
+#ifndef Fcreate /* already defined in osif.h */
+#define	Fcreate(fn, mode)	t1_wlw(0x3C,(long)(fn),(short)(mode))
+#define	Fopen(fn, mode)	t1_wlw(0x3D,(long)(fn),(short)(mode))
+#define	Fclose(handle)	t1_ww(0x3E,(short)(handle))
+#define	Fsfirst(fn, mode)	t1_wlw(0x4e,(long)(fn),(short)(mode))
+#define	Fsnext()	t1_w(0x4f)
+#define	Fdelete(a)	t1_wl(0x41,a)
+#define	Fseek(a,b,c)	gemdos(0x42,a,b,c)
+#define	Fread(handle,cnt,buf)	t1_wwll(0x3f,(short)(handle), (long)(cnt),(long)(buf))
+#define	Fwrite(handle,cnt,buf)	t1_wwll(0x40,(short)(handle), (long)(cnt),(long)(buf))
+#endif
 
 #endif /* __OSBIND_H__ */

@@ -346,7 +346,9 @@ ttcolor.o: ttcolor.c
 
 
 screen.prg: $(SCREEN_OBJS) $(VDI_$(TOSVERSION)_OBJS) lmul.o ${MAKEFILE}
-	$(LD) -s -o $@ $(SCREEN_OBJS) tosvars.o $(VDI_$(TOSVERSION)_OBJS) lmul.o
+	$(LINK68) $*.68k=$(SCREEN_OBJS),tosvars.o,$(VDI_$(TOSVERSION)_OBJS),lmul.o
+	$(RELMOD) $*.68k $@
+	$(RM) $*.68k
 
 lmul.o: lmul.S
 	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $< $*.i

@@ -276,7 +276,7 @@
 #define OB_HCLIP int_in[5]
 
 #define OB_STARTOB int_in[0]		/* ob_find			*/
-#define OB_DEPTH int_in[1]
+/* #define OB_DEPTH int_in[1] */
 #define OB_MX int_in[2]
 #define OB_MY int_in[3]
 

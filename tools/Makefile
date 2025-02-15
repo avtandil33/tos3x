@@ -20,28 +20,40 @@ include $(top_srcdir)/config.mak
 include SRCFILES
 
 cmprom$(BUILD_EXEEXT): cmprom.o
-	$(LD) -s -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS),$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 newglue$(BUILD_EXEEXT): newglue.o
-	$(LD) -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 findrsc$(BUILD_EXEEXT): findrsc.o
-	$(LD) -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 mkbininc$(BUILD_EXEEXT): mkbininc.o
-	$(LD) -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 mkasminc$(BUILD_EXEEXT): mkasminc.o
-	$(LD) -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 mkrom$(BUILD_EXEEXT): mkrom.o
-	$(LD) -o $@ $(CRT0) $< $(LIBS)
+	$(AM_V_LD)$(LINK68) $*.68k=$(CRT0),$<,$(LIBS),$(LIBS)
+	$(AM_V_AT)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 check: $(PROGRAMS)
 
 dist::
 
 clean:
-	$(RM) *.o *.a $(PROGRAMS)
+	$(RM) *.o *.a *.68k $(PROGRAMS)
 
 distclean: clean

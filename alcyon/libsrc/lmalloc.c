@@ -34,6 +34,7 @@
 
 #undef FB_HDR
 #define FB_HDR struct lhdr				/* free block header type   */
+#undef NULLFBH
 #define NULLFBH ((FB_HDR *)0)			/* Null of above struct     */
 
 FB_HDR
@@ -42,15 +43,6 @@ FB_HDR
 	long size;							/* block size (always)      */
 	long chksize;						/* 1's complement of size   */
 };
-
-#define ERR_FINDBLOCK 	1				/* error in 'findblock()'   */
-#define ERR_GETMEM	2					/* error in 'getmemory()'   */
-#define ERR_FREE	3					/* error in 'free()'        */
-
-#define AOFFS 1L						/* alignment offset: 0=byte, 1=word, 3=quad */
-#define AMASK(c) ((char *)((long)(c) & ~AOFFS))	/* mask alignment bits      */
-#define AFUDGE 4						/* leeway for passing block as is */
-#define ACHUNKS 64						/* chunks to alloc from O.S. */
 
 static FB_HDR _lafreebase = { &_lafreebase, 0, ~0 };	/* initial (empty) block    */
 static FB_HDR *_laflistptr = &_lafreebase;		/* ptr into ring of freeblks */

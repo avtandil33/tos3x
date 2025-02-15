@@ -1,12 +1,15 @@
-include ../Makefile.cmn
-include ../Makefile.sil
+top_srcdir=..
+include $(top_srcdir)/Makefile.cmn
+include $(top_srcdir)/Makefile.sil
 
 PROGRAMS = hello.tos
 
 all::	$(PROGRAMS)
 
 hello.tos: hello.o
-	$(LD) -o $@ $(CRT0) hello.o gemlib.a vdibind.a aesbind.a osbind.o libf.a
+	$(LINK68) hello.68k=$(CRT0),hello.o,$(LIB)gem.a,$(LIB)libc.a,$(LIB)libc.a,$(LIB)libf.a
+	$(RELMOD) hello.68k $@
+	$(RM) hello.68k
 
 check::
 

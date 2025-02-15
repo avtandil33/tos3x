@@ -22,21 +22,17 @@ RANLIB = ${BIN}doindex${EXEEXT}
 
 SED   = sed
 
-LD=${BIN}aln${EXEEXT}
 LINK68=${BIN}link68${EXEEXT}
 RELMOD=${BIN}relmod${EXEEXT}
 PRGFLAGS=${BIN}prgflags.prg
-CRT0=crt0.o
-LIBC=libc.a
-LIBC_NDX=libc.ndx
-DEPLIBC=${LIB}${LIBC}
-LIBM=libm.a
-LIBM_NDX=libm.ndx
-DEPLIBM=${LIB}${LIBM}
-GEMLIB=gem.a
-GEMLIB_NDX=gem.ndx
-DEPGEMLIB=${LIB}${GEMLIB}
-NOFLOAT=nofloat.o
+CRT0=${LIB}crt0.o
+LIBC=${LIB}libc.a
+DEPLIBC=${LIBC}
+LIBM=${LIB}libm.a
+DEPLIBM=${LIBM}
+GEMLIB=${LIB}gem.a
+DEPGEMLIB=${GEMLIB}
+NOFLOAT=${LIB}nofloat.o
 LDFLAGS=
 
 # Wether to run the optimizer pass.

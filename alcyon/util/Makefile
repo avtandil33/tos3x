@@ -10,16 +10,24 @@ all: $(PROGRAMS)
 include SRCFILES
 
 size68$(EXEEXT): $(SIZE_OBJS)
-	$(AM_V_LD)$(LD) $(LDFLAGS) -h 7 -o $@ $(CRT0) nofloat.o $(SIZE_OBJS) $(LIBS)
+	$(AM_V_LD)$(LINK68) $(LDFLAGS) $*.68k=$(CRT0) $(NOFLOAT) $(SIZE_OBJS) $(LIBS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 nm68$(EXEEXT): $(NM_OBJS)
-	$(AM_V_LD)$(LD) $(LDFLAGS) -h 7 -o $@ $(CRT0) nofloat.o $(NM_OBJS) $(LIBS)
+	$(AM_V_LD)$(LINK68) $(LDFLAGS) $*.68k=$(CRT0) $(NOFLOAT) $(NM_OBJS) $(LIBS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 ar68$(EXEEXT): $(AR_OBJS)
-	$(AM_V_LD)$(LD) $(LDFLAGS) -h 7 -o $@ $(CRT0) nofloat.o $(AR_OBJS) $(LIBS)
+	$(AM_V_LD)$(LINK68) $(LDFLAGS) $*.68k=$(CRT0) $(NOFLOAT) $(AR_OBJS) $(LIBS) $(LIBS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 analyze$(EXEEXT): $(ANALYZE_OBJS)
-	$(AM_V_LD)$(LD) $(LDFLAGS) -h 7 -o $@ $(CRT0) nofloat.o $(ANALYZE_OBJS) $(LIBS)
+	$(AM_V_LD)$(LINK68) $(LDFLAGS) $*.68k=$(CRT0) $(NOFLOAT) $(ANALYZE_OBJS) $(LIBS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 install: all
 	$(CP) $(inst_PROGRAMS) $(BIN)
@@ -27,4 +35,4 @@ install: all
 check::
 
 clean:
-	$(RM) *.o *.a *.s *.i *.1 *.2 $(PROGRAMS)
+	$(RM) *.o *.a *.s *.i *.1 *.2 *.68k $(PROGRAMS)

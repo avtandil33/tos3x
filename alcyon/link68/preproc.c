@@ -924,7 +924,7 @@ PP(register int parent;)
 	isdot:
 		if (tknum == COMMA)
 			tknum = scan();				/* skip ',' */
-		else if (tknum != RPAREN && tknum != NOMORE)
+		else if (tknum != RPAREN && tknum != NOMORE && tknum != NAMETK)
 			synerr(COMORPAR);
 	}
 
@@ -957,7 +957,7 @@ PP(register int parent;)
 		if ((tknum = scan()) == COMMA)	/* skip ')' */
 			tknum = scan();				/* skip ',' too */
 		/* end, better be ')' or nothing */
-		else if (tknum != RPAREN && tknum != NOMORE)
+		else if (tknum != RPAREN && tknum != NOMORE && tknum != NAMETK)
 			synerr(COMORPAR);
 	}
 }

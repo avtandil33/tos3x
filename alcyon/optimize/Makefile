@@ -11,13 +11,15 @@ include SRCFILES
 
 # symbols etoa and ftoa are unresolved
 optimize$(EXEEXT): $(OPTIMIZE_OBJS) ${MAKEFILE}
-	$(AM_V_LD)$(LD) $(LDFLAGS) -u -h 7 -o $@ $(CRT0) nofloat.o $(OPTIMIZE_OBJS) $(LIBS)
+	$(AM_V_LD)$(LINK68) $(LDFLAGS) $*.68k=$(CRT0) $(NOFLOAT) $(OPTIMIZE_OBJS) $(LIBS)
+	$(AM_V_at)$(RELMOD) $*.68k $@
+	@$(RM) $*.68k
 
 install: all
 	$(CP) $(PROGRAMS) $(BIN)
 
 check::
-	for i in $(PROGRAMS); do cmp $$i ${BIN}$$i; done
+	cmp optimize$(EXEEXT) ${BIN}optimize$(EXEEXT)
 
 clean:
-	$(RM) *.o *.a *.i *.1 *.2 *.rel *.mod $(PROGRAMS)
+	$(RM) *.o *.a *.i *.1 *.2 *.rel *.mod *.68k $(PROGRAMS)

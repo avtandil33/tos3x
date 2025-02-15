@@ -1,9 +1,9 @@
 #include <time.h>
 #include <sys/stat.h>
+#include <osif.h>
 #include <osbind.h>
 #include <ctype.h>
 #include <errno.h>
-#include <osif.h>
 #include "lib.h"
 
 int fstat(P(int) fd, P(struct stat *) st)

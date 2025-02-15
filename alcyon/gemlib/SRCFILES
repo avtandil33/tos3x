@@ -4,14 +4,14 @@ AOBJS = $(ASRCS:.S=.o)
 
 CSRCS = \
 	ap_exit.c \
-	ap_find.c \
 	ap_init.c \
 	ap_read.c \
 	ap_tplay.c \
 	ap_treco.c \
 	ap_write.c \
-	ap_ginfo.c \
 	ap_xginf.c \
+	ap_ginfo.c \
+	ap_find.c \
 	ev_butto.c \
 	ev_dclic.c \
 	ev_keybd.c \

@@ -165,7 +165,7 @@ PP(char **argv;)
 
 	for (i = 0; i < filesize; )
 	{
-		unsigned long val;
+		uint32_t val;
 		
 		count = filesize - i;
 		if (count > 16)
@@ -176,7 +176,7 @@ PP(char **argv;)
 		for (j = 0; j < count; )
 		{
 			val = ((uint32_t)(p[j+0] & 0xff) << 24) | ((uint32_t)(p[j+1] & 0xff) << 16) | ((uint32_t)(p[j+2] & 0xff) << 8) | ((uint32_t)(p[j+3] & 0xff));
-			fprintf(fp, "$%08lx", val);
+			fprintf(fp, "$%08lx", (long)val);
 			j += 4;
 			if (j < count)
 				putc(',', fp);

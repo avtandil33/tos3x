@@ -59,7 +59,6 @@ EXTRA_DIST1:=\
 	Makefile \
 	SRCFILES \
 	optimize.mak \
-	deskext.S \
 	${empty}
 
 EXTRA_DIST2:=\

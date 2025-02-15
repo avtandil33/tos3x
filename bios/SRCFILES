@@ -62,7 +62,6 @@ EXTRA_DIST1:=\
 	Makefile \
 	SRCFILES \
 	optimize.mak \
-	biosext.S \
 	prtkeys.c \
 	${empty}
 

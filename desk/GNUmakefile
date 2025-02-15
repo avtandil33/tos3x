@@ -26,15 +26,6 @@ include SRCFILES
 desk.a: $(DESK_OBJS) ${MAKEFILE}
 	$(AR) $(ARFLAGS) $@ $(DESK_OBJS)
 
-ifeq ($(USE_CROSS_ALCYON),1)
-# sections.mak might have just been generated, make sure it is reread
-desk.o: vars.o $(DESK_OBJS) deskext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
-	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
-
-single: vars.o $(DESK_OBJS) deskext.o
-	$(LD) -u -s -l -o desk.o -a $(desk_tbase) $(desk_dbase) 0 vars.o $(DESK_OBJS) deskext.o
-endif
-
 
 tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
@@ -42,15 +33,7 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-ifeq ($(HADES),1)
-IMG = hades$(COUNTRY).img
-else
-IMG = tos$(TOSVERSION)$(COUNTRY).img
-endif
-
-check:: desk.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(desk_toff):0x24 --offsets=0x$(desk_tbase):0 --bytes=0x$(desk_tlen) $(top_srcdir)/roms/$(IMG) desk.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(desk_doff):0x$(desk_tleno) --offsets=0x$(desk_dbase):0x$(desk_tlen) --bytes=0x$(desk_dlen) $(top_srcdir)/roms/$(IMG) desk.o
+check::
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

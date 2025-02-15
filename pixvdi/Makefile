@@ -51,7 +51,7 @@ include optimize.mak
 
 PROGRAMS = screen.prg
 
-all:: $(top_srcdir)/common/config.h vdi.a vdi.o $(PROGRAMS)
+all:: $(top_srcdir)/common/config.h vdi.a $(PROGRAMS)
 
 include $(top_srcdir)/config.mak
 -include $(top_srcdir)/common/sections.mak
@@ -345,14 +345,6 @@ hpxoblit.o: hpxoblit.S $(top_srcdir)/common/config.h
 spxtxtbl.o: spxtxtbl.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $*.S $*.i
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
-	$(AM_V_at)${RM} $*.i
-
-vdi.o: tosvars.o vars.o $(VDI_OBJS) vdiext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
-	$(LD) -u -s -l -o $@ -a $(vdi_tbase) $(vdi_dbase) 0 tosvars.o vars.o $(VDI_OBJS) vdiext.o
-
-vdiext.o: vdiext.S $(top_srcdir)/common/config.h $(top_srcdir)/common/sections.inc
-	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $< $*.i
-	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i $@
 	$(AM_V_at)${RM} $*.i
 
 screen.prg: $(SCREEN_OBJS) $(VDI_OBJS) ${MAKEFILE}

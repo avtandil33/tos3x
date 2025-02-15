@@ -24,33 +24,18 @@ include SRCFILES
 bdos.a: $(BDOS_OBJS) ${MAKEFILE}
 	$(AM_V_AR)$(AR) $(ARFLAGS) $@ $(BDOS_OBJS)
 
-$(BDOS_OBJS) vars.o vdidsp.o: $(top_srcdir)/common/config.h
+$(BDOS_OBJS) vars.o: $(top_srcdir)/common/config.h
 
 ifeq ($(USE_CROSS_ALCYON),1)
-# sections.mak might have just been generated, make sure it is reread
-bdos.o: $(top_srcdir)/common/config.h tosvars.o vars.o vdidsp.o $(top_srcdir)/common/sections.mak $(BDOS_OBJS) ${MAKEFILE}
-	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
-
 osmem.o: osmem.c
 	$(AM_V_CC)$(CC) $(CFLAGS) $(CPPFLAGS) ${RUN_OPTIMIZE_${$*_OPTIMIZE}} -c -S -o $*.s $<
 	$(AM_V_at)$(SUBSTLMUL)
 	$(AM_V_at)$(SUBSTLDIV)
 	$(AM_V_at)$(AS) $(ASFLAGS) -c $*.s
 	$(AM_V_at)$(RM) $*.s
-
-single: tosvars.o vars.o vdidsp.o $(BDOS_OBJS) ${MAKEFILE}
-	$(LD) -s -l -o bdos.o -a $(bdos_tbase) $(bdos_dbase) 0 tosvars.o vars.o vdidsp.o $(BDOS_OBJS)
 endif
 
-ifeq ($(HADES),1)
-IMG = hades$(COUNTRY).img
-else
-IMG = tos$(TOSVERSION)$(COUNTRY).img
-endif
-
-check:: bdos.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bdos_toff):0x24 --offsets=0x$(bdos_tbase):0 --bytes=0x$(bdos_tlen) $(top_srcdir)/roms/$(IMG) bdos.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bdos_doff):0x$(bdos_tleno) --offsets=0x$(bdos_dbase):0x$(bdos_tlen) --bytes=0x$(bdos_dlen) $(top_srcdir)/roms/$(IMG) bdos.o
+check::
 
 tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<

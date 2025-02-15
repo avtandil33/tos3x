@@ -27,12 +27,6 @@ vdi.a: $(VDI_$(TOSVERSION)_OBJS) ${MAKEFILE}
 	$(AR) $(ARFLAGS) $@ $(VDI_$(TOSVERSION)_OBJS)
 
 ifeq ($(USE_CROSS_ALCYON),1)
-# sections.mak might have just been generated, make sure it is reread
-vdi.o: tosvars.o vars.o vdiext.o $(top_srcdir)/common/config.h $(top_srcdir)/common/sections.mak $(VDI_OBJS) ${MAKEFILE}
-	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
-
-single: tosvars.o vars.o vdiext.o $(VDI_OBJS) ${MAKEFILE}
-	$(LD) -s -l -o vdi.o -a $(vdi_tbase) $(vdi_dbase) 0 tosvars.o vars.o vdiext.o $(VDI_OBJS)
 
 #
 # sed: optimizer seems to have missed an add.l #4,(sp) in make_header()
@@ -66,19 +60,7 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-vdiext.o: vdiext.S $(top_srcdir)/common/sections.inc
-	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-ifeq ($(HADES),1)
-IMG = hades$(COUNTRY).img
-else
-IMG = tos$(TOSVERSION)$(COUNTRY).img
-endif
-
-check:: vdi.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_toff):0x24 --offsets=0x$(vdi_tbase):0 --bytes=0x$(vdi_tlen) $(top_srcdir)/roms/$(IMG) vdi.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(vdi_doff):0x$(vdi_tleno) --offsets=0x$(vdi_dbase):0x$(vdi_tlen) --bytes=0x$(vdi_dlen) $(top_srcdir)/roms/$(IMG) vdi.o
-	
+check::
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

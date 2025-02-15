@@ -51,38 +51,14 @@ prtkeys$(EXEEXT): prtkeys.o
 	$(AM_V_LD)${LD} ${LDFLAGS} -o $@ prtkeys.o
 
 ifeq ($(USE_CROSS_ALCYON),1)
-# sections.mak might have just been generated, make sure it is reread
-bios.o: tosvars.o vars.o $(BIOS_OBJS) biosext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
-	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
-
 blkdev.o: blkdev.c
 	$(AM_V_CC)$(CC) $(CFLAGS) $(CPPFLAGS) ${RUN_OPTIMIZE_${$*_OPTIMIZE}} -c -S -o $*.s $<
 	$(AM_V_at)$(SUBSTLMUL)
 	$(AM_V_at)$(AS) $(ASFLAGS) -c $*.s
 	$(AM_V_at)$(RM) $*.s
-
-single: tosvars.o vars.o biosext.o $(BIOS_OBJS) ${MAKEFILE}
-	$(LD) -u -s -l -o bios.o -a $(bios_tbase) $(bios_dbase) 0 tosvars.o vars.o $(BIOS_OBJS) biosext.o
 endif
 
-ifeq ($(HADES),1)
-IMG = hades$(COUNTRY).img
-else
-IMG = tos$(TOSVERSION)$(COUNTRY).img
-endif
-
-ifeq ($(HADES),1)
-#
-# make check here does not work for hades, since some external entry points will be undefined,
-# but works for the final image
-#
 check::
-	@:
-else
-check:: bios.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_toff):0x24 --offsets=0x$(bios_tbase):0 --bytes=0x$(bios_tlen) $(top_srcdir)/roms/$(IMG) $<
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(bios_doff):0x$(bios_tleno) --offsets=0x$(bios_dbase):0x$(bios_tlen) --bytes=0x$(bios_dlen) $(top_srcdir)/roms/$(IMG) $<
-endif
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

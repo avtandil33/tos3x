@@ -132,7 +132,6 @@ EXTRA_DIST1:=\
 	SRCFILES \
 	vdi.lnk \
 	optimize.mak \
-	vdiext.S \
 	lmul.S \
 	\
 	hpxoblit.S \

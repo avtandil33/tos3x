@@ -118,7 +118,6 @@ EXTRA_DIST1 = \
 	Makefile \
 	SRCFILES \
 	optimize.mak \
-	vdiext.S \
 	$(empty)
 
 EXTRA_DIST2 = \

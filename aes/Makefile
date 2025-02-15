@@ -22,13 +22,6 @@ aes.a: $(STARTUP) $(AES_OBJS) ${MAKEFILE}
 	$(RM) $@
 	$(AR) $(ARFLAGS) $@ $(STARTUP) $(AES_OBJS)
 
-# sections.mak might have just been generated, make sure it is reread
-aes.o: vars.o $(STARTUP) $(AES_OBJS) aesext.o $(top_srcdir)/common/sections.mak ${MAKEFILE}
-	$(MAKE) TOSVERSION=$(TOSVERSION) COUNTRY=$(COUNTRY) single
-
-single:
-	$(LD) -u -s -l -o aes.o -a $(aes_tbase) $(aes_dbase) 0 vars.o $(STARTUP) $(AES_OBJS) aesext.o
-
 #
 # need to repeat the default suffix rule here,
 # because on a FAT filesystem, .S cannot be
@@ -116,14 +109,7 @@ tosvars.o: $(top_srcdir)/common/tosvars.S $(top_srcdir)/common/config.h
 	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i $@
 	$(AM_V_at)${RM} $*.i
 
-aesext.o: aesext.S $(top_srcdir)/common/sections.inc $(top_srcdir)/common/config.h
-	$(AM_V_AS)${BIN}cp68${EXEEXT} ${CPPFLAGS} -P $< $*.i
-	$(AM_V_at)${BIN}as68${EXEEXT} ${ASFLAGS} ${$*_ASFLAGS} $*.i
-	$(AM_V_at)${RM} $*.i
-
-check:: aes.a aes.o $(top_srcdir)/common/sections.mak
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(aes_toff):0x24 --offsets=0x$(aes_tbase):0 --bytes=0x$(aes_tlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img aes.o
-	$(AM_V_at)$(CMP) $(CMPL) -x --ignore-initial=0x$(aes_doff):0x$(aes_tleno) --offsets=0x$(aes_dbase):0x$(aes_tlen) --bytes=0x$(aes_dlen) $(top_srcdir)/roms/tos$(TOSVERSION)$(COUNTRY).img aes.o
+check::
 
 clean:
 	$(RM) $(AES_OBJS)

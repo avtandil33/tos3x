@@ -16,9 +16,14 @@
 	data
 
 medusa_xbios: ds.b 0
+
+#if (TOSVERSION == 0x206) & (OS_COUNTRY == CTRY_DE)
     /* fill up space between end of resource and $e3e000 */
-#if TOSVERSION == 0x206
 	dcb.b $e3e000-$e3dfca,-1
+#endif
+#if (TOSVERSION == 0x306) & (OS_COUNTRY == CTRY_DE)
+    /* fill up space between end of resource and $e46300 */
+	dcb.b $e46300-$e46234,-1
 #endif
 
 	xdef medusa_exception
@@ -34,12 +39,14 @@ medusa_exception:
                 asr.w   #2,d1           /* /4 ergibt vector */
 exception4:
                 lea     (SUPSIZ*2+_supstk).w,sp /* den Stack initialisieren */
+#if (TOSVERSION < 0x300)
                 tst.b   STEFlag.w       /* STE vorhanden? */
                 bne.s   exception3      /* Nein! => */
                 clr.b   $FFFF820D.w     /* low-Byte setzen (STE) */
                 clr.w   $FFFF820E.w     /* Offset to next line loeschen */
                 clr.w   $FFFF8264.w     /* Horizontal Bit-wize Scroll loeschen */
                 clr.w   $FFFF8900.w     /* Digi-Sound stoppen */
+#endif
 exception3:
                 moveq   #15,d0
                 lea     _proc_stk.w,a0
@@ -223,5 +230,180 @@ tbev:           DC.B 'Acess Fault!',0 /* THO: typo */
                 DC.B 'FP Overflow!',0
                 DC.B 'FP Signaling NAN!',0
                 DC.B 'FP Unimplemented Data Typ!',0
+
+
+#if (TOSVERSION >= 0x300)
+
+#define vga_reg            $7F300000
+
+CRTC_I          equ $03D4      /* CRT Controller index port */
+CRTC_D          equ $03D5      /* CRT Controller data port */
+ATC_IW          equ $03C0      /* ATTRX: Attribute controller: index and data write */
+DAC_PEL         equ $03C6      /* VGA_DAC_MASK: RAMDAC pixel mask */
+DAC_IR          equ $03C7      /* VGA_DAC_READ: RAMDAC read index */
+DAC_IW          equ $03C8      /* VGA_DAC_WRITE: RAMDAC write index */
+DAC_D           equ $03C9      /* VGA_DAC_DATA: RAMDAC palette data */
+GDC_SEG         equ $03CD      /* GDC segment select, index and data ports */
+GDC_I           equ $03CE      /* GRAX: Graphics Index register */
+GDC_D           equ $03CF      /* GRAD: Graphics Data register */
+TS_I            equ $03C4      /* SEQX: Sequencer Index register */
+TS_D            equ $03C5      /* SEQD: Sequencer Data register */
+MISC_W          equ $03C2      /* GENMO: Misc Output Write Register */
+VIDSUB          equ $03C3      /* Video Subsystem register */
+IS1_RC          equ $03DA      /* Input Status Register 1: color emulation */
+R_GENMO         equ $03CC      /* Misc Output Read Register */
+
+/* ATI VGA Extended Registers */
+SETUP_CONTROL   equ $0102
+ATI_I           equ $01ce      /* ATI index register */
+ATI_D           equ $01cf      /* ATI index register */
+HORZ_OVERSCAN   equ $62EE
+ROM_PAGE_SEL    equ $46E8
+ATI_DAC_R2      equ $02EA
+ATI_DAC_R3      equ $02EB
+ATI_DAC_R0      equ $02EC
+ATI_DAC_R1      equ $02ED
+CONFIG_STATUS_1 equ $12EE
+CONFIG_STATUS_2 equ $16EE
+MISC_OPTIONS    equ $36EE
+SUBSYS_CNTL     equ $42E8
+ADVFUNC_CNTL    equ $4AE8
+CLOCK_SEL       equ $4AEE
+MEM_BNDRY       equ $42EE
+ROM_ADDR_1      equ $52EE
+SCRATCH_PAD_1   equ $56EE
+MEM_CFG         equ $5EEE
+MAX_WAITSTATES  equ $6AEE
+EXT_GE_CONFIG   equ $7AEE
+MISC_CNTL       equ $7EEE
+R_MISC_CNTL     equ $92EE
+
+
+/* Mach64 only */
+M64_CONFIG_CTRL     equ $6AEC
+M64_CONFIG_CHIP_ID  equ $6EEC
+M64_SCRATCH_REG_1   equ $46EC
+M64_MEM_CNTL        equ $52EC
+M64_DAC_W_INDEX     equ $5EEC		/* same as DAC_IW */
+M64_DAC_DATA        equ $5EED		/* same as DAC_D */
+M64_DAC_MASK        equ $5EEE		/* same as DAC_PEL */
+M64_DAC_R_INDEX     equ $5EEF		/* same as DAC_IR */
+M64_CRTC_GEN_CNTL   equ $1EEC
+M64_CLOCK_CNTL      equ $4AEC
+M64_CRTC_INT_CNTL   equ $1AEC
+M64_BUS_CNTL        equ $4EEC
+M64_GEN_TEST_CNTL   equ $66EC
+M64_SCRATCH_REG0    equ $42EC
+M64_DAC_CNTL        equ $62EC
+
+/* isa et4000 grafikkarte initialisieren */
+	xdef screen_init
+screen_init: ds.b 0
+		lea vga_reg,a2
+
+		move.b	#$07,MISC_W(a2)		/* misc */
+		move.b	#1,VIDSUB(a2)		/* videosub */
+		move.b	#$17,$03B4(a2)		/* crtc mode control */
+		clr.b	$03B5(a2)			/* mono */
+		move.b	#$17,$03D4(a2)
+		clr.b	$03D5(a2)			/* color */
+		move.b	#$11,$03B4(a2)		/* vertical start */
+		clr.b	$03B5(a2)
+		move.b	#$11,$03D4(a2)		/* color */
+		clr.b	$03D5(a2)
+		move.b  #$ff,$3c6(a2)       /* pel mask */
+		clr.b	$03C4(a2)			/* ts */
+		clr.b	$03C5(a2)
+		move.b	#3,$03BF(a2)
+		move.b	#$a0,$03D8(a2)
+
+		lea		$03C4(a2),a0
+		lea		ts+1,a1
+		moveq	#1,d1
+		moveq	#7,d0
+/* ts registersatz transferieren */
+loop_ts:
+		move.b	d1,(a0)
+		move.b	(a1)+,1(a0)
+		addq.w	#1,d1
+		cmp.w	d1,d0
+		bne.s	loop_ts
+		clr.b	(a0)
+		move.b	#$03,1(a0)		/* fa_8.11.94: */
+
+		lea	$03D4(a2),a0
+		lea	crtc,a1
+		moveq	#0,d1
+		moveq	#$38,d0
+/* crtc registersatz transferieren */
+loop_crtc:
+		move.b	d1,(a0)
+		move.b	(a1)+,1(a0)
+		addq.w	#1,d1
+		cmp.w	d1,d0
+		bne.s	loop_crtc
+
+		lea		$03CE(a2),a0
+		lea		gdc,a1
+		moveq	#0,d1
+		moveq	#10,d0
+/* gdc registersatz transferieren */
+loop_gdc:
+		move.b	d1,(a0)
+		move.b	(a1)+,1(a0)
+		addq.w	#1,d1
+		cmp.w	d1,d0
+		bne.s	loop_gdc
+		move.b	$03DA(a2),d0
+		lea		$03C0(a2),a0
+		lea		atc,a1
+		moveq	#0,d1
+		moveq	#$18,d0
+/* atc registersatz transferieren */
+loop_atc:
+		move.b	d1,(a0)
+		move.b	(a1)+,(a0)
+		addq.w	#1,d1
+		cmp.w	d1,d0
+		bne.s	loop_atc
+		move.b	#$20,(a0)
+		lea		$03C8(a2),a0
+		moveq	#0,d1
+		move.w	#$0100,d0
+		move.b	d1,(a0)
+		move.b	#$FF,1(a0)
+		move.b	#$FF,1(a0)
+		move.b	#$FF,1(a0)
+		addq.w	#1,d1
+/* farbregister auf monochrom */
+loop_dac:
+		move.b	d1,(a0)
+		clr.b	1(a0)
+		clr.b	1(a0)
+		clr.b	1(a0)
+		addq.w	#1,d1
+		cmp.w	d0,d1
+		bne.s	loop_dac
+		rts	/* back to caller */
+
+/* Attribute Controller: registers 0 - 0x17 */
+atc:	dc.b $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
+		dc.b $01,$ff,$0F,$00,$00,$00,$00,$00
+/* CRT Controller: registers 0 - 0x37 */
+crtc:	dc.b $6a,$4F,$4F,$8e,$59,$87,$bf,$1F,$00,$40,$00,$00,$00,$00,$00,$00
+		dc.b $9a,$04,$8F,$28,$00,$8F,$C0,$c3,$FF,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+		dc.b $00,$00,$00,$00,$00,$10,$70,$0f
+
+/* GDC Controller: registers 0 - 0x9 */
+gdc:	dc.b $00,$00,$00,$00,$00,$00,$01,$0F,$FF,$00
+
+/* MISC_W + Timing Sequencer registers 1...6 */
+ts:		dc.b $03
+		dc.b $09,$0F,$00,$06,$00,$00,$a4
+		even
+
+
+#endif
 
 #endif

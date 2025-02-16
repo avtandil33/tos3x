@@ -125,7 +125,7 @@ flopini1:
         move.w    #$FF00,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
 #endif
         bsr       restore                       /* attempt restore */
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 		/* nur ein restore ausfuehren um zu testen ob floppy angeschlossen */
         bra.s     flopini2
 #else
@@ -540,7 +540,12 @@ flopfmt1:
         tst.b     STEFlag                       /* no STE hardware available? */
         bne.s     flopfmt2                      /* (correct) */
 #endif
+#if MEDUSA & (TOSVERSION >= 0x300)
+        nop
+        nop
+#else
         move.w    d0,ABSW($FFFF860E)
+#endif
 #endif /* STBOOK */
 flopfmt2:
 #endif /* TP_41 */
@@ -1025,7 +1030,7 @@ floplock:
         move.w    d0,ABSW(fd_deferr)            /* set default error number */
         move.w    d0,ABSW(fd_curerr)            /* set current error number */
 #if MEDUSA
-		bsr       cache_aus
+		bsr       cache_aus1
 		nop
 #else
         move.w    #$0001,ABSW(_flock)           /* tell vbl not to touch floppies */
@@ -1114,7 +1119,7 @@ flopok2:
         move.l    (a7)+,d0                      /* restore return value */
         movem.l   ABSW(flopsregs),d3-d7/a3-a6   /* restore C registers */
 #if MEDUSA
-		bsr       cache_ein
+		bsr       cache_ein1
 		nop
 #else
         clr.w     _flock                        /* unlock floppies */
@@ -1222,7 +1227,12 @@ go2trac2:
         move.w    d0,ABSW($FFFF860E)
 go2trc2b:
 #else
+#if MEDUSA & (TOSVERSION >= 0x300)
+        nop
+        nop
+#else
         move.w    d0,ABSW($FFFF860E)
+#endif
         move.w    d0,fd_density(a1)
 #endif
 #endif
@@ -1306,7 +1316,13 @@ flopcms1:
         tst.b     STEFlag                       /* no STE hardware available? */
         bne.s     flopcmd                       /* (correct) */
 #endif
+#if MEDUSA & (TOSVERSION >= 0x300)
+        nop
+        nop
+        nop
+#else
         move.w    fd_density(a1),ABSW($FFFF860E)
+#endif
 #endif
 #endif /* TP_41 */
 #endif

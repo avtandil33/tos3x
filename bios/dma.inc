@@ -164,7 +164,7 @@ dmarw6:
         adda.w    #16,a7
 dmarw7:
 #if P68030
-#if HADES
+#if HADES | MEDUSA
 	CPUSHA_BC
 	nop
 	bra.s dmarwskip
@@ -306,9 +306,11 @@ _endcmd:
         bsr.s     _fdone                    /* wait for operation complete */
         bmi.s     acsiab1                   /* (timed-out, so complain) */
 #if P68030
-#if HADES
+#if HADES | MEDUSA
 	/* cache clear (un)necessary for dma (certainly necessary for 60s) */
+#if HADES /* THO: not done in Medusa? */
 	CPUSHA_BC
+#endif
 	bra.s endcmd_skip
 	RESERVE_SPACE(_endcmd,$e01a02,$e01a1a)
 endcmd_skip:
@@ -338,7 +340,7 @@ acsiab1:
 _hdone:
         move.w    #$0080,($FFFF8606).w      /* Landon's code seems to presume we put $80 there */
 #if MEDUSA
-	bsr       cache_ein
+	bsr       cache_ein1
 #else
 #if (TOSVERSION >= 0x300) | !BINEXACT
         clr.w     (_flock).w                /* NOW, signal that we are done */
@@ -381,7 +383,7 @@ rcvacsi:
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
 #if MEDUSA
-        bsr       cache_aus
+        bsr       cache_aus1
 #else
         st        (_flock).w                /* lock FIFO */
 #endif
@@ -416,7 +418,7 @@ wrtacsi:
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
 #if MEDUSA
-        bsr       cache_aus
+        bsr       cache_aus1
 #else
         st        (_flock).w                /* lock FIFO */
 #endif
@@ -568,8 +570,14 @@ scsiwrite:
 	rts
 #else
 scsiread:
+#if MEDUSA
+	moveq.l    #-12,d0
+	rts
+	dc.w      $7 /* remains of original code */
+#else
         move.l    a0,-(a7)
         andi.w    #$0007,d0
+#endif
         bsr.s     scsisend
         movea.l   (a7)+,a0
         tst.w     d0
@@ -592,7 +600,12 @@ scsird2:
 
 /* 306de: 00e01ba4 */
 scsiwrite:
+#if MEDUSA
+	moveq.l    #-12,d0
+	rts
+#else
         andi.w    #$0007,d0
+#endif
         move.l    a0,-(a7)
         move.w    d2,-(a7)
         bsr.s     scsisend
@@ -756,7 +769,12 @@ scsiwrb1:
 
 /* 306de: 00e01cfe */
 scsirst:
+#if MEDUSA
+	rts
+	dc.w $0080,$8783 /* remains of original code */
+#else
         move.b    #$80,($FFFF8783).w  /* assert RST */
+#endif
         bsr.s     sdelaytime
 scsirst1:
         cmp.l     (a0),d1
@@ -982,8 +1000,18 @@ iderdsec:
         moveq.l   #127,d0
         lea.l     ide_datar,a1
 iderds1:
+#if MEDUSA
+        move.w    (a1),(a0)+
+        move.w    (a1),(a0)+
+        dbf       d0,iderds1
+idewrsec:
+        rts
+        dcb.w 7,-1 /* also overwrites idewrsec below */
+#else
         move.l    (a1),(a0)+
         dbf       d0,iderds1
+        rts
+#endif
 #else
 	moveq     #$1f,d0                   /* d0 = (# of words of data to read / 8) - 1 */
         lea       (ide_datar).l,a1          /* a1 -> data bus */
@@ -996,8 +1024,8 @@ rb0:    move.w    (a1),(a0)+                /* read data from bus */
         move.w    (a1),(a0)+                /* read data from bus */
         move.w    (a1),(a0)+                /* read data from bus */
         dbra      d0,rb0                    /* repeat until all done */
-#endif
         rts
+#endif
 
 /*
  * wrtbuf() - writes 512 bytes (128 longs) of data to sector buffer.
@@ -1007,6 +1035,7 @@ rb0:    move.w    (a1),(a0)+                /* read data from bus */
  */
 /* 306de: 00e01eb2 */
 /* 206de: 00e019d6 */
+#if !MEDUSA | (TOSVERSION < 0x300)
 idewrsec:
 #if TOSVERSION >= 0x300
         moveq.l   #127,d0
@@ -1014,6 +1043,7 @@ idewrsec:
 idewrs1:
         move.l    (a0)+,(a1)
         dbf       d0,idewrs1
+        rts
 #else
  	moveq     #$1f,d0                   /* d0 = (# of words of data to read / 8) - 1 */
         lea       ide_datar,a1              /* a1 -> data bus */
@@ -1026,8 +1056,9 @@ wb0:    move.w    (a0)+,(a1)                /* write data to bus */
         move.w    (a0)+,(a1)                /* write data to bus */
         move.w    (a0)+,(a1)                /* write data to bus */
         dbra      d0,wb0                    /* repeat until all done */
-#endif
         rts
+#endif
+#endif
 
 /*
  * check for IDE ready, with timeout of ~5 sec

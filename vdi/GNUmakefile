@@ -40,8 +40,18 @@ text.o: text.c
 	$(AM_V_at)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $*.s
 	$(AM_V_at)$(RM) $*.s
 
+# vs_color and vq_color are completely disabled in the hades, roms
+# and in the Medusa roms for 3.06
+disable_vs_color = 0
 ifeq ($(HADES),1)
-# vs_color and vq_color are completely disabled in the roms
+disable_vs_color = 1
+endif
+ifeq ($(MEDUSA),1)
+ifeq ($(TOSVERSION),306)
+disable_vs_color = 1
+endif
+endif
+ifeq ($(disable_vs_color),1)
 ttcolor.o: ttcolor.c
 	$(AM_V_CC)$(CC) $(CFLAGS) $(CPPFLAGS) -c -S -o $*.s $<
 	$(AM_V_at)$(SED) -n '{$$!N; s/_vs_color:\nlink R14,#0/_vs_color:\ndc.w 0x4e75,0/; {P;D}}' $*.s > $*.1; mv $*.1 $*.s
@@ -61,6 +71,7 @@ vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 check::
+	@:
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

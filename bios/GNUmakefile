@@ -59,6 +59,7 @@ blkdev.o: blkdev.c
 endif
 
 check::
+	@:
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

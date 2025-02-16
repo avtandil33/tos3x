@@ -35,9 +35,10 @@ mmutable_ram equ $700 /* CPU root table in memory */
 
 		text
 
+/* 306de: 00e016ec */
 		xdef initmmu
 initmmu:
-#if HADES
+#if HADES | MEDUSA
 	rts
 	RESERVE_SPACE(initmmu,$e016ec,$e01724)
 #else

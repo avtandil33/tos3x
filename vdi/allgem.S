@@ -241,7 +241,7 @@ _FindDevice:
         move.w    (a0),d1
         cmp.w     #STAYINDEV,d1
         beq.s     FindDev3
-#if HADES
+#if HADES | MEDUSA
         cmpi.w    #hades_vidmo,d0
 #else
         cmp.w     #DEFREZ,d0
@@ -917,7 +917,7 @@ _esc_init:
         cmp.w     #3,d0
         blt.s     esc2	; see if we have > 4 planes
 #else
-#if HADES
+#if HADES | MEDUSA
         cmpi.w    #hades_vidmo,d0
 #else
         cmp.w     #DEFREZ,d0

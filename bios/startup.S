@@ -269,7 +269,11 @@ zero:
 		lea     no020(pc),a0
 		move.l  a0,(_illinst).w
 #endif
+#if MEDUSA
+        dc.w $203c,0,0            /* clear & disable instruction/data caches off */
+#else
         move.l  #$00000808,d0     /* clear & disable instruction/data caches on */
+#endif
         D0_CACR              /*  68020-60 (even though bit usage differs!) */
 
         moveq   #0,d0
@@ -304,10 +308,15 @@ nofpu1:
 		cmpa.l #$e00000,a1
 		bcs    nommur
 #endif
+#if MEDUSA
+		bra.s     firstmemchk
+		dcb.b 24,-1
+#else
         TO_TC(zero)          /*  we're done if we get a lineF exception ... */
 nommur:
         TO_TTR0(zero)        /* first we initialise the TTRs (ACRs on a 68ec030) */
         TO_TTR1(zero)
+#endif
 #endif
 
 #if !TP_50 /* PAK */
@@ -318,11 +327,15 @@ nommur:
  * durchfuehren.
  */
 #if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
+#if MEDUSA
+		dcb.b 12,-1
+#else
 #if (TOSVERSION >= 0x306)
         FRESTORE(zero)
 #endif
         btst      #0,(scu_gp1).w			/* memconfig valid? */
         beq.s     noreset
+#endif
 #endif
 #endif
 #endif
@@ -335,12 +348,19 @@ nommur:
 		beq.s     noreset
 #endif
 
+firstmemchk:
 #if !TP_50 /* for PAK, already done above */
         lea       memcret(pc),a6
         bra       memchk
 memcret:
         bne.s      noreset
+#if MEDUSA & (TOSVERSION >= 0x300)
+		nop
+		nop
+		nop
+#else
         move.b    (memctrl).w,(memconf).w  /* initialize memory controller */
+#endif
 #endif
 
 resetvec:
@@ -402,6 +422,9 @@ meminit:
         move.b    #7,2(a0) /* deselect floppy drives */
 #endif
 
+#if MEDUSA
+#include "medusamm.S"
+#else
 #if TP_50
 		bsr       VDOSkip1
 #else
@@ -434,8 +457,9 @@ notpal:
         tst.w     tt_mcu                    /* ST Book: ??? */
 #endif
 #endif
-#endif
-#endif
+#endif /* TOSVERSION < 0x400 */
+#endif /* TP_50 */
+
 
 /*
  * next, set up the palette(s)
@@ -466,9 +490,6 @@ initpal2:
         move.b    #$01,(v_bas_h).w
         clr.b     (v_bas_m).w
 
-#if MEDUSA
-#include "medusamm.S"
-#else
 #if TP_03 /* RAMRESET */
 #include "../tospatch/patches/ramres.S"
 #else
@@ -479,7 +500,6 @@ initpal2:
 #endif
 
 #if TOSVERSION < 0x400
-
         move.b    (memctrl).w,d6                /* d6 = memory controller configuration */
 #if (TOSVERSION < 0x300) | TP_50
         move.b    d6,(memconf).w                /* setup memory controller configuration register */
@@ -1177,9 +1197,13 @@ exc_wei: ds.b 0
         D0_CACR                         /* cacr setzen */
 #if BINEXACT
         bra.s setcpu
+#if TOSVERSION >= 0x300
+		dcb.w 3,-1
+#else
         dc.w 2 /* remains of original code */
         movea.l   a1,a7         /* restore SP */
         move.l    a3,(a2)       /* save illegal instruction vector */
+#endif
 setcpu:
 #endif
 #else
@@ -1325,9 +1349,15 @@ cooMCH2:	move.l    a1,(_buserror).w
 #else
 #if TOSVERSION < 0x400
         move.l    #$5F56444F,(a0)+ /* '_VDO' */
+#if MEDUSA & (TOSVERSION >= 0x300)
+        move.l    #$00000000,(a0)+ /* 0,0 = ST Shifter */
+        move.l    #$5F4D4348,(a0)+ /* '_MCH' */
+        move.l    #$00000000,(a0)+ /* 0,0 = ST */
+#else
         move.l    #$00020000,(a0)+ /* 2,0 = TT Shifter */
         move.l    #$5F4D4348,(a0)+ /* '_MCH' */
         move.l    #$00020000,(a0)+ /* 2,0 = TT */
+#endif
 #endif
 #endif /*  (TOSVERSION < 0x300) | TP_50 */
 
@@ -1340,7 +1370,12 @@ cooSWI: move.b    #$7F,d0
 #endif
         move.l    #$5F535749,(a0)+ /* '_SWI' */
         moveq.l   #0,d0
+#if MEDUSA & (TOSVERSION >= 0x300)
+		nop
+		nop
+#else
         move.w    (STConfig).w,d0
+#endif
         lsr.w     #8,d0
 #if OS_COUNTRY == CTRY_CZ
 		bclr      #6,d0 /* WTF? */
@@ -1456,7 +1491,7 @@ frbdone:
 #if !STBOOK & (TOSVERSION < 0x400)
         lea.l     just_rte(pc),a3
         lea.l     bios_unimpl(pc),a4
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
         lea medusa_exception,a1        /* neuer vektor */
         lea (2*4).w,a0              /* beginn mit bus error */
         move.w #64-3,d0
@@ -1595,7 +1630,7 @@ setvb1:
             move.b    d1,(v_shf_mod).w          /* set rez hardware register */
 
 #else
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
         /* no monitor change */
         nop
         nop
@@ -1609,7 +1644,7 @@ setvb1:
         moveq.l   #TTHIGH,d1                /* Switch to 1280x960x1 */
 moncolor:
 #endif
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 		moveq #hades_vidmo,d1
 		nop
 		nop
@@ -1772,7 +1807,11 @@ end_logo:
 #else
 
 #if TOSVERSION >= 0x300
+#if MEDUSA
+        dc.w $203c,0,0            /* clear & disable instruction/data caches off */
+#else
         move.l    #$00003111,d0
+#endif
         D0_CACR
 #endif
 
@@ -1831,7 +1870,7 @@ logocol3:
         beq.s     logomono
         cmp.b     #TTHIGH,d0
         beq.s     logomono         /* TT-High resolution? */
-#if (TOSVERSION >= 0x300) & !TP_50 /* PAK */
+#if (TOSVERSION >= 0x300) & /* !MEDUSA & */ !TP_50 /* PAK */
         adda.w    #((640/8)*4)*4,a1  /* start at screen line 4 */
 #else
         adda.w    #((320/8)*4)*4,a1  /* start at screen line 4 */
@@ -1846,7 +1885,7 @@ logocol2:
         move.w    d2,(a1)+
         move.w    d2,(a1)+
         dbf       d1,logocol2
-#if (TOSVERSION >= 0x300) & !TP_50 /* PAK */
+#if (TOSVERSION >= 0x300) & /* !MEDUSA & */ !TP_50 /* PAK */
         adda.w    #(640/8-12)*4,a1
 #else
         adda.w    #(320/8-12)*4,a1
@@ -1854,7 +1893,7 @@ logocol2:
         dbf       d0,logocol1
         bra.s     logodone
 logomono:
-#if (TOSVERSION >= 0x300) & !TP_50 /* PAK */
+#if (TOSVERSION >= 0x300) & !MEDUSA & !TP_50 /* PAK */
         adda.w    #(1280/8)*4,a1   /* start at screen line 4 */
 #else
         adda.w    #(640/8)*4,a1    /* start at screen line 4 */
@@ -1865,7 +1904,7 @@ logomon1:
 logomon2:
         move.b    (a0)+,(a1)+
         dbf       d1,logomon2
-#if (TOSVERSION >= 0x300) & !TP_50 /* PAK */
+#if (TOSVERSION >= 0x300) & !MEDUSA & !TP_50 /* PAK */
         adda.w    #(1280/8)-12,a1
 #else
         adda.w    #(640/8)-12,a1
@@ -1999,8 +2038,13 @@ crccheck:
         move.b    (a0),d1            /* high byte of CRC */
         lsl.w     #8,d1
         move.b    numbanks(a0),d1    /* low byte of CRC */
+#if MEDUSA & (TOSVERSION >= 0x300)
+		nop							 /* no crc fail */
+		nop
+#else
         cmp.w     d1,d0
         bne.s     crcfail
+#endif
         addq.l    #1,a5
         dbf       d6,crccheck
 #if TP_50 /* PAK */
@@ -2064,7 +2108,7 @@ crcok:
 #if TP_50 /* PAK */
         cmpi.b    #STHIGH,(_sshiftmod).w         /* ST high? */
 #else
-#if HADES
+#if HADES | MEDUSA
         cmpi.b    #hades_vidmo,(_sshiftmod).w    /* TT high? */
 #else
         cmpi.b    #TTHIGH,(_sshiftmod).w         /* TT high? */
@@ -2089,11 +2133,16 @@ crcok:
 		nop
 		nop
 #else
+#if MEDUSA
+        dc.w $203c,0,0
+#else
         move.l    #$00000808,d0 /* BUG? this will be skipped too if in TT high rez */
+#endif
         D0_CACR
 #endif
 nosetrez:
-#endif
+#endif /* TOSVERSION >= 0x300 */
+
 
 /* During boot till this point any exception triggers a coldboot, which */
 /* erases the first MB and resets. From now own we point the exceptions */
@@ -2367,6 +2416,7 @@ boot3:
 		bra.s confdone
 		RESERVE_SPACE(dmadone,$e00b0c,$e00b3e)
 #else
+        jsr       scsirst
 #if TP_50 /* PAK */
 /*
  * c't 9/92 / SE (21.09.93):
@@ -2379,16 +2429,25 @@ boot3:
 #else
         moveq.l   #8,d4     /* d4 = device (SCSI0) */
 #endif
+        and.w     #$00F8,d0
 #else
-        jsr       scsirst
 #if TP_64 /* IDE_BOOT */
         moveq.l   #16,d4     /* d4 = device (IDE0) */
+        move.b    (scu_gp1).w,d0
+        and.w     #$00F8,d0
+#else
+#if MEDUSA
+        moveq.l   #16,d4     /* d4 = device (IDE0) */
+		moveq.l    #0,d0
+		move.w    d0,(_bootpref).w
+        bra.s     confdone
 #else
         moveq.l   #8,d4      /* d4 = device (SCSI0) */
-#endif
         move.b    (scu_gp1).w,d0
-#endif
         and.w     #$00F8,d0
+#endif
+#endif
+#endif
         move.w    d0,(_bootpref).w
         bne.s     confdone
 #if !TP_50 /* PAK */
@@ -2460,15 +2519,27 @@ no_ni_fer:
 		bra.s boot1
 		RESERVE_SPACE(hades_acsi_boot,$e00b80,$e00b94)
 #else
+#if MEDUSA & (TOSVERSION >= 0x300)
+		cmpi.w     #16,d4
+		bne.s      no_ni_fer
+		rts
+no_ni_fer:
+		cmpi.w     #17,d4
+		ble.s      confdone
+		moveq      #0,d4
+		bra.s      confdone
+		rts
+#else
         move.w    d4,d0
-        and.w     #$0007,d0
+        and.w     #7,d0
         bne.s     confdone
-        cmp.w     #$0008,d4
+        cmp.w     #8,d4
         beq.s     nodmaboot
         moveq.l   #0,d4       /* retry all again with ACSI devices */
         bra.s     confdone
 nodmaboot:
         rts
+#endif
 #endif
 #endif
 
@@ -2736,6 +2807,17 @@ L0178:
 mon_chg:
 
 #else
+#if MEDUSA & (TOSVERSION >= 0x300)
+vbl_medusa:
+        jsr       blink						/* blink cursor */
+#if BINEXACT
+        bra       vbl_no_screenpt
+		RESERVE_SPACE(vbl_medusa,$e00c9a,$e00d60)
+vbl_no_screenpt:
+#endif
+        bsr       _flopvbl
+		
+#else
 #if !STBOOK
         move.b    (MFP_GPIP).w,d1
         tst.b     _has_dmasound
@@ -2848,6 +2930,7 @@ vbl_no_palette:
 vbl_no_screenpt:
         bsr       _flopvbl
 
+#endif /* MEDUSA */
 #endif /* HADES */
 
 /* screen hardcopy */
@@ -2985,7 +3068,7 @@ bx_sp_ok:
         movea.l   (a0),a0                /* call indirect through system variable */
 #else
         movea.l   d1,a0                  /* (quick and dirty test-for-negative) */
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* indirekte Sprungadresse bei (X)Bios anders bestimmen */
         bmi       jmp_ind
 #else
@@ -3038,7 +3121,7 @@ bios_vecs:
 /* 206de: 00e00dd6 */
 /* 104de: 00fc084a */
 xbios_vecs:
-#if HADES
+#if HADES | MEDUSA
 /* new TT xbios calls are not available */
         dc.w 65
 #else
@@ -3480,7 +3563,12 @@ _physbase:
         rts
         RESERVE_SPACE(_physbase,$e01144,$e01160)
 #else
-#if MEDUSA
+#if MEDUSA & (TOSVERSION >= 0x300)
+		move.l #medusa_stram_start,d0     		/* phys base holen */
+        rts
+        RESERVE_SPACE(_physbase,$e01144,$e01160)
+#else
+#if MEDUSA & (TOSVERSION < 0x300)
 		move.l (v_bas_h-1).w,d0
 		lsl.w #8,d0
 		andi.l #medusa_stram_start+$ffff00,d0
@@ -3501,6 +3589,7 @@ _physbase:
 #endif
 physbas1:
         rts
+#endif
 #endif
 
 /*
@@ -3526,7 +3615,7 @@ _logbase:
 /* 104de: 00fc0a72 */
 /* 106de: 00e00c0a */
 _getrez:
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 /* only fixed resolution */
 		moveq #hades_vidmo,d0
         rts
@@ -3562,7 +3651,7 @@ _getrez:
 /* 104de: 00fc0a7e */
 /* 106de: 00e00c10 */
 _vsetscreen:
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 /* only fixed resolution */
 		rts
 		RESERVE_SPACE(_vsetscreen,$e01172,$e011c8)
@@ -3618,7 +3707,7 @@ nosetr:
 /* 104de: 00fc0ac4 */
 /* 106de: 00e00c5c */
 _setpalette:
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 		rts
 		RESERVE_SPACE(_setpalette,$e011c8,$e011d0)
 #else
@@ -3640,7 +3729,7 @@ _setpalette:
 /* 104de: 00fc0acc */
 /* 106de: 00e00c64 */
 _setcolor:
-#if HADES
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 		rts
 		RESERVE_SPACE(_setcolor,$e011d0,$e01202)
 #else
@@ -3693,7 +3782,7 @@ puntaes1:
 /* 306de: 00e0121c */
 /* 206de: 00e010e2 */
 /* 104de: 00fc0b0a */
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* Space for new program parts on old exception handler */
 jmp_ind:
         add.l #INDIRECT,a0
@@ -3701,6 +3790,8 @@ jmp_ind:
         bra bx_notindirect
 
 	xdef cache_aus
+	xdef cache_aus1
+cache_aus1:
 cache_aus:
 		st 	_flock.w
 		move.l 	d0,-(sp)
@@ -3715,6 +3806,8 @@ cache_aus:
 		rts
 
 	xdef cache_ein
+	xdef cache_ein1
+cache_ein1:
 cache_ein:
 		sf 	_flock.w
 		move.l 	d0,-(sp)
@@ -3759,10 +3852,16 @@ any_vec:
 savp_2:
 		move.l    (sp)+,(_proc_enum).w       /* save bogus PC + exception number */
 #endif
+#if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 #if HADES
 		jmp hades_exception
+#else
+		jmp medusa_exception
+#endif
 
 /* Space for new program parts on old exception handler */
+	xdef cache_aus
+	xdef cache_aus1
 cache_aus1:
 		st 	_flock.w
 cache_aus:
@@ -3775,6 +3874,8 @@ cache_aus:
 		move.l 	(sp)+,d0
 		rts
 
+	xdef cache_ein
+	xdef cache_ein1
 cache_ein1:
 		sf 	_flock.w
 cache_ein:
@@ -4319,7 +4420,7 @@ braop:
 /* 104de: 00fc0e9e */
 /* 106de: 00e0103a */
 _blitmode:
-#if TP_18 /* IGNORE_BLITTER */
+#if TP_18 | (MEDUSA & (TOSVERSION >= 0x300)) /* IGNORE_BLITTER */
 		moveq     #0,d0
         rts
 #else
@@ -4612,7 +4713,7 @@ mchtest4:
 #if (TOSVERSION >= 0x300) & !TP_50
 /* 306de: 00e01756 */
 _esetshift:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		move.l #hades_vidmo*256,d0
@@ -4638,7 +4739,7 @@ _esetshift:
  */
 /* 306de: 00e01786 */
 _egetshift:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		move.l #hades_vidmo*256,d0
@@ -4654,7 +4755,7 @@ _egetshift:
  */
 /* 306de: 00e0178e */
 _esetbank:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		move.l #hades_vidmo*256,d0
@@ -4677,7 +4778,7 @@ esetb1:
 /* 306de: 00e017a6 */
 _esetcolor:
         moveq.l   #0,d0
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		rts
@@ -4707,7 +4808,7 @@ esetcol1:
  */
 /* 306de: 00e017c8 */
 _esetpalette:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
         move.w    4(a7),d0
@@ -4745,7 +4846,7 @@ esetpal3:
  */
 /* 306de: 00e017f6 */
 _egetpalette:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
         move.w    4(a7),d0
@@ -4782,7 +4883,7 @@ egetpal3:
  */
 /* 306de: 00e01824 */
 _esetgray:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		moveq #hades_vidmo,d0
@@ -4810,7 +4911,7 @@ esetgr2:
  */
 /* 306de: 00e01848 */
 _esetsmear:
-#if HADES
+#if HADES | MEDUSA
 /* only fixed resolution */
 /* THO: imho unneeded, since the XBIOS call is disabled */
 		moveq #hades_vidmo,d0

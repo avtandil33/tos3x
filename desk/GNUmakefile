@@ -34,6 +34,7 @@ vars.o: $(top_srcdir)/common/vars.S $(top_srcdir)/common/config.h
 	$(AM_V_AS)$(AS) $(ASFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 check::
+	@:
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(EXTRA_DIST2) $(top_srcdir)/$(DISTDIR1)/$(subdir)

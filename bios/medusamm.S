@@ -2,13 +2,43 @@
 
 medusa_stram_start   equ $7f000000      /* orginal st ram startadresse */
 
-#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400) & !TP_50
-        btst      #0,(scu_gp1).w
-        beq.s     domemchk
+#if TOSVERSION >= 0x300
+        bra.s medusa_cont
+		dcb.b 40,-1
+
+#else
+
+        btst      #0,_os_conf+1             /* check bit: configured for 50hz? */
+        beq.s     notpal                    /* (nope -- we're good ol' NTSC) */
+        lea       ret_1b(pc),a6
+        bra       waitvbl                   /* a short delay for PAL */
+ret_1b:
+#if TP_02 /* COLOR_60HZ */
+        move.b    #0,(v_syncmod).w          /* yes -- twiddle to 60hz */
+#else
+        move.b    #2,(v_syncmod).w          /* yes -- twiddle to 50hz */
+#endif
+notpal:
+/*
+ * next, set up the palette(s)
+ */
+
+        lea.l     (palette).w,a1
+        move.w    #16-1,d0
+        lea.l     dflt_pal(pc),a0
+initpal:
+        move.w    (a0)+,(a1)+
+        dbf       d0,initpal
+
+/* set Video screen memory position to 0x10000 */
+        move.b    #$01,(v_bas_h).w
+        clr.b     (v_bas_m).w
+
 #endif
 
+medusa_cont:
         move.b    (memctrl).w,d6                /* d6 = memory controller configuration */
-#if (TOSVERSION < 0x300) | TP_50
+#if TOSVERSION < 0x300
         move.b    d6,(memconf).w                /* setup memory controller configuration register */
 #endif
 
@@ -18,6 +48,37 @@ medusa_stram_start   equ $7f000000      /* orginal st ram startadresse */
         bra       memchk                        /* check if the memory configuration is valid */
 memcret2:
         beq       nomemchk
+
+#if TOSVERSION >= 0x300
+
+domemchk:
+        lea       (SUPSIZ*2+_supstk).w,a7       /* stack startup */
+        move.l    #st_ramsize_done,_buserror.w     /* bus error means end of ram */
+        move.w    #$FB55,d3           /* d3.w = difference between adjacent stored values */
+        moveq     #2,d7
+        swap      d7                  /* d7=$20000 */
+        movea.l   d7,a0               /* a0 = address of current test zone */
+next_zone:
+        movea.l   a0,a1               /* a1 -> memory being tested */
+        move.w    d0,d2               /* d2.w = test value */
+        moveq.l   #42,d1              /* d1.w = loop count-1 */
+store_mem:
+        move.w    d2,-(a1)            /* store a value */
+        add.w     d3,d2               /* update the value for next time */
+        dbf       d1,store_mem        /* rinse & repeat */
+/* now check the values we stored */
+        movea.l   a0,a1               /* a1 -> test area */
+        moveq.l   #42,d1              /* loop count */
+check_mem:
+        cmp.w     -(a1),d0
+        bne.s     st_ramsize_done     /* miscompare, ram invalid, exit */
+        add.w     d3,d0               /* update for next compare */
+        dbf       d1,check_mem        /* until we're done */
+        adda.l    d7,a0               /* point to next test area */
+        cmp.l     #$820000,a0         /* nicht mehr als 8 MB +128 KB(wird wieder subtrahiert) */
+        blt.s     next_zone
+
+#else
 
 domemchk:
                 moveq #0,d6
@@ -107,11 +168,24 @@ check_mem:
                 add.l d7,a0                     /* naechster 128 KB */
                 cmp.l #$A20000,a0               /* nicht mehr als 10 MB +128 KB(wird wieder subtrahiert) */
                 blt next_zone
+#endif
+
 st_ramsize_done:
                 sub.l d7,a0                     /* endadresse speicher fast ram 1 */
                 move.l a0,d4
-                lea sysvars_start,a0            /* beginn loeschen */
+
+/* =========================================================================== */
+/* ==== This part is executed only on first boot ============================= */
+/* =========================================================================== */
+
+        /* Clear the memory */
+#if TP_04 & !TP_03 /* MEM_INIT & !RAMRESET */
+		        movea.w   #$100,a0
+#else
+        		lea       sysvars_start,a0      /* beginn loeschen */
+#endif
                 moveq #0,d0
+
 clrmem:
                 move.l d0,(a0)+                 /* speicher loeschen */
                 move.l d0,(a0)+
@@ -124,16 +198,38 @@ clrmem:
                 cmp.l d4,a0                     /* schon fertig */
                 blt.s clrmem                    /* nein -> wiederholen */
                 move.b d6,memctrl.w             /* config sichern */
+#if TOSVERSION < 0x300
                 move.l d5,____md.w              /* st ram top */
+#endif
                 move.l d4,_phystop.w            /* memtop sichern */
-                clr.l $5a4.w                    /* kein TT Ram */
+                clr.l _ramtop.w                 /* kein TT Ram */
                 move.l #$752019f3,_memvalid.w   /* memvalidwerte */
                 move.l #$237698aa,_memval2.w
                 move.l #$5555aaaa,_memval3.w
                 move.l #$1357bd13,_ramvalid.w
 
 nomemchk:
-                lea $3de8.w,a7                  /* stack startup */
+
+#if (TOSVERSION >= 0x300)
+                lea (SUPSIZ*2+_supstk).l,a7     /* stack startup */
+                lea _has_dmasound.w,a0
+                lea __ebss,a1
+                moveq #0,d0
+clrbss:
+                move.w     d0,(a0)+
+                cmpa.l     a0,a1
+                bne.s      clrbss
+
+				jsr screen_init
+                moveq #0,d0
+
+scrsize equ 524288
+                move.w #(scrsize/16)-1,d1
+                lea        medusa_stram_start,a0
+                move.l     a0,_v_bas_ad.w       /* screen adr setzen */
+
+#else
+                lea (SUPSIZ*2+_supstk).w,a7     /* stack startup */
                 lea _has_dmasound.w,a2
                 clr.b (a2)+
                 move.l a7,a6                    /* stack sichern */
@@ -198,6 +294,9 @@ scrsize equ ((640*400)/8+$300)
                 move.l a0,_v_bas_ad.w           /* screen adr setzen */
                 move.b (_v_bas_ad+1).w,v_bas_h.w  /* screen setzen */
                 move.b (_v_bas_ad+2).w,v_bas_m.w
+
+#endif
+
 clrscr:
                 move.l d0,(a0)+                 /* screen loeschen */
                 move.l d0,(a0)+
@@ -205,7 +304,12 @@ clrscr:
                 move.l d0,(a0)+
                 dbf d1,clrscr
 #if BINEXACT
+#if TOSVERSION >= 0x300
+                bra   gemchk                    /* ende e002c8 */
+                RESERVE_SPACE(domemchk,$e00110,$e002c8)
+#else
                 bra.s gemchk                    /* ende e002b2 */
                 RESERVE_SPACE(domemchk,$e000e2,$e002b2)
+#endif
 #endif
 

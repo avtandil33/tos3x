@@ -3626,7 +3626,7 @@ mousekey:  dc.b      $47,$c7,$52,$d2
 /* 404: 00e0398c */
 	xdef coldboot
 coldboot:
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* neuer kaltstart */
 		bsr medusa_coldboot
 #else
@@ -3722,6 +3722,22 @@ loopclr:
 		RESERVE_SPACE(coldboot,$e0380c,$e0387c)
         nop
 #else
+#if MEDUSA
+/* Medusa code for TOS 306 */
+		moveq.l    #0,d0
+		D0_CACR
+		CINVA_BC
+		D0_TC
+		PFLUSHA
+		D0_DTT0
+		D0_DTT1
+		move.l	#$ffc040,d0	/* no cache serialized */
+		D0_ITT0 	        /* transparent translation instruction 0 */
+		D0_ITT1	            /* transparent translation instruction 1 */
+		bra.s coldboo0
+		dc.w -1
+coldboo0:
+#else
 #if TP_50 /* PAK */
 		lea     no020_2(pc),a0
 		move.l  a0,ABSW(_illinst)
@@ -3766,6 +3782,7 @@ coldboo0:
         TO_TTR1(zero2)
 #endif
 #endif
+#endif /* MEDUSA */
 /* copy erase routine to low memory */
         move.w    #(coldbend-coldboor+3)/4-1,d0
         lea.l     coldboor(pc),a0
@@ -3789,7 +3806,11 @@ coldboo3:
 /* clear FASTRAM until buserror */
 coldboo4:
         move.l    ABSW($00000004),ABSW(_buserror)
+#if MEDUSA
+        lea.l     FASTRAMBASE+$800000,a0
+#else
         lea.l     FASTRAMBASE,a0
+#endif
 coldboo5:
         move.l    d0,(a0)+
         move.l    d0,(a0)+

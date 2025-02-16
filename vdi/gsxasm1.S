@@ -778,7 +778,7 @@ wm_tbl:	dc.w	wm0y_nxt-*
 pixfrag: ds.b 0
 
 #if P68030
-#if HADES
+#if HADES | MEDUSA
 		CPUSHA_BC
 		nop
 		bra.s not040

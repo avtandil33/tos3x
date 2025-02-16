@@ -12,17 +12,28 @@ flushCaches:
 #else
 #if MEDUSA
 	CPUSHA_BC
+#if (TOSVERSION < 0x300)
 	rts
 	dc.w $700 /* remains of orignal code */
-#else
-        move.w    sr,-(a7)
-        ori.w     #$0700,sr
-#endif
         CACR_D0
         or.l      #$00000808,d0           /* CI (Clear Instruction Cache), DI (Clear Data Cache) */
         D0_CACR
         move.w    (a7)+,sr
         rts
+#else
+	nop
+	rts
+	RESERVE_SPACE(flushCaches,$e005f2,$e0060a)
+#endif
+#else
+        move.w    sr,-(a7)
+        ori.w     #$0700,sr
+        CACR_D0
+        or.l      #$00000808,d0           /* CI (Clear Instruction Cache), DI (Clear Data Cache) */
+        D0_CACR
+        move.w    (a7)+,sr
+        rts
+#endif
 #endif
 
 /*
@@ -89,7 +100,7 @@ int_p3:
         bsr       flushCaches
 #endif
         move.w    20(a7),d0        /* d0 = SR */
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* bevor modifizierter code angesprungen wird cache push */
         bsr       mod_cod_jsr
 #else
@@ -109,7 +120,7 @@ int_p4:
 #endif
         lea.l     20(a7),a0           /* a0 = address of SR from stack frame */
         movem.l   8(a7),d0-d2
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* bevor modifizierter code angesprungen wird cache push */
         bsr       mod_cod_jsr
 #else
@@ -127,7 +138,7 @@ int_p5:
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
         move.w    12(a7),d0
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 /* bevor modifizierter code angesprungen wird cache push */
         bsr       mod_cod_jsr
 #else
@@ -139,7 +150,7 @@ pi_back:
         movea.l   (a7)+,a0
         movea.l   (a7)+,a1
         movem.l   (a7)+,d0-d2
-#if MEDUSA
+#if MEDUSA & (TOSVERSION < 0x300)
 	/* nach privileg violation neue exception adresse setzen */
 	jmp medusa_exception
 #else

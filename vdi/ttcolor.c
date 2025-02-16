@@ -81,7 +81,7 @@ VOID vs_color(NOTHING)
 	register short temp;
 	register short total;
 
-#if HADES
+#if HADES | MEDUSA
 	/*
 	 * Note: this is all useless. In the final ROM,
 	 * this whole routine was disabled by putting a RTS
@@ -115,7 +115,7 @@ VOID vs_color(NOTHING)
 	case _640x480:
 
 #if PLANES8
-#if HADES
+#if HADES | MEDUSA
 		asm("move.l #$200,d4"); /* hades_vidmo * 256 */
 		temp &= 15;
 		temp <<= 4;

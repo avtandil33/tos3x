@@ -170,7 +170,7 @@ x01A6:
 			move.b    #0,CRTC_D-CRTC_I(a0)
 			move.w    #25-1,d1
 			moveq.l   #0,d0
-			lea.l     o56-ndevtab(a1),a2
+			lea.l     crtc-ndevtab(a1),a2
 			bsr       set_multiple_idxreg
 			lea.l     $01ce(a6),a0
 			move.b    #$86,(a0)
@@ -206,7 +206,7 @@ x01A6:
 			lea.l     GDC_I(a6),a0
 			move.w    #9-1,d1
 			moveq.l   #0,d0
-			lea.l     et4K_crt-ndevtab(a1),a2
+			lea.l     et4K_gdc-ndevtab(a1),a2
 			bsr       set_multiple_idxreg
 			move.b    IS1_RC(a6),d0
 			lea.l     ATC_IW(a6),a0
@@ -384,7 +384,7 @@ x04B2:
 			move.b    #$00,CRTC_D-CRTC_I(a0)
 			move.w    #25-1,d1
 			moveq.l   #0,d0
-			lea.l     o56-ndevtab(a1),a2
+			lea.l     crtc-ndevtab(a1),a2
 			bsr.s     set_multiple_idxreg
 			bsr       nsdelay
 			move.b    #$33,(a0)
@@ -409,7 +409,7 @@ x04B2:
 			lea.l     GDC_I(a6),a0
 			move.w    #9-1,d1
 			moveq.l   #0,d0
-			lea.l     et4K_crt-ndevtab(a1),a2
+			lea.l     et4K_gdc-ndevtab(a1),a2
 			bsr.s     set_multiple_idxreg
 			move.b    #$36,CRTC_I(a6)
 			bsr       nsdelay
@@ -585,8 +585,8 @@ et4K_ts:
             dc.b $f4
 			dc.b $03
 
-/* CRT Controller: registers 0 - 0x18 */
-et4K_crt:
+/* GDC Controller: registers 0 - 0x8 */
+et4K_gdc:
 			dc.b $00
 			dc.b $00
 			dc.b $00
@@ -596,7 +596,9 @@ et4K_crt:
 			dc.b $01
 			dc.b $0f
 			dc.b $ff
-o56:
+
+/* CRT Controller: registers 0 - 0x18 */
+crtc:
 			dc.b $5f
 			dc.b $4f
 			dc.b $50

@@ -98,7 +98,7 @@ sb_bitblt: ds.b 0
  * We are going to compile things in memory later on, so flush the
  * the instruction cache if we are on a 68030
  */
-#if HADES
+#if HADES | MEDUSA
 	CPUSHA_BC
 	nop
 	bra.s not040

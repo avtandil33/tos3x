@@ -15,8 +15,8 @@
 #endif
  
 #if MEDUSA
-/* Medusa patches can only be applied to 2.06 */
-#if TOSVERSION != 0x206
+/* Medusa patches can only be applied to 2.06/3.06 */
+#if (TOSVERSION != 0x206) & (TOSVERSION != 0x306)
 #undef MEDUSA
 #define MEDUSA 0
 #endif
@@ -777,7 +777,7 @@
 #define WX_FULL_CONT 2000
 #endif
 
-#if HADES
+#if HADES | MEDUSA
 /* video resolution  2=st high 6=tt high */
 #define hades_vidmo  2
 #endif

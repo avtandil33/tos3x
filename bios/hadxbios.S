@@ -1968,15 +1968,21 @@ loop_dac:
 		lea		pci_vga_base,a0
 		jmp		(a6)			/* back to caller */
 
+/* Attribute Controller: registers 0 - 0x17 */
 atc:	dc.b $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F
 		dc.b $01,$00,$0F,$00,$00,$00,$00,$00
+/* CRT Controller: registers 0 - 0x3d */
 crtc:	dc.b $60,$4F,$4F,$84,$56,$86,$c1,$1F,$00,$40,$00,$00,$00,$00,$07,$30
 		dc.b $98,$00,$8F,$28,$40,$8F,$C2,$a3,$FF,$00,$00,$00,$00,$00,$00,$00
 		dc.b $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 		dc.b $00,$80,$28,$00,$00,$00,$13,$09,$00,$00,$00,$00,$00,$00,$00,$00
 gdc:	dc.b $00,$00,$00,$00,$00,$00,$01,$0F,$FF
-ts:		dc.b $03,$01,$0F,$00,$06,$00,$00,$B4
-ts6:	dc.b $03,$05,$0F,$00,$06,$00,$00,$B4
+
+/* MISC_W + Timing Sequencer registers 1...6 */
+ts:		dc.b $03
+		dc.b $01,$0F,$00,$06,$00,$00,$B4
+ts6:	dc.b $03
+		dc.b $05,$0F,$00,$06,$00,$00,$B4
 		even
 
 /* isa et4000 grafikkarte initialisieren */
@@ -1985,7 +1991,7 @@ isainit:
 		cmp.b   #$ff,$fff103c0      /* mach64? */
 		beq		m64init2            /* ja-> */
 		lea		isa_vga_reg,a2
-		move.b	#7,$03C2(a2)		/* misc */
+		move.b	#$07,$03C2(a2)		/* misc */
 		move.b	#1,$03C3(a2)		/* videosub */
 		move.b	#$17,$03B4(a2)		/* crtc mode control */
 		clr.b	$03B5(a2)			/* mono */
@@ -1995,11 +2001,12 @@ isainit:
 		clr.b	$03B5(a2)
 		move.b	#$11,$03D4(a2)		/* color */
 		clr.b	$03D5(a2)
-		move.b	#$FF,$03C6(a2)		/* pel mask */
+		move.b  #$FF,$03C6(a2)		/* pel mask */
 		clr.b	$03C4(a2)			/* ts */
 		clr.b	$03C5(a2)
 		move.b	#3,$03BF(a2)
 		move.b	#$a0,$03D8(a2)
+
 		lea		$03C4(a2),a0
 		lea		isats+1,a1
 		moveq	#1,d1

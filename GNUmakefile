@@ -47,16 +47,28 @@ check::
 checkall::
 	for version in 306 206; do \
 		for lang in us de fr es it se sf sg uk; do \
-			$(MAKE) clean; \
-			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 MEDUSA=0 || exit 1; \
-			$(MAKE) -C glue TOSVERSION=$${version} COUNTRY=$${lang} check || exit 1; \
+			$(MAKE) clean >/dev/null; \
+			echo "CHECK: $$version $$lang"; \
+			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 MEDUSA=0 check >/dev/null || exit 1; \
 		done; \
 	done
-	$(MAKE) clean
-	$(MAKE) TOSVERSION=306 COUNTRY=uk HADES=1 MEDUSA=0 check
-	$(MAKE) clean
-	$(MAKE) TOSVERSION=206 COUNTRY=de HADES=0 MEDUSA=1 check
-	$(MAKE) clean
+	for version in 208; do \
+		for lang in de us uk; do \
+			$(MAKE) clean >/dev/null; \
+			echo "CHECK: $$version $$lang"; \
+			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 MEDUSA=0 check >/dev/null || exit 1; \
+		done; \
+	done
+	$(MAKE) clean >/dev/null
+	echo "CHECK: Hades 306 uk"
+	$(MAKE) TOSVERSION=306 COUNTRY=uk HADES=1 MEDUSA=0 check >/dev/null
+	$(MAKE) clean >/dev/null
+	echo "CHECK: Medusa 206 de"
+	$(MAKE) TOSVERSION=206 COUNTRY=de HADES=0 MEDUSA=1 check >/dev/null
+	$(MAKE) clean >/dev/null
+	echo "CHECK: Medusa 306 de"
+	$(MAKE) TOSVERSION=306 COUNTRY=de HADES=0 MEDUSA=1 check >/dev/null
+	$(MAKE) clean >/dev/null
 
 rsync::
 	for i in $(SUBDIRS) include GNUmakefile GNUmakefile.cmn config.mak; do sudo rsync -vzrlpt $$i $(LOCAL_WWWDIR); done
@@ -82,7 +94,7 @@ maps:
 	$(RM) glue/*.img glue/glue.*
 
 #
-# generate cleanup up symbol map for hatari,
+# generate cleaned up symbol maps for hatari,
 # by removing symbols that refer to duplicate addresses etc.
 #
 .PHONY: hatari

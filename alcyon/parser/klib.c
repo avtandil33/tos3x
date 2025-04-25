@@ -5,7 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef __GNUC__
+#include <stdarg.h>
+#else
 #include "../include/stdarg.h"
+#endif
 #include "klib.h"
 
 #if KLUDGE

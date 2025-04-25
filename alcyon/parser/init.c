@@ -263,7 +263,9 @@ PP(int type;)								/* should not get a bit field here..... */
 			fprintf(stderr, "undimensioned type %d datasize %ld\n", type, datasize);
 #endif
 	} else
+	{
 		maxsize = datasize;
+	}
 	do
 	{
 		if (next(STRING))
@@ -647,7 +649,7 @@ PP(int ssp;)
 	nbleft = 0;							/* keep track of no. of bytes left */
 	elsize = 0; /* quiet compiler */
 	atype = (ISARRAY(type)) ? delsp(type) : type;
-	if (type == (ARRAY | CHAR) || type == (ARRAY | INT) || type == (ARRAY | LONG))
+	if (type == (ARRAY | CHAR) || type == (ARRAY | INT) || type == (ARRAY | UNSIGNED) || type == (ARRAY | LONG))
 	{
 		nbout = str_init(datasize, type);
 	} else if (atype == (ARRAY | CHAR) || atype == (ARRAY | INT) || atype == (ARRAY | LONG))

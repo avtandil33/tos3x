@@ -16,6 +16,13 @@
 #include <compiler.h>
 #endif
 
+#ifdef __GNUC__
+ #include_next <signal.h>
+ #ifdef __APPLE__
+ typedef void (*sighandler_t) (int sig);
+ #endif
+#else
+
 #define	NSIG	16			/* 16 simulated signals		    */
 #define	SIGHUP	 1			/* Hangup			    */
 #define	SIGINT	 2			/* Interrupt (^C)		    */
@@ -40,5 +47,7 @@ sighandler_t signal PROTO((int __sig, sighandler_t __handler));
 #define	SIG_ERR	((sighandler_t)-1L)			/* Error return			    */
 #define	SIG_DFL	((sighandler_t)0L)			/* Default action on signal call    */
 #define	SIG_IGN ((sighandler_t)1L)			/* Ignore			    */
+
+#endif
 
 #endif /* __SIGNAL_H__ */

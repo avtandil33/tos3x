@@ -149,7 +149,7 @@ struct ar_hdr
 	char ar_size[10];
 	char ar_fmag[2];
 };
-static struct ar_hdr lib3_hdr;
+struct ar_hdr lib3_hdr;
 
 #define LIB3MAGIC 0x3c21
 #define LIB3HDSIZE	(sizeof lib3_hdr)

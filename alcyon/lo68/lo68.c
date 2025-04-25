@@ -190,7 +190,7 @@ static int saverbits;
 
 #define DEFSHTEXT	FOURKSHT
 
-static struct ar_hdr lib3_hdr;
+struct ar_hdr lib3_hdr;
 
 #define LIB3MAGIC 0x3c21
 #define LIB3HDSIZE	(sizeof lib3_hdr)

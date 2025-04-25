@@ -57,8 +57,8 @@ short const opinfo[] = {
 	RELPRI | OPREL | OPBIN,						/* GREATEQ - expr >= expr */
 	RELPRI | OPREL | OPBIN,						/* LESS - expr < expr */
 	RELPRI | OPREL | OPBIN,						/* LESSEQ - expr <= expr */
-	TRMPRI | OPCONVS,							/* INT2L */
-	TRMPRI | OPCONVS,							/* LONG2I */
+	(short)(TRMPRI | OPCONVS),					/* INT2L */
+	(short)(TRMPRI | OPCONVS),					/* LONG2I */
 	TRMPRI | OPBIN,								/* BTST */
 	TRMPRI,										/* LOAD */
 	TRMPRI | OPBIN,								/* LMULT */
@@ -72,10 +72,10 @@ short const opinfo[] = {
 	TRMPRI,										/* EQNEG */
 	TRMPRI | OPBIN,								/* DOCAST */
 	ASGPRI | ASGOP,								/* STASSIGN */
-	TRMPRI | OPCONVS,							/* LONG2F */
-	TRMPRI | OPCONVS,							/* FLOAT2L */
-	TRMPRI | OPCONVS,							/* INT2F */
-	TRMPRI | OPCONVS,							/* FLOAT2I */
+	(short)(TRMPRI | OPCONVS),					/* LONG2F */
+	(short)(TRMPRI | OPCONVS),					/* FLOAT2L */
+	(short)(TRMPRI | OPCONVS),					/* INT2F */
+	(short)(TRMPRI | OPCONVS),					/* FLOAT2I */
 	UNOPRI | OPRAS,								/* TOCHAR */
 	TRMPRI,										/* unused - 56 */
 	TRMPRI,										/* unused - 57 */

@@ -9,13 +9,19 @@ USE_CROSS_ALCYON=1
 endif
 EVAL_WIN32 := case `uname -s` in *MINGW*|CYGWIN*) echo 1;; *) echo 0; esac
 WIN32 := $(shell $(EVAL_WIN32))
+EVAL_MACOS := case `uname -s` in Darwin*) echo 1;; *) echo 0; esac
+MACOS := $(shell $(EVAL_MACOS))
 endif
 
 ifeq ($(USE_CROSS_ALCYON),1)
 ifeq ($(WIN32),1)
 BIN=$(top_srcdir)/bin/win32/
 else
+ifeq ($(MACOS),1)
+BIN=$(top_srcdir)/bin/macos/
+else
 BIN=$(top_srcdir)/bin/linux/
+endif
 endif
 else
 BIN=$(top_srcdir)/bin/tos/

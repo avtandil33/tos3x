@@ -173,7 +173,7 @@ PP(int c;)
 {
 	if (pbp >= &pbbuf[PBSIZE])
 	{
-		int l = (__intptr_t)pbp - (__intptr_t)pbbuf;
+		int l = (intptr_t)pbp - (intptr_t)pbbuf;
 		
 		error(_("too many characters pushed back %d"), l);
 		while (pbp > pbbuf)

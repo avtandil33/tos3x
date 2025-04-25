@@ -99,6 +99,9 @@ typedef ssize_t xssize_t;
 #ifdef __MINGW32__
 #define NEED_rawmemchr
 #endif
+#ifdef __APPLE__
+#define NEED_rawmemchr
+#endif
 
 
 

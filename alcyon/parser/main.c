@@ -12,9 +12,18 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __GNUC__
+#include <stdarg.h>
+#define _va_dcl
+#define _va_alist				, ...
+#else
 #include "../include/stdarg.h"
+#endif
 
 #ifdef __MINGW32__
+typedef void (*sighandler_t)(int sig);
+#endif
+#ifdef __APPLE__
 typedef void (*sighandler_t)(int sig);
 #endif
 

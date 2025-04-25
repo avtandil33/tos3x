@@ -5,6 +5,10 @@
 #include <compiler.h>
 #endif
 
+#ifdef __APPLE__
+ #include_next <sys/types.h>
+#else
+
 #ifndef __INTPTR_TYPE__
 #define __INTPTR_TYPE__ long
 #endif
@@ -107,5 +111,7 @@ typedef __INT32_TYPE__ __int32_t;
 typedef __UINT32_TYPE__ __uint32_t;
 
 typedef long off_t;
+
+#endif
 
 #endif

@@ -15,6 +15,11 @@ typedef __uint16_t uint16_t;
 typedef __int32_t  int32_t;
 typedef __uint32_t uint32_t;
 
+#ifdef __GNUC__
+typedef __int64_t int64_t;
+typedef __uint64_t uint64_t;
+#endif
+
 /* Fast types.  */
 typedef int8_t             int_fast8_t;
 typedef int16_t            int_fast16_t;
@@ -24,8 +29,17 @@ typedef uint16_t           uint_fast16_t;
 typedef uint32_t           uint_fast32_t;
 
 /* Types for `void *' pointers.  */
+#ifdef __INTPTR_TYPE__
+typedef __INTPTR_TYPE__           intptr_t;
+#ifdef __ALCYON__
+typedef __INTPTR_TYPE__ uintptr_t;
+#else
+typedef unsigned __INTPTR_TYPE__ uintptr_t;
+#endif
+#else
 typedef __intptr_t         intptr_t;
 typedef __uintptr_t        uintptr_t;
+#endif
 
 /* Largest integral types.  */
 typedef int32_t            intmax_t;

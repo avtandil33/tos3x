@@ -1,6 +1,12 @@
 #include "link68.h"
 #include <stdlib.h>
+#ifdef __GNUC__
+#include <stdarg.h>
+#define _va_dcl
+#define _va_alist				, ...
+#else
 #include "../include/stdarg.h"
+#endif
 
 
 static char const progname[] = PROGNAME;

@@ -383,6 +383,7 @@ PP(int reg;)								/* first available register */
 	register struct tnode *ltp;
 	short lconst;
 	register const struct skeleton *skp;
+	int lr, rr;
 
 	PUTEXPR(cflag, "ucodegen", tp);
 	switch (tp->t_op)
@@ -405,7 +406,13 @@ PP(int reg;)								/* first available register */
 		break;
 
 	case STASSIGN:
-		outstrcpy(codegen(tp->t_left, FORREG, AREG(reg)), codegen(tp->t_right, FORREG, AREG(reg + 1)), tp->t_type);
+		/*
+		 * need to do that in separate steps,
+		 * or cross-compiler compiled by clang will produce different code
+		 */
+		rr = codegen(tp->t_right, FORREG, AREG(reg + 1));
+		lr = codegen(tp->t_left, FORREG, AREG(reg));
+		outstrcpy(lr, rr, tp->t_type);
 		return reg;
 
 	case SYMBOL:

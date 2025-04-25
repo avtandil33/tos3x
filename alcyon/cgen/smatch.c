@@ -236,7 +236,7 @@ PP(const struct skeleton *skp;)				/* pointer to code skeleton */
 				i = optab[op][1];
 			else
 				i = optab[op][0];
-			oprintf(mnemonics[i]);
+			oprintf("%s", mnemonics[i]);
 			break;
 
 		case LADDR:

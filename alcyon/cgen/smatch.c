@@ -206,7 +206,7 @@ PP(const struct skeleton *skp;)				/* pointer to code skeleton */
 		case EXTL:
 		case LEA:
 		case STK:
-			oprintf("%s", strtab[c - 128]);
+			oprintf("%s", strtab[c - MOV]);
 			break;
 
 		case OPCALL:

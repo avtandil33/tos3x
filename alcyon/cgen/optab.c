@@ -201,7 +201,7 @@ char const optab[][6] = {
 	{ I_NULL, I_NULL, I_NULL,     I_NULL, I_NULL, FR_FTOL },	/* 52=FLOAT2L */
 	{ I_NULL, I_NULL, I_NULL,     I_NULL, I_NULL, FR_ITOF },	/* 53=INT2F */
 	{ I_NULL, I_NULL, I_NULL,     I_NULL, I_NULL, FR_FTOI },	/* 54=FLOAT2I */
-	{ I_NULL, I_NULL, I_NULL,     I_NULL, I_NULL, FR_TOCHAR}	/* 55=TOCHAR */
+	{ I_NULL, I_NULL, I_NULL,     I_NULL, I_NULL, FR_TOCHAR }	/* 55=TOCHAR */
 };
 
 

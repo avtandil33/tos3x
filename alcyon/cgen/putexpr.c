@@ -218,13 +218,11 @@ PP(struct tnode *tp;)
 
 		case CLINDR:
 		case CFINDR:
-			oprintf(" 0x%lx.", (long)tp->t_offset);
-			oprintf("0x%x\n", (unsigned short)tp->t_ssp);
+			oprintf(" 0x%lx.0x%x\n", (long)tp->t_offset, (unsigned short)tp->t_ssp);
 			break;
 
 		case REGOFF:
-			oprintf(" %ld", (long)tp->t_offset);
-			oprintf("(R%d)", tp->t_reg);
+			oprintf(" %ld(R%d)", (long)tp->t_offset, tp->t_reg);
 			break;
 
 		case EXTERNAL:
@@ -242,8 +240,7 @@ PP(struct tnode *tp;)
 			break;
 
 		case INDEXED:
-			oprintf(" %ld", (long)tp->t_offset);
-			oprintf("(R%d,R%d)", tp->t_reg, tp->t_xreg);
+			oprintf(" %ld(R%d,R%d)", (long)tp->t_offset, tp->t_reg, tp->t_xreg);
 			break;
 		}
 		oputchar('\n');

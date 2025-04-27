@@ -394,8 +394,7 @@ PP(int flags;)								/* flags (IMMED,LOFFSET,...) */
 			break;
 
 		case INDEXED:
-			oprintf("%ld(R", (long)off);
-			oprintf("%d,R%d", reg, tp->t_xreg);
+			oprintf("%ld(R%d,R%d", (long)off, reg, tp->t_xreg);
 			outatype(tp->t_xtype);
 			oputchar(')');
 			break;
@@ -610,6 +609,7 @@ PP(const char *sym;)						/* symbol name */
 
 /* popstack - clear off the stack after a call if necessary */
 VOID popstack(P(int) nb)
+PP(int nb;)
 {
 	if (nb > 0 && nb <= 8)
 		oprintf("addq.l #%d,sp\n", nb);

@@ -206,7 +206,7 @@ PP(int tbool;)								/* 1==>sizeof expr, 0==>other sizeof */
 		if (treedebug)
 		{
 			fprintf(stderr, "second case: rtype 0%o ltype 0%o ", rp->t_type, lp->t_type);
-			fprintf(stderr, "dtab %ld\n", dtab[lp->t_dp - 1]);
+			fprintf(stderr, "dtab %ld\n", (long)dtab[lp->t_dp - 1]);
 		}
 #endif
 	}
@@ -217,7 +217,7 @@ PP(int tbool;)								/* 1==>sizeof expr, 0==>other sizeof */
 	{
 		if (lp && rp)
 			fprintf(stderr, "rtype 0%o ltype 0%o ", rp->t_type, lp->t_type);
-		fprintf(stderr, "size %d, dtab %ld\n", size, dtab[lp->t_dp - 1]);
+		fprintf(stderr, "size %d, dtab %ld\n", size, (long)dtab[lp->t_dp - 1]);
 	}
 #endif
 	return size;
@@ -263,8 +263,8 @@ PP(int sp;)									/* size POINTER if structure */
 #ifdef DEBUG
 	if (treedebug)
 	{
-		fprintf(stderr, "size %ld ", size);
-		fprintf(stderr, "nel %ld ", nel);
+		fprintf(stderr, "size %ld ", (long)size);
+		fprintf(stderr, "nel %ld ", (long)nel);
 		fprintf(stderr, "dinfo[type=0%o] ==> %d\n", type, dinfo[type] & DTSIZE);
 	}
 #endif

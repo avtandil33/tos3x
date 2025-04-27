@@ -82,7 +82,7 @@ PP(struct tnode **tpp;)						/* pointer to tree */
 	}
 	
 	/*
-	 * BUG: all these evaluations to not take UNSIGNED into account
+	 * BUG: all these evaluations do not take UNSIGNED into account
 	 */
 	switch (op)
 	{
@@ -963,7 +963,7 @@ PP(struct tnode *tp;)						/* pointer to tree */
 PP(struct tnode ***clist;)					/* commutable sub-trees */
 PP(struct tnode ***plist;)					/* parent nodes of sub-trees */
 {
-	register struct tnode ***p,	***c;
+	register struct tnode ***p, ***c;
 
 	c = clist;
 	p = plist;

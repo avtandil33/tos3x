@@ -377,7 +377,7 @@ VOID doextdef(NOTHING)
 		dflag = gettype(&sc, &type, &size, 1);
 #ifdef DEBUG
 		if (symdebug)
-			fprintf(stderr, "dflag %d sc %d type 0%o size %ld\n", dflag, sc, type, size);
+			fprintf(stderr, "dflag %d sc %d type 0%o size %ld\n", dflag, sc, type, (long)size);
 #endif
 		if (type == STRUCT)				/* deal with forward ref structures */
 			chksyms(0);

@@ -61,6 +61,7 @@ struct words { short loword; short hiword; };
 struct words { short hiword; short loword; };
 #endif
 
+/* local symbol terminal node */
 struct xlsym {
 	short sc;						/* storage class */
 	int32_t offset;					/* register offset */
@@ -68,6 +69,7 @@ struct xlsym {
 	short label;					/* label number if static */
 };
 
+/* external symbol reference node */
 struct xesym {
 	short sc;						/* storage class */
 	int32_t offset;					/* register offset */

@@ -245,7 +245,7 @@ PP(int type;)								/* should not get a bit field here..... */
 
 #ifdef DEBUG
 	if (initdebug)
-		fprintf(stderr, "str_init: type %d, datasize %ld\n", type, datasize);
+		fprintf(stderr, "str_init: type %d, datasize %ld\n", type, (long)datasize);
 	if (initdebug)
 		fprintf(stderr, "str_init: SUPTYPE %d, ", SUPTYPE(type));
 	if (initdebug)
@@ -260,7 +260,7 @@ PP(int type;)								/* should not get a bit field here..... */
 		maxsize = 0x7fff;				/* max 32 bit positive value */
 #ifdef DEBUG
 		if (initdebug)
-			fprintf(stderr, "undimensioned type %d datasize %ld\n", type, datasize);
+			fprintf(stderr, "undimensioned type %d datasize %ld\n", type, (long)datasize);
 #endif
 	} else
 	{
@@ -277,9 +277,9 @@ PP(int type;)								/* should not get a bit field here..... */
 		output += oneinit(BTYPE(type) | ARRAY, 0, 0);
 #ifdef DEBUG
 		if (initdebug)
-			fprintf(stderr, "output %ld, ", output);
+			fprintf(stderr, "output %ld, ", (long)output);
 		if (initdebug)
-			fprintf(stderr, "maxsize %ld, ", maxsize);
+			fprintf(stderr, "maxsize %ld, ", (long)maxsize);
 #endif
 		if (maxsize <= output)
 		{
@@ -327,7 +327,7 @@ PP(struct symbol *child;)
 	nest = i = 0;
 #ifdef DEBUG
 	if (initdebug)
-		fprintf(stderr, "s_or_a: [%s] elsize %ld\n", (sp) ? sp->s_symbol : "", elsize);
+		fprintf(stderr, "s_or_a: [%s] elsize %ld\n", (sp) ? sp->s_symbol : "", (long)elsize);
 #endif
 	do
 	{									/* in current row. */
@@ -432,7 +432,7 @@ PP(struct symbol *child;)
 				{
 #ifdef DEBUG
 					if (initdebug)
-						fprintf(stderr, "simple type 0%o 0%lo\n", onetype, x);
+						fprintf(stderr, "simple type 0%o 0%lo\n", onetype, (long)x);
 #endif
 					for (addup = 0; addup != i; addup += datasize)
 					{
@@ -448,7 +448,7 @@ PP(struct symbol *child;)
 						peektok = COMMA;
 #ifdef DEBUG
 					if (initdebug)
-						fprintf(stderr, "peektok %d addup %ld\n", peektok, addup);
+						fprintf(stderr, "peektok %d addup %ld\n", peektok, (long)addup);
 #endif
 				} else
 					for (addup = 0; addup != i; addup += datasize)
@@ -512,7 +512,7 @@ PP(struct symbol *child;)
 	} while (next(COMMA));
 #ifdef DEBUG
 	if (initdebug)
-		fprintf(stderr, "exiting s_or_a: nbleft %ld\n", nbleft);
+		fprintf(stderr, "exiting s_or_a: nbleft %ld\n", (long)nbleft);
 #endif
 	if (BTYPE(original) == STRUCT)
 	{

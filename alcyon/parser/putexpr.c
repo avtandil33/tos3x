@@ -11,7 +11,7 @@
 
 static char const invalid[] = "INVALID";
 
-static const char *const opname[] = {
+const char *const opname[] = {
 	invalid,							/*  0 */
 	"+",								/*  1=ADD */
 	"-",								/*  2=SUB */
@@ -94,7 +94,7 @@ static const char *const opname[] = {
 	"cfloat",							/* 79=CFLOAT */
 };
 
-static const char *const types[] = {
+const char *const types[] = {
 	"typeless-invalid",					/* 0=TYPELESS */
 	"char",								/* 1=CHAR */
 	"short",							/* 2=SHORT */

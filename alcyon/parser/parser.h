@@ -238,28 +238,28 @@ extern short scope_level;				/* global=0, func=1 */
 extern short indecl;					/* are we in a decl ?? */
 extern short predecl;					/* value previous to sizeof */	
 extern short tdflag;					/* declaration is a typedef proto */
-extern struct symbol *tdp; 			/* points to typedef prototype */
-extern short localsize;				/* length of local variables */
+extern struct symbol *tdp; 				/* points to typedef prototype */
+extern short localsize;					/* length of local variables */
 extern short naregs;					/* keeps track of ptr registers alloc'd */
 extern short ndregs;					/* keep track of data registers alloc'd */
 extern short boffset;					/* current bit offset in structure */
-extern short in_struct;				/* set when in structure declaration */
+extern short in_struct;					/* set when in structure declaration */
 
 /* Miscellaneous Variables for expression handling */
-extern short opdotsave;				/* vars used by the expression evaluator */
-extern short opdontop; 				/* op on top of expr stack ?? */
+extern short opdotsave;					/* vars used by the expression evaluator */
+extern short opdontop; 					/* op on top of expr stack ?? */
 extern short strassign;
 extern VOIDPTR *opdsave;
 extern struct ops *oprsave;
 extern VOIDPTR opdstack[OPDSIZE];		/* operand stack */
 extern VOIDPTR *opdp;					/* operand stack pointer */
-extern char *opap; 					/* ptr to next avail loc in exprarea */
-extern short const opinfo[];	/* operator info table */
-extern short commastop;				/* stop parse at comma */
-extern short colonstop;				/* stop parse at colon */
+extern char *opap; 						/* ptr to next avail loc in exprarea */
+extern short const opinfo[];			/* operator info table */
+extern short commastop;					/* stop parse at comma */
+extern short colonstop;					/* stop parse at colon */
 
 /* Miscellaneous Variables for statement generation */
-extern short cswp; 					/* current low switch table index */
+extern short cswp; 						/* current low switch table index */
 extern short clabel;					/* continue label */
 extern short blabel;					/* break label */
 extern short rlabel;					/* return label */
@@ -267,7 +267,7 @@ extern short dlabel;					/* default label */
 	
 /* Miscellaneous Variables */
 extern short lineno;					/* current line number of input */
-extern short lst_ln_id;				/* last line an id was output on... */
+extern short lst_ln_id;					/* last line an id was output on... */
 extern short cr_last;					/* determine if # is file specification */
 extern short errcnt;					/* count of errors */
 extern char source[PATHSIZE];			/* source filename for error reporting */
@@ -279,38 +279,38 @@ extern short reducep;					/* if(procid); reduction */
 extern short peektok;					/* peeked at token */
 
 /* Parser Variables which are initialized in parser.ext */
-extern char *exprp; 			/* place to start building expression */
-extern short nextlabel; 		/* generates unique label numbers */
+extern char *exprp; 					/* place to start building expression */
+extern short nextlabel; 				/* generates unique label numbers */
 extern char const dinfo[];
 
 /* Parser flags */
-extern short fflag;					/* FFP floats */
-extern short gflag;					/* symbolic debugger flag */
-extern short xflag;					/* translate int's to long's */
-extern short tflag;					/* put strings into text seg */
-extern short wflag;					/* don't generate warning messages */
+extern short fflag;						/* FFP floats */
+extern short gflag;						/* symbolic debugger flag */
+extern short xflag;						/* translate int's to long's */
+extern short tflag;						/* put strings into text seg */
+extern short wflag;						/* don't generate warning messages */
 extern short aesflag;					/* hack for TOS 1.x AES */
 #ifndef NOPROFILE
 extern short profile;					/* profiler output */
 #endif
 #ifdef DEBUG
-extern short initdebug;				/* init debug flag */
-extern short symdebug; 				/* sym debug flag */
-extern short treedebug;				/* expr tree debug flag */
+extern short initdebug;					/* init debug flag */
+extern short symdebug; 					/* sym debug flag */
+extern short treedebug;					/* expr tree debug flag */
 #endif
 
 /* dimension table */
-extern int32_t dtab[DSIZE];			/* short => long */
+extern int32_t dtab[DSIZE];				/* short => long */
 extern short cdp;						/* next entry in dtab to alloc */
 
 /* lexical analyzer values */
 extern short cvalue;					/* current token if keyword or CINT */
 extern short ccbytes;					/* number of bytes in char constant */
-extern short cstrsize; 				/* current string size */
-extern int32_t clvalue;				/* current token value if long constant */
-extern struct symbol *csp; 			/* current token symbol ptr if SYMBOL */
-extern char cstr[STRSIZE]; 			/* current token value if CSTRING */
-extern struct symbol *dsp; 			/* declarator symbol pointer */
+extern short cstrsize; 					/* current string size */
+extern int32_t clvalue;					/* current token value if long constant */
+extern struct symbol *csp; 				/* current token symbol ptr if SYMBOL */
+extern char cstr[STRSIZE]; 				/* current token value if CSTRING */
+extern struct symbol *dsp; 				/* declarator symbol pointer */
 
 /* 0 no structure */
 extern struct symbol *struc_parent[10];/* ptrs to struc symbols */
@@ -531,6 +531,9 @@ VOID integral PROTO((struct tnode *tp, int atype));
 /*
  * putexpr.c
  */
+extern const char *const opname[];
+extern const char *const types[];
+
 VOID putexpr PROTO((const char *name, struct tnode *tp));
 
 

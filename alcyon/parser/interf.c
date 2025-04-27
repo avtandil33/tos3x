@@ -66,6 +66,44 @@ PP(struct tnode *tp;)
 	if (!tp)
 		return;
 
+#ifdef DEBUG
+	{
+		oprintf("; %s %s", opname[(unsigned short)tp->t_op], types[tp->t_type & TYPE]);
+		switch (tp->t_op)
+		{
+		case CINT:
+			oprintf(" %X\n", (unsigned short)((struct conode *) tp)->t_value);
+			break;
+		case CLONG:
+			oprintf(" %lX\n", (unsigned long)((struct lconode *) tp)->t_lvalue);
+			break;
+		case CFLOAT:
+			oprintf(" %lX\n", (unsigned long)((struct lconode *) tp)->t_lvalue);
+			break;
+		case SYMBOL:
+			oprintf(" %X", (unsigned short)((struct symnode *) tp)->t_sc);
+			if (((struct symnode *) tp)->t_sc == EXTERNAL)
+			{
+				oprintf(" %s\n", ((struct extnode *) tp)->t_symbol);
+			} else
+			{
+				oprintf(" %X\n", (unsigned short)((struct symnode *) tp)->t_offset);
+			}
+			break;
+		case 0:
+			oprintf("\n");
+			break;
+		case IFGOTO:
+		case BFIELD:
+			oprintf(" %X\n", (unsigned short)tp->t_dp);
+			break;
+		default:
+			oprintf("\n");
+			break;
+		}
+	}
+#endif
+
 	oprintf("%X.%X", (unsigned short)tp->t_op, (unsigned short)tp->t_type);
 
 	switch (tp->t_op)
@@ -89,9 +127,12 @@ PP(struct tnode *tp;)
 	case SYMBOL:
 		oprintf(".%X", (unsigned short)((struct symnode *) tp)->t_sc);
 		if (((struct symnode *) tp)->t_sc == EXTERNAL)
+		{
 			oprintf(".%.*s\n", SSIZE, ((struct extnode *) tp)->t_symbol);
-		else
+		} else
+		{
 			oprintf(".%X\n", (unsigned short)((struct symnode *) tp)->t_offset);
+		}
 		break;
 
 	case 0:

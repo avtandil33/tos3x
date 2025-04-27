@@ -21,7 +21,7 @@ PP(int nregs;)								/* number of registers left */
 PP(int flag;)								/* 1=>set values in tree, 0=>return */
 {
 	register short su, sur, op, i;
-	register struct tnode *ltp,	*rtp;
+	register struct tnode *ltp, *rtp;
 
 	nregs = DREG(nregs);
 	ltp = NULL;

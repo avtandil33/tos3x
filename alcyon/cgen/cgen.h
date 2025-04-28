@@ -55,6 +55,12 @@ extern const char *const opname[];
 #ifdef __x86_64__
 #define LW_LITTLE 1
 #endif
+#ifdef __arm__
+#define LW_LITTLE 1
+#endif
+#ifdef __aarch64__
+#define LW_LITTLE 1
+#endif
 #ifdef LW_LITTLE
 struct words { short loword; short hiword; };
 #else

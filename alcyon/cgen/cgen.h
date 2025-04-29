@@ -27,9 +27,7 @@
 #define	FORSP			5
 #define	FORREG			4
 #define	HICREG			2
-#define	NCREGS			3
 #define	AREGLO			8
-#define	NOTLOFFSET		0
 
 /* tcopy + outaexpr flags - generate prefix operators, postfix operators */
 #define	A_DOPRE			1

@@ -99,8 +99,6 @@ VOID outline(NOTHING)
 {
 	if (onepass && !bol)
 		oputchar('\n');
-	if (!gflag)
-		oprintf("*line %d\n", lineno);
-	else
+	if (gflag)
 		oprintf("~_lN%d:\n", lineno);
 }

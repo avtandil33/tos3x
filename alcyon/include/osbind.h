@@ -59,6 +59,26 @@ __extension__								\
 	__retvalue;							\
 })
 
+#define t1_wl(n, a)						\
+__extension__								\
+({									\
+	register long __retvalue __asm__("d0");				\
+	long  _a = (long) (a);						\
+	    								\
+	__asm__ volatile						\
+	(								\
+		"movl	%2,%%sp@-\n\t"					\
+		"movw	%1,%%sp@-\n\t"					\
+		"trap	#1\n\t"					\
+		"addql	#6,%%sp"						\
+	: "=r"(__retvalue)			/* outputs */		\
+	: "g"(n), "r"(_a)			/* inputs  */		\
+	: __CLOBBER_RETURN("d0") "d1", "d2", "a0", "a1", "a2", "cc"    /* clobbered regs */	\
+	  AND_MEMORY							\
+	);								\
+	__retvalue;							\
+})
+
 #define t1_wlw(n, a, b)						\
 __extension__								\
 ({									\

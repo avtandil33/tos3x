@@ -1905,6 +1905,8 @@ PP(struct symtab *ap;)
 	/* now make a global entry for this common block */
 
 	p->flags = SYDF | SYGL | SYBS;
+	if (p->name[SYNAMLEN] != '\0')
+		p->flags |= A_LNAM;
 	p->vl1 = bsscomm;
 	p->ovlnum = ROOT;					/* the global goes in the root  */
 	bsscomm += (l + 1) & ~1;			/* always start at even address */

@@ -2866,7 +2866,7 @@ _kbdvec:
         cmpi.b    #$2A,d0                       /* left shift pressed? */
         bne.s     kbdvec1
         bset      #1,d1
-        bra       kbdvec10
+        bra       kbdvec101
 kbdvec1:
         cmpi.b    #$AA,d0                       /* left shift released? */
         bne.s     kbdvec2
@@ -2876,7 +2876,7 @@ kbdvec2:
         cmpi.b    #$36,d0                       /* right shift pressed? */
         bne.s     kbdvec3
         bset      #0,d1
-        bra.s     kbdvec10
+        bra     kbdvec101
 kbdvec3:
         cmpi.b    #$B6,d0                       /* right shift released? */
         bne.s     kbdvec4
@@ -2896,7 +2896,7 @@ kbdvec6:
         cmpi.b    #$38,d0                       /* ALT pressed? */
         bne.s     kbdvec7
         bset      #3,d1
-        bra.s     kbdvec10
+        bra.s     kbdvec101
 kbdvec7:
         cmpi.b    #$B8,d0                       /* ALT released? */
         bne.s     kbdvec8
@@ -2933,6 +2933,23 @@ kbdvec9:
 kbdvec10:
         move.b    d1,ABSW(_shifty)              /* store new shift state */
         rts
+/* OLEG: LShift/RShift/Alt presses, check for keyboard layout switching */
+kbdvec101:                      				
+		move.w    d1,d0
+		andi.b	  #$0F,d0
+		cmpi.b	  #$0A,d0
+		bne.s	  kbdvec102
+		bsr	      _bioskeys
+		bra		  kbdvec10
+kbdvec102:
+		cmpi.b	  #$09,d0
+		bne.s	  kbdvec10
+        move.l    #_alttblnorm,ABSW(_curkeytbl)
+        move.l    #_alttblshift,ABSW(_curkeytbl+4)
+        move.l    #_alttblcaps,ABSW(_curkeytbl+8)
+		clr.b     ABSW(kb_key_last)
+		bra		  kbdvec10
+/* END OLEG */		
 kbdvec11:
         btst      #7,d0                         /* was key released? */
         bne.s     kbdvec12

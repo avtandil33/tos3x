@@ -50,8 +50,8 @@ int16_t wm_update PROTO((int code));
 
 /* Alternate keys table */
 
-/* USA|UK|SPAIN|ITALY|SWEDEN */
-#if MULTILANG_SUPPORT | (OS_COUNTRY == CTRY_US) | (OS_COUNTRY == CTRY_UK) | (OS_COUNTRY == CTRY_ES) | (OS_COUNTRY == CTRY_IT) | (OS_COUNTRY == CTRY_SE)
+/* USA|UK|SPAIN|ITALY|SWEDEN|RUSSIAN */
+#if MULTILANG_SUPPORT | (OS_COUNTRY == CTRY_US) | (OS_COUNTRY == CTRY_UK) | (OS_COUNTRY == CTRY_ES) | (OS_COUNTRY == CTRY_IT) | (OS_COUNTRY == CTRY_SE) | (OS_COUNTRY == CTRY_RU)
 static int16_t const key1table[] = {
 	0x1e00,	/* ALT-'A' */
 	0x3000, /* ALT-'B' */
@@ -161,8 +161,8 @@ static int16_t const key3table[] = {
 
 /* Control keys table */
 
-/* USA|UK|SPAIN|ITALY|SWEDEN */
-#if MULTILANG_SUPPORT | (OS_COUNTRY == CTRY_US) | (OS_COUNTRY == CTRY_UK) | (OS_COUNTRY == CTRY_ES) | (OS_COUNTRY == CTRY_IT) | (OS_COUNTRY == CTRY_SE)
+/* USA|UK|SPAIN|ITALY|SWEDEN|RUSSIA */
+#if MULTILANG_SUPPORT | (OS_COUNTRY == CTRY_US) | (OS_COUNTRY == CTRY_UK) | (OS_COUNTRY == CTRY_ES) | (OS_COUNTRY == CTRY_IT) | (OS_COUNTRY == CTRY_SE) | (OS_COUNTRY == CTRY_RU)
 /* USA|UK|SPAIN|ITALY|SWEDEN */
 static int16_t const con1table[] = {
 	0x1e01,	/* CTRL-'A' */

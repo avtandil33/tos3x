@@ -55,6 +55,9 @@ error
 #if OS_COUNTRY == CTRY_PL
 #include "rsc/306/deskpl.h"
 #endif
+#if OS_COUNTRY == CTRY_RU
+#include "rsc/306/deskru.h"
+#endif
 #endif
 
 /*

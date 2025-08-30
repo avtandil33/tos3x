@@ -56,4 +56,8 @@
 #include "rsc/306/strcz.h"
 #endif
 
+#if OS_COUNTRY == CTRY_RU
+#include "rsc/306/strru.h"
+#endif
+
 #endif

@@ -396,6 +396,7 @@
  * 25: thin
  * 26: thin1
  * 27: typewrit
+ * 28: cyrillic
  */
 /* for 6x6 font */
 #ifndef TP_35_6

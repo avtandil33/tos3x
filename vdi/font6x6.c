@@ -117,4 +117,7 @@ int16_t const dat_6x6[576] =
 #if TP_35_6 == 4
 #include "../tospatch/data/fonts/6x6/monaco.c"
 #endif
+#if TP_35_6 == 28
+#include "../tospatch/data/fonts/6x6/cyrillic.c"
+#endif
 };

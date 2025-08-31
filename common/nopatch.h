@@ -154,9 +154,15 @@
 #define TP_35_8 3
 #define TP_35_16 3
 #else
+#if OS_COUNTRY == CTRY_RU
+#define TP_35_6 28
+#define TP_35_8 28
+#define TP_35_16 28
+#else
 #define TP_35_6 0
 #define TP_35_8 0
 #define TP_35_16 0
+#endif
 #endif
 #endif
 #define TP_35_32 0

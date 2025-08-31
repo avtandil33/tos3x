@@ -113,6 +113,9 @@ int16_t const dat_8x16[2048] =
 #if TP_35_16 == 27
 #include "../tospatch/data/fonts/8x16/typewrit.c"
 #endif
+#if TP_35_16 == 28
+#include "../tospatch/data/fonts/8x16/cyrillic.c"
+#endif
 };
 
 

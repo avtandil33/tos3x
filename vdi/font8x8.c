@@ -124,4 +124,7 @@ int16_t const dat_8x8[1024] =
 #if TP_35_8 == 4
 #include "../tospatch/data/fonts/8x8/monaco.c"
 #endif
+#if TP_35_8 == 28
+#include "../tospatch/data/fonts/8x8/cyrillic.c"
+#endif
 };

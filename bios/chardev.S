@@ -2930,17 +2930,18 @@ kbdvec8:
 #endif
 kbdvec9:
         bchg      #4,d1                         /* toggle CAPS LOCK state */
+#if KBDSWITCH
 kbdvec10:
         move.b    d1,ABSW(_shifty)              /* store new shift state */
         rts
-/* OLEG: LShift/RShift/Alt presses, check for keyboard layout switching */
+/* LShift/RShift/Alt presses, check for keyboard layout switching */
 kbdvec101:                      				
-		move.w    d1,d0
+		move.b    d1,d0
 		andi.b	  #$0F,d0
 		cmpi.b	  #$0A,d0
 		bne.s	  kbdvec102
 		bsr	      _bioskeys
-		bra		  kbdvec10
+		bra.s	  kbdvec10
 kbdvec102:
 		cmpi.b	  #$09,d0
 		bne.s	  kbdvec10
@@ -2948,8 +2949,13 @@ kbdvec102:
         move.l    #_alttblshift,ABSW(_curkeytbl+4)
         move.l    #_alttblcaps,ABSW(_curkeytbl+8)
 		clr.b     ABSW(kb_key_last)
-		bra		  kbdvec10
-/* END OLEG */		
+		bra.s	  kbdvec10
+#else
+kbdvec10:
+kbdvec101:                      				
+        move.b    d1,ABSW(_shifty)              /* store new shift state */
+        rts
+#endif
 kbdvec11:
         btst      #7,d0                         /* was key released? */
         bne.s     kbdvec12

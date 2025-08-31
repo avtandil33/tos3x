@@ -57,6 +57,16 @@ MEDUSA=0
 -include $(top_srcdir)/localcnf.mak
 
 #
+# Keyboard has switchable layouts
+#
+KBDSWITCH:=0
+
+ifeq ($(COUNTRY), ru)
+	BINEXACT:=1
+	KBDSWITCH:=1
+endif
+
+#
 # Rules to recreate some files from definitions above
 #
 $(top_srcdir)/common/config.h: $(top_srcdir)/config.mak ${MAKEFILE}
@@ -66,6 +76,7 @@ $(top_srcdir)/common/config.h: $(top_srcdir)/config.mak ${MAKEFILE}
 	$(AM_V_at)echo '#define TOSVERSION 0x$(TOSVERSION)' >> $@
 	$(AM_V_at)echo '#define ATOSVERSION $$$(TOSVERSION)' >> $@
 	$(AM_V_at)echo '#define OS_COUNTRY CTRY_$(COUNTRY)' >> $@
+	$(AM_V_at)echo '#define KBDSWITCH $(KBDSWITCH)' >> $@
 	$(AM_V_at)echo '#ifdef __GNUC__' >> $@
 	$(AM_V_at)echo '# define BINEXACT 0' >> $@
 	$(AM_V_at)echo '#else' >> $@

@@ -53,7 +53,7 @@ checkall::
 		done; \
 	done
 	for version in 208; do \
-		for lang in de us uk; do \
+		for lang in de us fr; do \
 			$(MAKE) clean >/dev/null; \
 			echo "CHECK: $$version $$lang"; \
 			$(MAKE) TOSVERSION=$${version} COUNTRY=$${lang} HADES=0 MEDUSA=0 check >/dev/null || exit 1; \

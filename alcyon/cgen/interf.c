@@ -101,4 +101,6 @@ VOID outline(NOTHING)
 		oputchar('\n');
 	if (gflag)
 		oprintf("~_lN%d:\n", lineno);
+	else
+		oprintf("*line %d\n", lineno);
 }

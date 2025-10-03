@@ -5,8 +5,17 @@
 #include <compiler.h>
 #endif
 
-#ifdef __APPLE__
+#ifdef __GNUC__
  #include_next <sys/types.h>
+ #include <stddef.h>
+#ifndef __SIZE_TYPE__
+#define __SIZE_TYPE__ unsigned int
+#endif
+typedef __SIZE_TYPE__ size_t;
+#ifndef __WCHAR_TYPE__
+#define __WCHAR_TYPE__ int
+#endif
+typedef __WCHAR_TYPE__ wchar_t;
 #else
 
 #ifndef __INTPTR_TYPE__

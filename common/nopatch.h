@@ -118,10 +118,26 @@
 #define TP_06 0
 #define TP_07 0
 #define TP_08 0
+#if OS_COUNTRY == CTRY_RU
+#define TP_09 1
+#else
 #define TP_09 0
+#endif
+#if OS_COUNTRY == CTRY_RU
+#define TP_10 1
+#else
 #define TP_10 0
+#endif
+#if OS_COUNTRY == CTRY_RU
+#define TP_11 1
+#else
 #define TP_11 0
+#endif
+#if OS_COUNTRY == CTRY_RU
+#define TP_12 1
+#else
 #define TP_12 0
+#endif
 #define TP_13 ((OS_COUNTRY == CTRY_PL) | (OS_COUNTRY == CTRY_CZ))
 #define TP_14 0
 #define TP_15 ((OS_COUNTRY == CTRY_PL) | (OS_COUNTRY == CTRY_CZ))

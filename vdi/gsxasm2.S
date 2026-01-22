@@ -959,6 +959,7 @@ select_version:
 ******************************************************************************
 
 #if VIDEL_SUPPORT
+/* 404: 00e0f214 */
 		xdef	_SetOverlay
 _SetOverlay:
 
@@ -985,7 +986,11 @@ _SetOverlay:
 	subq.w	#1,d1			; d1 <- delta Y - 1
 	move.w	PIXLV(v_lin_wr,a0),d2	; d2 <- screen line wrap in bytes
 
-	tst.w	12(sp)			; see if set flag is on
+#if BINEXACT
+	tst.w	12(sp)			; see if set flag is on (BUG: wrong offset)
+#else
+	tst.w	16(sp)			; see if set flag is on
+#endif
 	bne	ClearFlag		; if not then clear
 	move.w	SetMask(pc),d4		; d4 <- set mask
 	bra	SetLine			; set the overlay bit
@@ -1045,7 +1050,7 @@ SetMask:	dc.w	$0020
 *									     *
 ******************************************************************************
 
-
+/* 404: 00e0f290 */
 		xdef	_SetMasks
 _SetMasks:
 	PIXLA(a0)

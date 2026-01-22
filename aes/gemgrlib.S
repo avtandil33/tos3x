@@ -878,6 +878,7 @@ VOID gr_draw(WORD have2box, GRECT *po, GRECT *poff)
 /* 306de: 00e24dba */
 /* 104de: 00fe189e */
 /* 106de: 00e237a8 */
+/* 404: 00e33cd6 */
 	xdef _gr_draw
 _gr_draw:
 	movem.l	d0-d1/d7/a4-a5,-(sp)	;+20 save d7/a4-a5 & reserve 8 bytes

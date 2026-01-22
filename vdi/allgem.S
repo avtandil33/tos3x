@@ -168,7 +168,7 @@ _INIT_G:	PIXLA(a1)
 		ori.w	#$0700,SR
 
 		pea	tick_int		; My timer vector
-		move.w	#$100,-(sp)		; 100 is timer vector
+		move.w	#$100,-(sp)		; 100 is etv_timer vector
 		move.w	#5,-(sp)		; exchange exception vector
 		trap	#13
 

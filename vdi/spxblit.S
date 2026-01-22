@@ -220,7 +220,11 @@ o9P32Loop:	eor.l	(a0)+,(a1)		; D' = S XOR D
 *-
 oAP32Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAP32Loop:	not.l	(a1)+			; D' = NOT D
-		dbra	d7,o3P32Loop		; do inner loop
+#if BINEXACT
+		dbra	d7,o3P32Loop		; do inner loop (BUG: wrong label)
+#else
+		dbra	d7,oAP32Loop		; do inner loop
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAP32Line		; do next line
 
@@ -388,7 +392,11 @@ o9P16Loop:	eor.w	(a0)+,(a1)		; D' = S XOR D
 *-
 oAP16Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAP16Loop:	not.w	(a1)+			; D' = NOT D
-		dbra	d7,o3P16Loop		; do inner loop
+#if BINEXACT
+		dbra	d7,o3P16Loop		; do inner loop (BUG: wrong label)
+#else
+		dbra	d7,oAP16Loop		; do inner loop
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAP16Line		; do next line
 
@@ -556,7 +564,11 @@ o9P8Loop:	eor.b	(a0)+,(a1)		; D' = S XOR D
 *-
 oAP8Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAP8Loop:	not.b	(a1)+			; D' = NOT D
-		dbra	d7,o3P8Loop		; do inner loop
+#if BINEXACT
+		dbra	d7,o3P8Loop		; do inner loop (BUG: wrong label)
+#else
+		dbra	d7,oAP8Loop		; do inner loop
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAP8Line		; do next line
 
@@ -724,7 +736,11 @@ o9N32Loop:	eor.l	-(a0),-(a1)		; D' = S XOR D
 *-
 oAN32Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAN32Loop:	not.l	-(a1)			; D' = NOT D
-		dbra	d7,o3N32Loop		; do inner loop
+#if BINEXACT
+		dbra	d7,o3N32Loop		; do inner loop (BUG: wrong label)
+#else
+		dbra	d7,oAN32Loop		; do inner loop
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAN32Line		; do next line
 
@@ -891,7 +907,11 @@ o9N16Loop:	eor.w	-(a0),-(a1)		; D' = S XOR D
 *-
 oAN16Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAN16Loop:	not.w	-(a1)			; D' = NOT D
-		dbra	d7,o3N16Loop		; do inner loop
+#if BINEXACT
+		dbra	d7,o3N16Loop		; do inner loop (BUG: wrong label)
+#else
+		dbra	d7,oAN16Loop		; do inner loop
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAN16Line		; do next line
 
@@ -1058,7 +1078,11 @@ o9N8Loop:	eor.b	-(a0),-(a1)		; D' = S XOR D
 *-
 oAN8Line:	move.w	d3,d7			; d7 <- # pixels to blit - 1
 oAN8Loop:	not.b	-(a1)			; D' = NOT D
+#if BINEXACT
 		dbra	d7,o3N8Loop		; do inner loop
+#else
+		dbra	d7,oAN8Loop		; do inner loop (BUG: wrong label)
+#endif
 		add.w	d6,a1			; a1 -> to next dest line
 		dbra	d1,oAN8Line		; do next line
 

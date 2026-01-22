@@ -1015,6 +1015,7 @@ PP(MFORM *pmfnew;)
 
 #if AESVERSION >= 0x200
 /* 306de: 00e1e5ae */
+/* 404: 00e255e0 */
 VOID gsx_mfset(P(MFORM *) pmfnew)
 PP(MFORM *pmfnew;)
 {
@@ -1039,6 +1040,7 @@ PP(MFORM *pmfnew;)
  * Graf mouse
  */
 /* 306de: 00e1e610 */
+/* 404: 00e25646 */
 VOID gr_mouse(P(int16_t) mkind, P(MFORM *) grmaddr)
 PP(register int16_t mkind;)
 PP(MFORM *grmaddr;)
@@ -1096,6 +1098,7 @@ PP(MFORM *grmaddr;)
  * Change code to compensate 3D objects
  */
 /* 306de: 00e1e6fe */
+/* 404: 00e2574e */
 int16_t gr_slidebox(P(LPTREE) tree, P(int16_t) parent, P(int16_t) obj, P(int16_t) isvert)
 PP(register LPTREE tree;)
 PP(int16_t parent;)

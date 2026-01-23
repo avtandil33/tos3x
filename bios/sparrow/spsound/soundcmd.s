@@ -45,8 +45,7 @@ LASTCMD		=	SETPRESCALE
 ;
 ;	GIVEN:
 ;		4(sp)	Opcode
-;		6(sp)	mode.w
-;		8(sp)	data.w
+;		6(sp)	data.w
 ;
 ;	RETURNS:
 ;		Never fails

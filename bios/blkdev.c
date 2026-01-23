@@ -93,6 +93,7 @@ VOID bhdv_init(NOTHING)
  */
 /* 306de: 00e05652 */
 /* 104de: 00fc1732 */
+/* 404: 00e04a62 */
 ERROR dbmsg(P(int16_t) rsrvd, P(int16_t) msg_num, P(int32_t) msg_arg)
 PP(int16_t rsrvd;)
 PP(int16_t msg_num;)
@@ -868,6 +869,7 @@ PP(int16_t cnt;)
 /* 206de: 00e05946 */
 /* 306de: 00e05d38 */
 /* 104de: 00fc1c76 */
+/* 404: 00e04f04 */
 long random(NOTHING)
 {
 	if (rseed == 0)
@@ -994,6 +996,7 @@ static char const proto_data[NUM_PROTOBT_ENTRIES * 19] = {
  */
 /* 306de: 00e05e04 */
 /* 104de: 00fc1d42 */
+/* 404: 00e04fce */
 VOID protobt(P(VOIDPTR) buf, P(int32_t) serialno, P(int16_t) disktype, P(int16_t) execflag)
 PP(VOIDPTR buf;)
 PP(int32_t serialno;)

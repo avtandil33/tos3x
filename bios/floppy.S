@@ -212,6 +212,7 @@ checkfd2:   movem.l   (sp)+,d0-d7/a6
 /* 306de: 00e03c10 */
 /* 206de: 00e03820 */
 /* 104de: 00fc0f38 */
+/* 404: 00e03db4 */
         xdef _floprd
 _floprd:
 #if STBOOK
@@ -359,6 +360,7 @@ fdcerr1:
 /* 206de: 00e0391c */
 /* 104de: 00fc100a */
 /* 106de: 00e011b2 */
+/* 404: 00e03eb0 */
         xdef _flopwrt
 _flopwrt:
 #if STBOOK
@@ -492,6 +494,7 @@ flopwrt7:
 /* 206de: 00e03a04 */
 /* 104de: 00fc10c6 */
 /* 106de: 00e0127a */
+/* 404: 00e03fa0 */
         xdef _flopfmt
 _flopfmt:
         cmpi.l    #$87654321,22(a7)             /* check for magic# on stack */
@@ -792,6 +795,7 @@ wmult:
 /* 306de: 00e03ffe */
 /* 206de: 00e03bfe */
 /* 104de: 00fc1286 */
+/* 404: 00e0419a */
         xdef _flopver
 _flopver:
 #if STBOOK
@@ -1649,6 +1653,7 @@ setdchg1:
 /* 306de: 00e044b6 */
 /* 206de: 00e040cc */
 /* 104de: 00fc1692 */
+/* 404: 00e04670 */
         xdef _floprate
 _floprate:
 /* --- pick a DSB */

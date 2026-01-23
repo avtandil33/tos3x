@@ -149,6 +149,7 @@ bcon3o2:
  **************************************************************************/
 /* 306de: 00e0228c */
 /* 206de: 00e01fb2 */
+/* 404: 00e02388 */
 		xdef _midiws
 _midiws:
         moveq.l   #0,d3
@@ -591,6 +592,7 @@ ikbd_wr3:
 /* 306de: 00e02474 */
 /* 206de: 00e021a6 */
 /* 104de: 00fc3480 */
+/* 404: 00e0257c */
 		xdef _ikbdws
 _ikbdws:
 #if (TOSVERSION >= 0x300) | (TOSVERSION < 0x200)
@@ -1084,6 +1086,7 @@ tdrtab:  dc.b $1e,$20,$22,$24
 /* 306de: 00e027b0 */
 /* 206de: 00e0247a */
 /* 104de: 00fc3754 */
+/* 404: 00e02850 */
 	xdef _mfpint
 _mfpint:
         move.w    4(a7),d0
@@ -1132,6 +1135,7 @@ initint:
 /* 306de: 00e027da */
 /* 206de: 00e024a4 */
 /* 104de: 00fc377e */
+/* 404: 00e0287a */
 	xdef _jdisint
 _jdisint:
         move.w    4(a7),d0
@@ -1179,6 +1183,7 @@ jdisint1:
 /* 306de: 00e02810 */
 /* 206de: 00e024da */
 /* 104de: 00fc37b8 */
+/* 404: 00e028b0 */
 	xdef _jenabint
 _jenabint:
         move.w    4(a7),d0
@@ -1526,6 +1531,7 @@ wrapin1:
 /* 306de: 00e02a40 */
 /* 206de: 00e0270a */
 /* 104de: 00fc39fe */
+/* 404: 00e02ae0 */
 	xdef _iorec
 _iorec:
         move.w    4(a7),d1             /* device number */
@@ -1562,6 +1568,7 @@ iorectab:
 /* 306de: 00e02a60 */
 /* 206de: 00e0272a */
 /* 104de: 00fc3a16 */
+/* 404: 00e02b00 */
 	xdef _rsconf
 _rsconf:
 #if TOSVERSION >= 0x200
@@ -1762,6 +1769,7 @@ bcondevs:
  * XBIOS #44 - Bconmap - Select a default port.
  */
 /* 306de: 00e02baa */
+/* 404: 00e02c32 */
 	xdef _bconmap
 _bconmap:
         moveq.l   #0,d0
@@ -3859,6 +3867,7 @@ zero2:  dc.l 0
 /* 306de: 00e0387e */
 /* 206de: 00e03498 */
 /* 104de: 00fc407e */
+/* 404: 00e039da */
 	xdef _giaccess
 _giaccess:
         move.w    4(a7),d0
@@ -3910,6 +3919,7 @@ dtron:
 /* 306de: 00e038b6 */
 /* 206de: 00e034d0 */
 /* 104de: 00fc40b6 */
+/* 404: 00e03a12 */
 	xdef _ongibit
 _ongibit:
         moveq.l   #0,d2
@@ -3951,6 +3961,7 @@ onbit:
 /* 306de: 00e038de */
 /* 206de: 00e034f8 */
 /* 104de: 00fc40dc */
+/* 404: 00e03a3a */
 	xdef _offgibit
 _offgibit:
         moveq.l   #0,d2
@@ -4016,6 +4027,7 @@ offbit:
 /* 306de: 00e03906 */
 /* 206de: 00e03520 */
 /* 104de: 00fc4102 */
+/* 404: 00e03a62 */
 /* first we determine if the init is for a absolute, relative or keycode */
 /* mouse action. */
 	xdef _initmouse
@@ -4131,6 +4143,7 @@ setmouse:
 /* 306de: 00e039ce */
 /* 206de: 00e035e8 */
 /* 104de: 00fc41cc */
+/* 404: 00e03b2a */
 	xdef _xbtimer
 _xbtimer:
         moveq.l   #0,d0
@@ -4211,6 +4224,7 @@ _keytbl3:
 /* 306de: 00e03a08 */
 /* 206de: 00e0364e */
 /* 104de: 00fc4232 */
+/* 404: 00e03b90 */
 	xdef _bioskeys
 _bioskeys:
 #if TOSVERSION < 0x400
@@ -4239,6 +4253,7 @@ _bioskeys:
 /* 306de: 00e03a4e */
 /* 206de: 00e0366c */
 /* 104de: 00fc424c */
+/* 404: 00e03c00 */
 	xdef _dosound
 _dosound:
         move.l    ABSW(_sndtable),d0            /* return current status in D0.L */
@@ -4266,6 +4281,7 @@ dosound1:
 /* 306de: 00e03a62 */
 /* 206de: 00e03680 */
 /* 104de: 00fc4260 */
+/* 404: 00e03c14 */
 	xdef _setprt
 _setprt:
         move.w    ABSW(_prtconfig),d0           /* get current config word before we change it */
@@ -4295,6 +4311,7 @@ setprt1:
 /* 306de: 00e03a74 */
 /* 206de: 00e03692 */
 /* 104de: 00fc4272 */
+/* 404: 00e03c26 */
 	xdef _kbrate
 _kbrate:
         move.w    ABSW(kb_initial),d0           /* get current initial/repeat values */
@@ -4343,6 +4360,7 @@ kbrate1:
 /* 306de: 00e03a96 */
 /* 206de: 00e036b4 */
 /* 104de: 00fc4294 */
+/* 404: 00e03c48 */
 	xdef _kbdvbase
 _kbdvbase:
         move.l    #midivec,d0

@@ -1167,6 +1167,7 @@ bl_exit:
 /* 306de: 00e0764c */
 /* 206de: 00e064c8 */
 /* 104de: 00fca720 */
+/* 404: 00e0912a */
 	xdef _cursconf
 _cursconf:
 	PIXL6(a4)

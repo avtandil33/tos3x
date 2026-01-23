@@ -157,6 +157,7 @@ nvramfail:
  * XBIOS #46 - NVMaccess
  */
 /* 306de: 00e0208c */
+/* 404: 00e0216c */
         xdef _nvmaccess
 _nvmaccess:
         moveq.l   #-5,d0       /* return E_BADRQ in case of error */
@@ -559,6 +560,7 @@ daysOffsetToMonths:DC.W $0000,$001f,$003b,$005a
  * XBIOS #47 - Waketime
  */
 /* 206de: 00e01d0a */
+/* 404: 00e02140 */
         xdef _waketime
 _waketime:  move.l    4(sp),d0
             beq       clrwtim

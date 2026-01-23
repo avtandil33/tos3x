@@ -38,6 +38,7 @@ ide_stat2  equ $FFF00039
  */
 /* 306de: 00e0186c */
 /* 206de: 00e015e6 */
+/* 404: 00e017ce */
 _dmaread:
         move.b    #$00,dmarwflg
         move.w    #$0008,d1     /* d1 = opcode for READ */
@@ -47,6 +48,7 @@ _dmaread:
  */
 /* 306de: 00e0187a */
 /* 206de: 00e015f4 */
+/* 404: 00e017dc */
 _dmawrite:
         move.b    #$01,dmarwflg
         move.w    #$000A,d1     /* d1 = opcode for WRITE */
@@ -63,7 +65,7 @@ dmarw:
         move.b    9(a7),(a0)+   /* byte 4 = transfer length (in blocks) */
         clr.b     (a0)          /* byte 5 = control byte */
         move.w    14(a7),d0     /* d0 = physical unit number */
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         moveq.l   #0,d1
         move.w    8(a7),d1      /* get count */
         lsl.l     #8,d1
@@ -127,7 +129,7 @@ dmarw4:
         cmp.l     (_hz_200).w,d0
         bcc.s     dmarw4
 
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         lea.l     idebuf,a0
         move.w    12(a0),-(a7)  /* # of sectors per track */
         move.w    6(a0),-(a7)   /* # of heads */
@@ -147,7 +149,7 @@ dmarw4:
         move.l    12(a7),-(a7)   /* buffer */
         move.w    14(a7),-(a7)   /* count */
         move.l    12(a7),-(a7)   /* logical block address */
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         move.w    12(a0),-(a7)   /* device number of sectors */
         move.w    6(a0),-(a7)    /* device number of heads */
 #else
@@ -203,7 +205,7 @@ dmaundev:
 /* 306de: 00e019ba */
 /* 206de: 00e016f6 */
 dodmaread:
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         cmp.w     #$0007,d0
         bls.s     domdmar1
         bsr       scsiread       /* it's an SCSI device */
@@ -263,6 +265,7 @@ dodmaw1:
  */
 /* 306de: 00e019de */
 /* 206de: 00e01700 */
+/* 404: 00e0190c */
 _fdone:
         move.l    #600,d0                   /* ACLTMOUT */
         bra.s     dmadel2
@@ -302,6 +305,7 @@ dmaerr:
  */
 /* 306de: 00e01a02 */
 /* 206de: 00e01734 */
+/* 404: 00e01940 */
 _endcmd:
         bsr.s     _fdone                    /* wait for operation complete */
         bmi.s     acsiab1                   /* (timed-out, so complain) */
@@ -323,8 +327,8 @@ endcmd_skip:
         move.w    (a7)+,sr
 #endif
 #endif
-        move.w    d1,($FFFF8606).w
-        move.w    ($FFFF8604).w,d0          /* get the result */
+        move.w    d1,(DMA_CTRL).w
+        move.w    (DMA_DATA).w,d0           /* get the result */
         and.w     #$00FF,d0                 /* (clean it up) if non-0 should do a RequestSense command to learn more */
 acsiab1:
         move.l    (_hz_200).w,lastacstm     /* update controller last accessed time */
@@ -337,12 +341,13 @@ acsiab1:
  */
 /* 306de: 00e01a36 */
 /* 206de: 00e01754 */
+/* 404: 00e01974 */
 _hdone:
-        move.w    #$0080,($FFFF8606).w      /* Landon's code seems to presume we put $80 there */
+        move.w    #$0080,(DMA_CTRL).w       /* Landon's code seems to presume we put $80 there */
 #if MEDUSA
 	bsr       cache_ein1
 #else
-#if (TOSVERSION >= 0x300) | !BINEXACT
+#if ((TOSVERSION >= 0x300) & (TOSVERSION < 0x400)) | !BINEXACT
         clr.w     (_flock).w                /* NOW, signal that we are done */
 #else
         sf        (_flock).w                /* NOW, signal that we are done */
@@ -356,6 +361,7 @@ _hdone:
  */
 /* 306de: 00e01a42 */
 /* 206de: 00e01760 */
+/* 404: 00e01980 */
 acsibeg:
         move.l    d0,-(a7)                  /* preserve d0 */
         move.l    lastacstm,d0              /* d0 = controller last accessed time */
@@ -375,11 +381,12 @@ acsibeg1:
  */
 /* 306de: 00e01a54 */
 /* 206de: 00e01772 */
+/* 404: 00e01992 (unused) */
 rcvacsi:
         movea.l   (_buserror).w,a1          /* check to see if the ACSI bus actually exists! Needed for prototype PADs */
         movea.l   a7,a2
         move.l    #acsierr,(_buserror).w
-        tst.w     ($FFFF8606).w             /* harmless or bus erorr */
+        tst.w     (DMA_CTRL).w              /* harmless or bus erorr */
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
 #if MEDUSA
@@ -388,7 +395,7 @@ rcvacsi:
         st        (_flock).w                /* lock FIFO */
 #endif
         bsr.s     acsibeg                   /* delay if necessary */
-        movea.w   #$8604,a1                 /* a1 = pointer to DMA chip */
+        movea.w   #DMA_DATA,a1              /* a1 = pointer to DMA chip */
         bsr       setdmaaddr                /* set DMA pointer */
         move.w    #$0190,2(a1)              /* WDL	; toggle DMA chip to direction */
         bsr       shortdelay
@@ -410,11 +417,12 @@ rcvacsi:
  */
 /* 306de: 00e01a9e */
 /* 206de: 00e017bc */
+/* 404: 00e019dc (unused) */
 wrtacsi:
         movea.l   (_buserror).w,a1          /* check to see if the ACSI bus actually exists! Needed for prototype PADs */
         movea.l   a7,a2
         move.l    #acsierr,(_buserror).w
-        tst.w     ($FFFF8604).w             /* harmless or bus erorr */
+        tst.w     (DMA_DATA).w              /* harmless or bus erorr */
         move.l    a1,(_buserror).w          /* no bus error - restore & continue */
         movea.l   a2,a7
 #if MEDUSA
@@ -423,7 +431,7 @@ wrtacsi:
         st        (_flock).w                /* lock FIFO */
 #endif
         bsr.s     acsibeg
-        movea.w   #$8604,a1                 /* a1 = pointer to DMA chip */
+        movea.w   #DMA_DATA,a1              /* a1 = pointer to DMA chip */
         bsr.s     setdmaaddr                /* set DMA pointer */
         move.w    #$0090,2(a1)              /* WDL	; toggle DMA chip for "send" */
         bsr       shortdelay
@@ -445,6 +453,7 @@ wrtacsi:
  */
 /* 306de: 00e01ae4 */
 /* 206de: 00e01800 */
+/* 404: 00e01a20 */
 acsierr:
         moveq.l   #-15,d0                   /* return E_UNDEV */
         movea.l   a2,a7
@@ -469,6 +478,7 @@ acsierr:
  */
 /* 306de: 00e01aee */
 /* 206de: 00e0180a */
+/* 404: 00e01a2a */
 sblkacsi:
         move.b    #$88,d1                       /* next byte is the opcode */
         move.w    d1,2(a1)                      /* WDL */
@@ -504,6 +514,7 @@ acsista2:
  */
 /* 306de: 00e01b32 */
 /* 206de: 00e0184e */
+/* 404: 00e01a6e */
 setdmaaddr:
         move.l    a0,-(a7)
         move.b    3(a7),($FFFF860D).w
@@ -525,8 +536,9 @@ setdmaaddr:
  */
 /* 306de: 00e01b4a */
 /* 206de: 00e01866 */
+/* 404: 00e01a86 */
 setacnt:
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         move.l    d1,-(a7)
         lsr.l     #8,d1
         add.l     d1,d1
@@ -813,6 +825,7 @@ ldelaytime:
  */
 /* 306de: 00e01d30 */
 /* 206de: 00e0187e */
+/* 404: 00e01d8c */
 idestat:
         move.l    #2000,d0                      /* d0 = time-out limit (D_WORST) */
         add.l     (_hz_200).w,d0                /* d0 = expiration time */
@@ -852,6 +865,7 @@ idestat4:
  */
 /* 306de: 00e01d6c */
 /* 206de: 00e018ba */
+/* 404: 00e01dc8 */
 ideread:
         bsr       idechs                    /* set physical address */
         movea.l   14(a7),a0                 /* a0 -> buffer to read into */
@@ -887,6 +901,7 @@ iderd2:
  */
 /* 306de: 00e01daa */
 /* 206de: 00e018f8 */
+/* 404: 00e01e06 */
 idewrite:
         bsr.s     idechs                    /* set physical address */
         movea.l   14(a7),a0                 /* a0 -> buffer to write from */
@@ -922,6 +937,7 @@ idewr3:
  */
 /* 306de: 00e01df2 */
 /* 206de: 00e01940 */
+/* 404: 00e01e4e */
 idechs:
         move.l    12(a7),d1        /* get sector number */
         move.w    8(a7),d2         /* get number of heads */
@@ -943,7 +959,7 @@ idechs:
         move.b    d1,ide_stars     /* write sector number */
         rts
 
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
 /* 306de: 00e01e32 */
 idecount:
         move.w    4(a7),d0         /* d0 = physical unit # */
@@ -969,6 +985,7 @@ idecount:
  */
 /* 306de: 00e01e6a */
 /* 206de: 00e01980 */
+/* 404: 00e01e8e */
 ideidentify:
         move.w    4(a7),d0         /* get device */
         andi.b    #$07,d0          /* mask off flags (if any) */
@@ -995,8 +1012,9 @@ ideiden1:
  */
 /* 306de: 00e01ea2 */
 /* 206de: 00e019b8 */
+/* 404: 00e01ec6 */
 iderdsec:
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         moveq.l   #127,d0
         lea.l     ide_datar,a1
 iderds1:
@@ -1035,9 +1053,10 @@ rb0:    move.w    (a1),(a0)+                /* read data from bus */
  */
 /* 306de: 00e01eb2 */
 /* 206de: 00e019d6 */
+/* 404: 00e01ee4 */
 #if !MEDUSA | (TOSVERSION < 0x300)
 idewrsec:
-#if TOSVERSION >= 0x300
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
         moveq.l   #127,d0
         lea.l     ide_datar,a1
 idewrs1:
@@ -1071,6 +1090,7 @@ wb0:    move.w    (a0)+,(a1)                /* write data to bus */
  */
 /* 306de: 00e01ec2 */
 /* 206de: 00e019f4 */
+/* 404: 00e01f02 */
 iderdy:
         andi.b    #$07,d0          /* mask off flags (if any) */
         lsl.b     #4,d0            /* shift unit # to place */
@@ -1109,7 +1129,8 @@ iderdy2:
  *	d1.w = # of default heads
  *	d2.w = # of default sectors per track
  */
-#if TOSVERSION < 0x300
+#if (TOSVERSION < 0x300) | (TOSVERSION >= 0x400)
+/* 404: 00e01f32 */
 _gcparm:    movea.l   4(sp),a0                  /* a0 -> data buffer */
             adda.w    #$50,a0                   /* a0 -> where Conner model number is (CONMDL) */
             move.l    a0,-(sp)

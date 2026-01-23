@@ -36,6 +36,7 @@ mmutable_ram equ $700 /* CPU root table in memory */
 		text
 
 /* 306de: 00e016ec */
+/* 404: 00e014d0 */
 		xdef initmmu
 initmmu:
 #if HADES | MEDUSA
@@ -74,6 +75,7 @@ skipmmuinit:
 	    data
 /* 306de: 00e36420 */
 /* 306us: 00e363f0 */
+/* 404: 00e4985a */
 mmurom_table:
 /* tia: top level table (for 0x00000000-0xffffffff) */
         dc.l      TABLE(tib1)        /* for 0x00000000-0x0fffffff, use table tib1 */

@@ -1719,7 +1719,7 @@ biosinit:
 		clr.l     -(a7)
 		jsr       VsetScreen
 		lea.l     12(a7),a7
-		jsr       $00E0567E(pc)
+		jsr       _Dsp_Init(pc)
 		move.w    #$0001,-(a7)
 		move.w    #$0000,-(a7)
 		move.w    #$0000,-(a7)
@@ -2955,6 +2955,7 @@ just_rte:
 /* 306de: 00e00d7a */
 /* 206de: 00e00d1c */
 /* 104de: 00fc07a2 */
+/* 404: 00e00d54 */
 _vsync:
         move.w    sr,-(a7)
         andi.w    #$FBFF,sr							/* enable vbl interrupts */
@@ -3236,7 +3237,8 @@ xbios_vecs:
 xbvecsend:
 
 #if TOSVERSION >= 0x300
-/* unknown: 00e00fae; seems to be unused */
+/* 306de: 00e00fae */
+/* 404: 00e00de0 */
 _brwabs:
         btst      #0,1(a7)
         bne.s     bx_notodd
@@ -3266,6 +3268,7 @@ rw_ret:
 /* 306de: 00e00fd0 */
 /* 206de: 00e00edc */
 /* 104de: 00fc0950 */
+/* 404: 00e00e02 */
 _supexec:
         movea.l   4(a7),a0
         jmp       (a0)
@@ -3293,6 +3296,7 @@ _supexec:
 /* 306de: 00e00fd6 */
 /* 206de: 00e00ee2 */
 /* 104de: 00fc0956 */
+/* 404: 00e00e08 */
 _bbconstat:
         lea.l     (_bconstat_vec).w,a0
         moveq.l   #0,d1 /* offsetof(MAPTAB, Bconstat) */
@@ -3315,6 +3319,7 @@ _bbconstat:
 /* 306de: 00e00fde */
 /* 206de: 00e00eea */
 /* 104de: 00fc095c */
+/* 404: 00e00e10 */
 _bbconin:
         lea.l     (_bconin_vec).w,a0
         moveq.l   #4,d1 /* offsetof(MAPTAB, Bconin) */
@@ -3330,6 +3335,7 @@ _bbconin:
 /* 306de: 00e00fe6 */
 /* 206de: 00e00ef2 */
 /* 104de: 00fc0962 */
+/* 404: 00e00e18 */
 _bbcostat:
         lea.l     (_bcostat_vec).w,a0
         moveq.l   #8,d1 /* offsetof(MAPTAB, Bcostat) */
@@ -3341,6 +3347,7 @@ _bbcostat:
 /* 306de: 00e00fee */
 /* 206de: 00e00efa */
 /* 104de: 00fc0968 */
+/* 404: 00e00e20 */
 _bbconout:
         lea.l     (_bconout_vec).w,a0
         moveq.l   #12,d1 /* offsetof(MAPTAB, Bconout) */
@@ -3433,6 +3440,7 @@ tconstat:
 /* 306de: 00e010a4 */
 /* 206de: 00e00fb0 */
 /* 104de: 00fc09f8 */
+/* 404: 00e00ed6 */
 _drvmap:
         move.l    (_drvbits).w,d0
         rts
@@ -3455,6 +3463,7 @@ _drvmap:
 /* 306de: 00e010aa */
 /* 206de: 00e00fb6 */
 /* 104de: 00fc09fe */
+/* 404: 00e00edc */
 _kbshift:
         moveq.l   #0,d0
         move.b    (_shifty).w,d0
@@ -3526,6 +3535,7 @@ getmpb1:
 /* 306de: 00e01124 */
 /* 206de: 00e00ff4 */
 /* 104de: 00fc0a3c */
+/* 404: 00e00f1a */
 _setexc:
         move.w    4(a7),d0          /* d0 = vector # */
         lsl.w     #2,d0             /* turn into longword index */
@@ -3544,6 +3554,7 @@ setexc1:
 /* 306de: 00e0113c */
 /* 206de: 00e0100c */
 /* 104de: 00fc0a54 */
+/* 404: 00e00f32 */
 _tickcal:
         moveq.l   #0,d0
         move.w    (_timer_ms).w,d0
@@ -3557,6 +3568,7 @@ _tickcal:
 /* 306de: 00e01144 */
 /* 206de: 00e01014 */
 /* 104de: 00fc0a5c */
+/* 404: 00e00f3a */
 _physbase:
 #if HADES
 		move.l hades_physbase.w,d0        		/* phys base holen */
@@ -3601,6 +3613,7 @@ physbas1:
 /* 206de: 00e01030 */
 /* 104de: 00fc0a6c */
 /* 106de: 00e00bfe */
+/* 404: 00e08b16 */
 _logbase:
         move.l    (_v_bas_ad).w,d0
         rts
@@ -3614,6 +3627,7 @@ _logbase:
 /* 206de: 00e01036 */
 /* 104de: 00fc0a72 */
 /* 106de: 00e00c0a */
+/* 404: 00e08b16 */
 _getrez:
 #if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 /* only fixed resolution */
@@ -3650,6 +3664,7 @@ _getrez:
 /* 206de: 00e01042 */
 /* 104de: 00fc0a7e */
 /* 106de: 00e00c10 */
+/* 404: 00e08b5c */
 _vsetscreen:
 #if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 /* only fixed resolution */
@@ -3706,6 +3721,7 @@ nosetr:
 /* 206de: 00e0108e */
 /* 104de: 00fc0ac4 */
 /* 106de: 00e00c5c */
+/* 404: 00e00f62 */
 _setpalette:
 #if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 		rts
@@ -3728,6 +3744,7 @@ _setpalette:
 /* 206de: 00e01096 */
 /* 104de: 00fc0acc */
 /* 106de: 00e00c64 */
+/* 404: 00e00f6a */
 _setcolor:
 #if (HADES | MEDUSA) & (TOSVERSION >= 0x300)
 		rts
@@ -3762,6 +3779,7 @@ setcol3:
 /* 306de: 00e01202 */
 /* 206de: 00e010c8 */
 /* 104de: 00fc0af0 */
+/* 404: 00e00f9c */
 _puntaes:
         movea.l   _os_magic(pc),a0           /* get pointer to magic */
         cmpi.l    #GEM_MUPB_MAGIC,(a0)       /* is the magic still there? */
@@ -4352,6 +4370,7 @@ run_res3:
 /* 306de: 00e0156e */
 /* 206de: 00e01446 */
 /* 104de: 00fc0e3e */
+/* 404: 00e0135e */
 _gettime:
         lea.l     readRTCTime,a3
         lea.l     igetdt,a4
@@ -4366,6 +4385,7 @@ _gettime:
 /* 306de: 00e0157c */
 /* 206de: 00e01454 */
 /* 104de: 00fc0e4c */
+/* 404: 00e0136c */
 _settime:
         move.w    4(a7),_date
         move.w    6(a7),_time
@@ -4419,6 +4439,7 @@ braop:
 /* 206de: 00e014b4 */
 /* 104de: 00fc0e9e */
 /* 106de: 00e0103a */
+/* 404: 00e013cc */
 _blitmode:
 #if TP_18 | (MEDUSA & (TOSVERSION >= 0x300)) /* IGNORE_BLITTER */
 		moveq     #0,d0
@@ -4449,6 +4470,7 @@ blitmod1:
 /* 306de: 00e01604 */
 /* 206de: 00e014dc */
 /* 104de: 00fc0ec6 */
+/* 404: 00e013f8 */
 blittest:
         move.w    sr,d1
         move.w    #0,d0                         /* d0 = 0 -> blitter not installed */

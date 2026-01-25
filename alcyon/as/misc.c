@@ -825,7 +825,7 @@ PP(struct op *apea;)
 						{
 							p->drlc = (p->ext << 3) | EXTREL;
 							p->ext = -1;
-							p->con -= (loctr + instrlen);
+							/* p->con -= (loctr + instrlen); */
 						}
 					}
 				} else

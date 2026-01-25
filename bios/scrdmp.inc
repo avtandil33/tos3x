@@ -19,6 +19,7 @@ _scrdmp:
 /* 306de: 00e01462 */
 /* 206de: 00e0131e */
 /* 104de: 00fc0d0c */
+/* 404: 00e01228 */
 	xdef _bscr_dump
 _bscr_dump:
         SETBASEREG

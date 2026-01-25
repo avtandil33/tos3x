@@ -11,6 +11,7 @@ BIOS_HEADERS=\
 	bpb.h \
 	header.h \
 	ide.h \
+	keytbl.h \
 	linea.h \
 	pbdef.h \
 	tosvars.h \

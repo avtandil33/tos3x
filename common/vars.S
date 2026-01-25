@@ -85,7 +85,7 @@ __sbss:	ds.b 0 /* end of "base" BSS; start of the BSS area that is zeroed by BIO
 	V(privinst,l,2)
 #endif
 
-	PTR(savepc)
+	PTR(autoret)
 	PTR(execpath)
 	PTR(execname)
 	V(execdta,b,44)
@@ -101,14 +101,14 @@ __sbss:	ds.b 0 /* end of "base" BSS; start of the BSS area that is zeroed by BIO
 	V(dmarwflg,b,1)
 	even
 	
-	V(idebuf,b,SECTOR_SIZE)
+	V(idebuf,b,SECTOR_SIZE+4)
 #endif
-
-	ds.l 1 /* unused */
 
 #if MSTECLK
 	V(rtcbufa,b,13)
 	V(rtcbufb,b,13)
+#endif
+#if MSTECLK | (TOSVERSION >= 0x400)
 	LONG(waketimeAlarm)
 #endif
 

@@ -1151,9 +1151,9 @@ gcp0:       movea.l   4(sp),a0
 gcpend:     rts
 
 conner:     dc.b      'Conner',0
-            dc.b      $00
+            .even
 cp2024:     dc.b      'CP2024',0
-            dc.b      $00
+            .even
 
 
 /*
@@ -1186,13 +1186,13 @@ str1:       movem.l   (sp)+,d1/a0-a1            /* restore registers d1, a0 and 
 	bss
 
 	xdef dmarwflg
-	comm dmarwflg,1
+	comm dmarwflg,1      /* 0: read   1: write */
 
 	xdef scsicmd
-	comm scsicmd,10
+	comm scsicmd,10      /* command block */
 
 	xdef idebuf
-	comm idebuf,SECTOR_SIZE
+	comm idebuf,SECTOR_SIZE+4  /* scratch buffer (must be on long word boundary) */
 
 	xdef lastacstm
-	comm lastacstm,4
+	comm lastacstm,4       /* controller last accessed time */

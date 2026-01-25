@@ -21,11 +21,10 @@ int fd_err[NUMFLOPPIES]; /* only set once in bhdv_init; unused otherwise */
 char drivechange[NUMFLOPPIES];
 long fd_lastacc[NUMFLOPPIES];
 #if TOSVERSION >= 0x200
-int16_t bpbsums[BPBSECT]; /* BUG: should be part of BLKDEV */
+int16_t bpbsums[BPBSECT*NUMFLOPPIES]; /* BUG: should be part of BLKDEV */
 #endif
 char fd_latch[NUMFLOPPIES];
 char fd_wp[NUMFLOPPIES];
-char drivechange[NUMFLOPPIES];
 long rseed;
 int curflop;
 BLKDEV blkdev[NUMFLOPPIES];
@@ -399,6 +398,7 @@ PP(int16_t dev;)
 
 /* 306de: 00e05918 */
 /* 104de: 00fc1956 */
+/* 404: 00e04ada */
 #if TOSVERSION >= 0x200
 static int ckmediach(P(int16_t) dev)
 PP(int16_t dev;)
@@ -1056,6 +1056,7 @@ PP(int16_t execflag;)
 
 /* 306de: 00e05ef8 */
 /* 104de: 00fc1e2e */
+/* 404: 00e050c4 */
 #if (TOSVERSION >= 0x200) | !BINEXACT
 static int16_t sectsum(P(const int16_t *) buf, P(int) count)
 PP(const int16_t *buf;)
@@ -1085,6 +1086,7 @@ PP(int count;)
 
 /* 306de: 00e05f22 */
 /* 104de: 00fc1e5e */
+/* 404: 00e050ee */
 static int16_t getiword(P(const uint8_t *) addr)
 PP(const uint8_t *addr;)
 {

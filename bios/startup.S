@@ -134,7 +134,7 @@ _os_magic:
 _os_date:
     dc.l   OS_DATE      /* os_date, Date of system build */
 _os_conf:               /* Flag for PAL version + country */
-#ifdef CONF_MULTILANG
+#if MULTILANG_SUPPORT
     dc.w   OS_CONF_MULTILANG
 #else
 #if OS_COUNTRY == CTRY_PL
@@ -2555,13 +2555,13 @@ doboot:
         move.w    d4,d7                  /* d4 -> pdev */
         asl.w     #5,d7
         move.w    (_bootpref).w,d5
-#if !STBOOK
+#if !STBOOK & (TOSVERSION < 0x400)
         move.l    d4,-(a7)
 #endif
         move.l    _hdv_rw,-(a7)          /* save read sector function pointer */
         jsr       (a0)                   /* execute boot sector */
         move.l    (a7)+,d0
-#if !STBOOK
+#if !STBOOK & (TOSVERSION < 0x400)
         move.l    (a7)+,d4
 #endif
         cmp.l     (_hdv_rw).w,d0         /* did the read sector function change? */
@@ -2587,6 +2587,7 @@ scanextrom:
 /* 306de: 00e00bbc */
 /* 206de: 00e00b68 */
 /* 104de: 00fc0628 */
+/* 404: 00e00bd2 */
 _run_cartridge_applications:
         lea     cart_base,a0
 cartext2:
@@ -2612,6 +2613,7 @@ cartover:
 /* 306de: 00e00bee */
 /* 206de: 00e00b9a */
 /* 104de: 00fc0652 */
+/* 404: 00e00c04 */
 bios_unimpl:
 		rts
 
@@ -2653,6 +2655,7 @@ memchk2:
  */
 /* 306de: 00e00c06 */
 /* 206de: 00e00bb2 */
+/* 404: 00e00c1c */
 #if (TOSVERSION >= 0x300) & !TP_50
 memchk0:
 #endif
@@ -2672,6 +2675,7 @@ memchk3:
 /* 306de: 00e00c24 */
 /* 206de: 00e00bd0 */
 /* 104de: 00fc068a */
+/* 404: 00e00c3a */
 dflt_pal:
 		dc.w $0fff     /* 0 white */
 		dc.w $0f00     /* 1 red */
@@ -2818,10 +2822,34 @@ vbl_no_screenpt:
         bsr       _flopvbl
 		
 #else
-#if !STBOOK
-        move.b    (MFP_GPIP).w,d1
-        tst.b     _has_dmasound
-        beq.s     nomoncheck
+
+/*
+ *------ Video monitor fail-safe anti-burnout check:
+ *** When DMASND is TRUE:
+ *** If DMA sound is active, the MONOMON line is inverted (that is,
+ *** they XOR).  Therefore, the sequence is as follows:
+ ***	READ sound status (to d0)
+ ***	READ gpip (to d1)
+ ***	IF gpip != d1 then try again
+ ***	IF sound status != d0 try again
+ ***	IF d0 != 0 invert d1
+ ***
+ *** Then proceed with the old code to check for the appropriate value
+ *** in bit 7 of d1.
+ ***
+ *** We have to read sound status more than once because it might be active
+ *** when we test it, then go inactive before we read MONOMON.  Moreover,
+ *** it might spike while reading gpip, then settle again.  This sequence
+ *** doesn't quite ensure lack of trouble, but it does give some hope.
+ ***
+ *** STPAD doesn't have any of this cruft - you can't change monitors!
+ ***
+ *** SPARROW doesn't have it either - burn 'em out!
+ */
+#if !STBOOK & !SPARROW
+        move.b    (MFP_GPIP).w,d1		/* get "High Rez" input */
+        tst.b     _has_dmasound			/* test the "I have DMA sound" flag */
+        beq.s     nomoncheck			/* don't have it; d1 is right. */
 /* Check for monitor switching, */
 /* and jump to _swv_vec if necessary... */
         move.w    sr,-(a7)
@@ -2830,74 +2858,85 @@ moncheck:
 #if TP_50 /* PAK ?why? */
 		move.b    #0,d0
 #else
-        move.b    ((sndmactl)+1).w,d0
+        move.b    (sndmactl+1).w,d0		/* read sound state once */
 #endif
-        move.b    (MFP_GPIP).w,d1
+        move.b    (MFP_GPIP).w,d1		/* get gpip with monomon */
         btst      #7,d1
         sne       d1
-        move.b    (MFP_GPIP).w,d2
+        move.b    (MFP_GPIP).w,d2		/* still the same? */
         btst      #7,d2
         sne       d2
         cmp.b     d1,d2
-        bne.s     moncheck
+        bne.s     moncheck				/* no - start over */
 #if TP_50 /* PAK ?why? */
 		move.b    #0,d0
 #else
-        cmp.b     ((sndmactl)+1).w,d0
+        cmp.b     (sndmactl+1).w,d0		/* sound state still the same? */
 #endif
-        bne.s     moncheck
-        move.w    (a7)+,sr
-        btst      #0,d0
+        bne.s     moncheck				/* go try again */
+        move.w    (a7)+,sr				/* restore SR */
+/* d0 now holds good DMA sound state value d1 holds good I7 value */
+        btst      #0,d0					/* was sound active? */
         beq.s     nomoncheck
-        not.b     d1
+        not.b     d1					/* no - invert it to get true MONOMON */
 nomoncheck:
 #if !TP_65 /* EAGLE */
 #if (TOSVERSION < 0x300) | TP_50
-		move.b    (v_shf_mod).w,d0
-		and.b     #3,d0
-		cmp.b     #STHIGH,d0
-		bge.s     vbl_wasmono
+		move.b    (v_shf_mod).w,d0		/* get current rez */
+		and.b     #3,d0					/* strip bucky bits */
+		cmp.b     #STHIGH,d0			/* low or high rez? */
+		bge.s     vbl_wasmono			/* (high) */
 #else
         move.b    (shift_tt).w,d0
         and.b     #7,d0
         cmp.b     #TTHIGH,d0
         beq.s     vbl_wasmono
 #endif
-        btst      #7,d1
-        bne.s     vbl_nomonchg
+/*--- low rez: switch to high if gpip%%7 == 0 */
+        btst      #7,d1					/* bit is zero when there's mono */
+        bne.s     vbl_nomonchg			/* no change: punt */
+/*
+ * rez was low, but now there's a mono monitor! Go to high rez & bail out.
+ *
+ * This code calls noblank1 to wait until vblank is over before changing
+ * mode.  Otherwise the monochrome shifter can be 16 bits off. (Maybe
+ * not needed in TT, but why take chances?)
+ */
         bsr       dovsync
 #if (TOSVERSION < 0x300) | TP_50
-		move.b    #STHIGH,d0
+		move.b    #STHIGH,d0			/* set mode 2 (high rez) */
 #else
-        move.b    #TTHIGH,d0
+        move.b    #TTHIGH,d0			/* set mode 6 (high rez) */
 #endif
         bra.s     vbl_monchg
+/*--- high rez: switch to low (hopefully defshiftmd) if gpip%%7 == 1 */
 vbl_wasmono:
-        btst      #7,d1
-        beq.s     vbl_nomonchg
-        move.b    (_defshiftmod).w,d0
+        btst      #7,d1					/* bit is 1 when no mono */
+        beq.s     vbl_nomonchg			/* no change (still highrez) */
+        move.b    (_defshiftmod).w,d0	/* get preferred rez */
 #if (TOSVERSION < 0x300) | TP_50
-		cmp.b     #STHIGH,d0
-		blt.s     vbl_monchg
+		cmp.b     #STHIGH,d0			/* if high-rez, then force low rez */
+		blt.s     vbl_monchg			/* (low or med rez) */
 #else
-        cmp.b     #TTHIGH,d0
-        bne.s     vbl_monchg
+        cmp.b     #TTHIGH,d0			/* preferred-rez high? */
+        bne.s     vbl_monchg			/* no, fine. */
 #endif
         clr.b     d0 /* STLOW */
 vbl_monchg:
-        move.b    d0,(_sshiftmod).w
+        move.b    d0,(_sshiftmod).w		/* set shadow shift-mode */
 #if (TOSVERSION < 0x300) | TP_50
-		move.b    d0,(v_shf_mod).w
+		move.b    d0,(v_shf_mod).w		/* set hardware shift-mode */
 #else
         move.b    (shift_tt).w,d1
         and.b     #$F8,d1
         or.b      d0,d1
         move.b    d1,(shift_tt).w
 #endif
-        movea.l   (_swv_vec).w,a0
+        movea.l   (_swv_vec).w,a0		/* go through "change rez" panic vector */
         jsr       (a0)
 #endif /* TP_65 */
-vbl_nomonchg:
+vbl_nomonchg: ds.b 0
+/* end of monitor-change stuff, ALL MISSING IF STPAD or SPARROW! */
 #endif /* !STBOOK */
 
         jsr       blink								/* blink cursor */
@@ -2946,11 +2985,18 @@ vbl_end:
 /* 306de: 00e00d78 */
 /* 206de: 00e00d1a */
 /* 104de: 00fc07a0 */
+/* 404: 00e00d52 */
 just_rte:
         rte
 
 /*
  * XBIOS #37 - Vsync - wait for next vblank
+ *
+ * Passed:	nothing
+ * Returns:	at beginning of next vblank
+ * Uses:		D0
+ * AKP 9/91: drop IPL to somewhere from 0 to 3, not always to zero.
+ * If we're already at three, the normal level for TOS, it isn't changed.
  */
 /* 306de: 00e00d7a */
 /* 206de: 00e00d1c */
@@ -2975,6 +3021,7 @@ vsyncwait:
 /* 306de: 00e00d92 */
 /* 206de: 00e00d34 */
 /* 104de: 00fc07ba */
+/* 404: 00e00d6c */
 		xdef _callcrit
 _callcrit:
         move.l    _etv_critic,-(a7)
@@ -3097,6 +3144,7 @@ trph3:  move.l    (a1)+,-(a7)            /* return adress */
 /* 306de: 00e00dfa */
 /* 206de: 00e00da4 */
 /* 104de: 00fc0818 */
+/* 404: 00e0153a */
 #if (TOSVERSION >= 0x300) | TP_50
 #define INDIRECT 1
 #else
@@ -3121,7 +3169,8 @@ bios_vecs:
 /* 306de: 00e00e2c */
 /* 206de: 00e00dd6 */
 /* 104de: 00fc084a */
-xbios_vecs:
+/* 404: 00e0156c */
+ xbios_vecs:
 #if HADES | MEDUSA
 /* new TT xbios calls are not available */
         dc.w 65
@@ -3179,7 +3228,7 @@ xbios_vecs:
 #else
         dc.l bios_unimpl
 #endif
-#if MSTECLK
+#if MSTECLK | (TOSVERSION >= 0x400)
         dc.l _waketime
 #else
         dc.l bios_unimpl
@@ -3217,6 +3266,16 @@ xbios_vecs:
         dc.l bios_unimpl
         dc.l bios_unimpl
         dc.l bios_unimpl
+#if (TOSVERSION >= 0x400)
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+        dc.l bios_unimpl
+#else
         dc.l _esetshift
         dc.l _egetshift
         dc.l _esetbank
@@ -3225,6 +3284,7 @@ xbios_vecs:
         dc.l _egetpalette
         dc.l _esetgray
         dc.l _esetsmear
+#endif
         dc.l bios_unimpl
         dc.l bios_unimpl
         dc.l bios_unimpl
@@ -3487,6 +3547,7 @@ kbshift1:
 /* 306de: 00e010bc */
 /* 206de: 00e00fc8 */
 /* 104de: 00fc0a10 */
+/* 404: 00e00eee */
 _getmpb:
         movea.l   4(a7),a0
         lea.l     (_themd).w,a1
@@ -3502,7 +3563,7 @@ _getmpb:
         move.l    d0,8(a1)           /* themd.m_length = memtop - membot; */
         clr.l     12(a1)             /* themd.m_own = NULL; */
 
-#if (TOSVERSION >= 0x300) | TP_50
+#if ((TOSVERSION >= 0x300) & !SPARROW) | TP_50
         cmpi.l    #$1357BD13,_ramvalid
         bne.s     getmpb1
         cmpi.l    #FASTRAMBASE,_ramtop
@@ -3954,6 +4015,7 @@ any_vec1:
 /* 104de: 00fc0b56 */
 /* 106de: 00e00cee */
 /* 306de: 00e01272 */
+/* 404: 00e0100c */
 drawbombs:
 #if (TP_50 & TP_52) | TP_62 /* (PAK & Grafik_Bombs) | LOGO */
 /*
@@ -4103,6 +4165,7 @@ autoname:                      dc.b '*.PRG',0
 /* 206de: 00e011f6 */
 /* 104de: 00fc0bf4 */
 /* 106de: 00e00d94 */
+/* 404: 00e01102 */
 autoexec:
         move.l    #$000Bffff,-(a7)
         trap      #13                       /* Kbshift(-1) */
@@ -4121,7 +4184,7 @@ autoexec:
 #endif
         lea.l     autopath(pc),a0
         lea.l     autoname(pc),a1
-_auto1: move.l    (a7)+,savepc              /* return addr (used by execlr) */
+_auto1: move.l    (a7)+,autoret             /* return addr (used by execlr) */
         move.l    a0,(execpath).w
         move.l    a1,(execname).w
 #if TOSVERSION >= 0x300
@@ -4148,7 +4211,7 @@ _auto1: move.l    (a7)+,savepc              /* return addr (used by execlr) */
         trap      #1                        /* Pexec(Just go), execute the autoscan routine */
         adda.w    #16,a7
 autoexe1:
-        move.l    savepc,-(a7)
+        move.l    autoret,-(a7)
 autoexe2:
         rts
 
@@ -4244,7 +4307,7 @@ autosca3:
  */
 autosca4:
         lea.l     SUPSIZ*2+_supstk,a7          /* setup supervisor stack */
-        move.l    savepc,-(a7)                 /* get return addr */
+        move.l    autoret,-(a7)                /* get return addr */
         rts
 
 
@@ -4256,6 +4319,7 @@ autosca4:
 /* 206de: 00e013b2 */
 /* 104de: 00fc0da2 */
 /* 106de: 00e00f3e */
+/* 404: 00e012bc */
 bombimage:
 #if TP_16 == 0 /* Bomb */
         dc.b $06,$00,$29,$00,$00,$80,$48,$40,$11,$f0,$01,$f0,$07,$fc,$0f,$fe
@@ -4299,6 +4363,7 @@ waitev:
 /* 206de: 00e013d2 */
 /* 104de: 00fc0dc2 */
 /* 106de: 00e00f5e */
+/* 404: 00e012ea */
 waitvbl:    lea       (MFP_TBDR).w,a0       /* a0 -> timer B data register */
             lea       (MFP_TBCR).w,a1       /* a1 -> timer B control register */
             bclr      #0,(MFP_IERA).w       /* disable IRQ of timer B */
@@ -4336,6 +4401,7 @@ dovsync:
 /* 206de: 00e01408 */
 /* 104de: 00fc0dfe */
 /* 106de: 00e00f9a */
+/* 404: 00e01320 */
 run_reset_resident:
         movea.l   _phystop,a0                   /* start at the top of the address space */
 run_res1:
@@ -4404,12 +4470,14 @@ gsettim1:
 
 
 /*
- * copy sysbase into memory and patch it
+ * copy sysbase into memory
+ * and patch it up so AHDI works right.
  */
 /* 306de: 00e015a2 */
 /* 206de: 00e0147a */
 /* 104de: 00fc0e62 */
 /* 106de: 00e00ffe */
+/* 404: 00e01392 */
 instoshdr:
         lea.l     _os_entry(pc),a0
         lea.l     oshdr+6,a1
@@ -4420,7 +4488,7 @@ instos1:
         move.w    jmpop(pc),-6(a1)              /* copy JMP instruction just before */
         move.l    4(a1),-4(a1)                  /* copy ROM reseth into this JMP; BUG: the jmpop before is a short abs jump */
         move.w    braop(pc),(a1)                /* patch BRA at the beginning of sysbase copy to hit the JMP */
-        move.w    30(a1),28(a1)                 /* copy os_date into os_conf WTF? */
+        move.w    30(a1),28(a1)                 /* copy offending datestamp */
         move.l    a1,_sysbase                   /* set new sysbase pointer */
         rts
 jmpop:
@@ -4458,6 +4526,9 @@ _blitmode:
         bmi.s     blitmod1                      /* <0 just return the status */
         and.w     d5,d0                         /* mask blitter status out */
         or.w      d4,d0                         /* or'd blitter available status */
+#if SPARROW
+		bset	#0,d0			/* sparrow: force hard blit! */
+#endif
         jsr       _SETBLT                       /* disable/enable blitter */
 blitmod1:
         move.w    d3,d0
@@ -5098,8 +5169,8 @@ cooksize equ NCOOKIES*2*4
 		xdef kb_altnum
 		comm kb_altnum,2
 		
-		xdef savepc
-		comm savepc,4
+		xdef autoret
+		comm autoret,4
 
 		xdef lst_timeout
 		comm lst_timeout,4

@@ -34,6 +34,7 @@ cve     equ 5
  *
  ******************************************************************************/
 
+/* 306de: 00e134e4 */
 /* 104de: 00fc920a */
     xdef    __osinit
 __osinit:
@@ -89,6 +90,7 @@ _trap14:
  *    Otherwise, follow old Trap 2 vector (which should just RTE).
  */
 
+/* 306de: 00e1354c */
 /* 104de: 00fc9278 */
 ground_it:              
     tst.w   	d0						/* if D0 == 0x0000, Pterm0(). */
@@ -138,7 +140,9 @@ uc1:
  *
  ***************************************************************************/
 
+/* 306de: 00e1359a */
 /* 104de: 00fc92c6 */
+/* 404: 00e1c27c */
 tikhnd:
     move.w  	4(sp),-(sp)				/* get tick value.  ignore flags */
     jsr 		_tikfrk    				/* call interrupt handler extension */

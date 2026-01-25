@@ -1,10 +1,18 @@
 #include "config.h"
 #include "asmdefs.h"
 
+/* Bconout(2, c) */
+#define putchar(c) \
+	move.w	c,-(sp) \
+	move.l	#$00030002,-(sp) \
+	trap	#13 \
+	addq.w	#6,sp
+
 ZONESIZE equ $20000
 
 /* 306de: 00e05fa4 */
 /* 206de: 00e05bb2 */
+/* 404: 00e07936 */
 	xdef memtest
 memtest:
         movea.l   memtnext,a0
@@ -12,7 +20,7 @@ memtest:
         beq.s     memtes1
         jmp       (a0)
 memtes1:
-        movea.l   #memthdr1,a0
+        movea.l   #mtestmsg,a0
         bsr       mempstr
         clr.l     memtaddr
         move.l    _phystop,memttop
@@ -41,16 +49,10 @@ memtes2:
         add.l     d0,memtsize
         tst.w     memterr
         beq.s     memtes3
-        move.w    #$0058,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, 'X') */
-        addq.w    #6,a7
+        putchar(#'X')
         bra.s     memtes4
 memtes3:
-        move.w    #$002D,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, '-') */
-        addq.w    #6,a7
+        putchar(#'-')
 memtes4:
         clr.w     memterr
 memtes5:
@@ -65,21 +67,15 @@ memtes5:
         moveq.l   #8,d7
 #endif
 memtes6:
-        move.w    #$0008,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, '\b') */
-        addq.w    #6,a7
+        putchar(#8)
         dbf       d7,memtes6
         move.l    (a7)+,d7
-        move.w    #$0020,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, ' ') */
-        addq.w    #6,a7
+        putchar(#' ')
         move.l    _phystop,d0
         asr.l     #8,d0
         asr.l     #2,d0
         bsr       prtdec
-        movea.l   #memtkb,a0
+        movea.l   #mkbmsg,a0
         bsr       mempstr
         move.l    #memtes9,memtnext
 memtes8:
@@ -98,7 +94,7 @@ memtes9:
         not.l     d1
         and.l     d1,d0
         move.l    d0,memtend
-        movea.l   #memthdr2,a0
+        movea.l   #mttmsg,a0
         bsr       mempstr
         move.l    #memtes9a,memtnext
         bra       memtes16
@@ -115,16 +111,10 @@ memtes9a:
         add.l     d0,memtsize
         tst.w     memterr
         beq.s     memtes10
-        move.w    #$0058,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, 'X') */
-        addq.w    #6,a7
+        putchar(#'X')
         bra.s     memtes11
 memtes10:
-        move.w    #$002D,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, '-') */
-        addq.w    #6,a7
+        putchar(#'-')
 memtes11:
         clr.w     memterr
 memtes12:
@@ -138,29 +128,23 @@ memtes12:
         moveq.l   #8,d7
 #endif
 memtes13:
-        move.w    #$0008,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, '\b') */
-        addq.w    #6,a7
+        putchar(#8)
         dbf       d7,memtes13
         move.l    (a7)+,d7
-        move.w    #$0020,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, ' ') */
-        addq.w    #6,a7
+        putchar(#' ')
         move.l    _ramtop,d0
         sub.l     #$01000000,d0
         asr.l     #8,d0
         asr.l     #2,d0
         bsr       prtdec
-        movea.l   #memtkb,a0
+        movea.l   #mkbmsg,a0
         bsr       mempstr
         move.l    #memtes15,memtnext
 memtes14:
         clr.l     d0
         rts
 memtes15:
-        movea.l   #memtcmsg,a0
+        movea.l   #mdonemsg,a0
         bsr       mempstr
         move.l    #memtesa1,memtnext
         clr.l     d0
@@ -173,7 +157,7 @@ memtestabort:
         beq.s     memtesa1
         cmpi.l    #memtesa1,memtnext
         beq.s     memtesa1
-        movea.l   #memtamsg,a0
+        movea.l   #mabrtmsg,a0
         bsr       mempstr
         move.l    #memtesa1,memtnext
 memtesa1:
@@ -219,55 +203,52 @@ memtes19:
         move.l    d2,d7
         move.l    d2,-(a7)
 memtes20:
-        move.w    #$0020,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, ' ') */
-        addq.w    #6,a7
+        putchar(#' ')			/* until d2 expires */
         subq.l    #1,d7
         bne.s     memtes20
         move.l    (a7)+,d7
 memtes21:
-        move.w    #$0008,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13         /* Bconout(2, '\b') */
-        addq.w    #6,a7
+        putchar(#8)			/* until d2 expires */
         subq.l    #1,d7
         bne.s     memtes21
         move.l    (a7)+,d7
         clr.l     d0
         rts
 
-#if (OS_COUNTRY == CTRY_PL) & (TOSVERSION >= 0x300)
-memthdr1:
+#if (OS_COUNTRY == CTRY_PL) & (TOSVERSION >= 0x300) & (TOSVERSION < 0x400)
+mtestmsg:
                                      dc.b 'Test pami',$d3,'ci',13,10
                                      dc.b 'ST RAM ',27,'p',0
-memthdr2:                            dc.b 13,10,'TT RAM ',27,'p',0
-memtcmsg:                            dc.b 13,10,'Koniec testu pami',$d3,'ci.',13,10,0
-memtkb:                              dc.b ' KB',27,'q',27,'K',0
-memtamsg:                            dc.b 13,10,'!TEST NIEDOKO',$c5,'CZONY.',27,'q',13,10,0
+mttmsg:                              dc.b 13,10,'TT RAM ',27,'p',0
+mdonemsg:                            dc.b 13,10,'Koniec testu pami',$d3,'ci.',13,10,0
+mkbmsg:                              dc.b ' KB',27,'q',27,'K',0
+mabrtmsg:                            dc.b 13,10,'!TEST NIEDOKO',$c5,'CZONY.',27,'q',13,10,0
 #else
 #if TOSVERSION >= 0x300
-memthdr1:
+#if TOSVERSION < 0x400
+mtestmsg:
                                      dc.b 'Memory Test:',13,10
 #if HADES
                                      dc.b 'FASTRAM'
 #else
                                      dc.b 'ST RAM '
 #endif
-                                     dc.b 27,'p',0
-memthdr2:                            dc.b 13,10,'TT RAM ',27,'p',0
-memtcmsg:                            dc.b 13,10,'Memory Test Complete.',13,10,0
-memtkb:                              dc.b ' KB',27,'q',27,'K',0
-memtamsg:                            dc.b 13,10,'Memory Test Aborted.'
+                                     dc.b 27,'p'
+                                     dc.b 0
+#endif
+mttmsg:                              dc.b 13,10,'TT RAM ',27,'p',0
+mdonemsg:                            dc.b 13,10,'Memory Test Complete.',13,10,0
+mkbmsg:                              dc.b ' KB',27,'q',27,'K',0
+mabrtmsg:                            dc.b 13,10,'Memory Test Aborted.'
                                      dc.b 27,'q',13,10,0
 #else
-memthdr1:
+mtestmsg:
                                      dc.b 'Memory Test:',13,10
                                      dc.b 'ST RAM ',0
-memthdr2:                            dc.b 13,10,'TT RAM ',0
-memtcmsg:                            dc.b 13,10,'Memory Test Complete.',13,10,0
-memtkb:                              dc.b ' KB',27,'q',27,'K',0
-memtamsg:                            dc.b 13,10,'Memory Test Aborted.'
+mttmsg:                              dc.b 13,10,'TT RAM ',0
+mdonemsg:                            dc.b 13,10,'Memory Test Complete.',13,10,0
+mkbmsg:                              dc.b ' KB',27,'q',27,'K',0
+mabrtmsg:                            dc.b 13,10,'Memory Test Aborted.'
                                      dc.b 27,'q',13,10,0
 memtams2:                            dc.b 27,'p',0
 #endif
@@ -285,10 +266,7 @@ mempstr:
 mempstr1:
         move.b    (a5)+,d0
         beq.s     mempstr2
-        move.w    d0,-(a7)
-        move.l    #$00030002,-(a7)
-        trap      #13
-        addq.w    #6,a7
+        putchar(d0)
         bra.s     mempstr1
 mempstr2:
         movea.l   (a7)+,a5

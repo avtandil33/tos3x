@@ -110,6 +110,7 @@ char *sfname;				/* Source filename */
 
 /* assembler flag variables */
 short didorg;
+short mas_compat;
 short shortadr;         /* short addresses if set */
 short m68010;           /* 68010 code */
 short aesflag;
@@ -834,16 +835,18 @@ static VOID tryquick(NOTHING)
 		}
 		return;
 	}
-	if (l <= 0 || l > 8)
+	if (l > 0 && l <= 8)
 	{
-		return;
-	}
-	if (p == addptr || p == addiptr)
-	{
-		stbuf[2].itop.ptrw2 = opcpt = addqptr;
-	} else if (p == subptr || p == subiptr)
-	{
-		stbuf[2].itop.ptrw2 = opcpt = subqptr;
+		if (!mas_compat)
+		{
+			if (p == addptr || p == addiptr)
+			{
+				stbuf[2].itop.ptrw2 = opcpt = addqptr;
+			} else if (p == subptr || p == subiptr)
+			{
+				stbuf[2].itop.ptrw2 = opcpt = subqptr;
+			}
+		}
 	}
 }
 
@@ -1097,6 +1100,7 @@ static VOID usage(NOTHING)
 	rpterr(_("    -a   use short addresses"));
 	rpterr(_("    -t   generating code suitable for the 68010"));
 	rpterr(_("    -f   redirect temp files to directory"));
+	rpterr(_("    -M   behave more like MAS"));
 	exit(EXIT_FAILURE);
 }
 
@@ -1197,6 +1201,10 @@ PP(char **argv;)
 		case 'A':
 			aesflag = 1;
 			lineftbl = &arg[2];
+			break;
+
+		case 'M':
+			mas_compat = TRUE;
 			break;
 
 		case 'o':

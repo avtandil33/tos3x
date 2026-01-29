@@ -437,6 +437,7 @@ extern char *sfname;				/* Source filename */
 
 /* assembler flag variables */
 extern short didorg;
+extern short mas_compat;
 extern short shortadr;         /* short addresses if set */
 extern short m68010;           /* 68010 code */
 extern short aesflag;

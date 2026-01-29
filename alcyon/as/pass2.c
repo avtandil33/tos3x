@@ -1066,7 +1066,7 @@ static adirect const opfary[] = {
 	opf23,	/* 23 FORMAT_EOR */
 	opf9,	/* 24 FORMAT_CLR */
 	opf9,	/* 25 FORMAT_SCC */
-	opf5,	/* 26 FORMAT_CMP */		/* cmp, chk, extention verification */
+	opf5,	/* 26 FORMAT_CMP */		/* cmp, chk, extension verification */
 	opf4,	/* 27 FORMAT_ADDX */	/* addx, subx, extension verification */
 	opf13,	/* 28 FORMAT_SWAP */	/* swap, extension verification */
 	opf9,	/* 29 FORMAT_PEA */		/* pea, extention verification */

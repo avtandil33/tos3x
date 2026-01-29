@@ -268,10 +268,11 @@ static int modeok(NOTHING)
 	case FORMAT_BTST:
 	case FORMAT_JMP:
 		return modelen == WORDSIZ ? FALSE : TRUE;
-	case FORMAT_DIV:
 	case FORMAT_DBCC:
 	case FORMAT_SWAP:
 		return modelen == WORDSIZ ? TRUE : FALSE;
+	case FORMAT_DIV:
+		return modelen == WORDSIZ || modelen == LONGSIZ ? TRUE : FALSE;
 	case FORMAT_RELBR:
 		return TRUE; /* now also valid for bra.l */
 	case FORMAT_EXG:
@@ -354,7 +355,6 @@ static int calcilen(NOTHING)
 	case FORMAT_ADDA:
 	case FORMAT_LEA:
 	case FORMAT_CMP:
-	case FORMAT_DIV:
 	case FORMAT_MOVE:
 	case FORMAT_MOVEP:
 		i += lenea(1);
@@ -364,6 +364,17 @@ static int calcilen(NOTHING)
 	case FORMAT_SCC:
 	case FORMAT_PEA:
 		i += lenea(0);
+		break;
+
+	case FORMAT_DIV:
+		/* mulul.l not supported yet (would require third operand) */
+		i += lenea(1);
+		i += lenea(0);
+		if (modelen == LONGSIZ)
+		{
+			/* uerr(47); */ /* warning: muls.l generated for 68020+" */
+			i += 2; /* for extension word */
+		}
 		break;
 
 	case FORMAT_JMP:					/* explicit jmp length... */

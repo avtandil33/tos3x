@@ -5,6 +5,7 @@
 /* 306de: 00e01450 */
 /* 206de: 00e0130c */
 /* 104de: 00fc0cfa */
+/* 404: 00e01216 */
         xdef _scrdmp
 _scrdmp:
         movea.l   _scr_dmp,a0
@@ -18,6 +19,7 @@ _scrdmp:
 /* 306de: 00e01462 */
 /* 206de: 00e0131e */
 /* 104de: 00fc0d0c */
+/* 404: 00e01228 */
 	xdef _bscr_dump
 _bscr_dump:
         SETBASEREG

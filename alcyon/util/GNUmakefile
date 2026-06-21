@@ -15,7 +15,7 @@ CPPFLAGS = -I ../common
 CFLAGS = $(OPTS) $(WARN)
 LDFLAGS += -s
 
-PROGRAMS = size68$(EXEEXT) nm68$(EXEEXT) ar68$(EXEEXT) analyze$(EXEEXT)
+PROGRAMS = size68$(EXEEXT) nm68$(EXEEXT) ar68$(EXEEXT) analyze$(EXEEXT) sendc68$(EXEEXT)
 
 all: $(PROGRAMS)
 
@@ -32,6 +32,9 @@ ar68$(EXEEXT): $(AR_OBJS)
 
 analyze$(EXEEXT): $(ANALYZE_OBJS)
 	$(AM_V_LD)$(LD) $(ANALYZE_OBJS) $(LDFLAGS) $(GLIBC_SO) -o $@ $(LIBS)
+
+sendc68$(EXEEXT): $(SENDC68_OBJS)
+	$(AM_V_LD)$(LD) $(SENDC68_OBJS) $(LDFLAGS) $(GLIBC_SO) -o $@ $(LIBS)
 
 dist::
 	$(CP) -a $(SRCS) $(EXTRA_DIST1) $(top_srcdir)/$(DISTDIR2)/$(subdir)

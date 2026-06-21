@@ -13,6 +13,7 @@
 /* 306de: 00e01680 */
 /* 206de: 00e01548 */
 /* 104de: 00fc1ee0 */
+/* 404: 00e01464 */
 		xdef _zeromem
 _zeromem:
         movea.l   4(a7),a0	/* a0 -> start */

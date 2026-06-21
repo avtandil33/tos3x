@@ -191,7 +191,7 @@ VOID hbss(NOTHING)
 /* make pc even */
 VOID heven(NOTHING)
 {
-	modelen = 2;						/* Set up so chkeven() won't barf ... */
+	modelen = WORDSIZ;						/* Set up so chkeven() won't barf ... */
 	if (loctr & 1)
 	{									/* have to make it even */
 		dorlst(rlflg);
@@ -381,7 +381,7 @@ VOID hdc(NOTHING)
 /* define byte directive */
 VOID hascii(NOTHING)
 {
-	modelen = 1;
+	modelen = BYTESIZ;
 	chkeven();
 	hdata(modelen);
 }
@@ -961,7 +961,7 @@ VOID sdc(NOTHING)
 
 VOID sascii(NOTHING)
 {
-	modelen = 1;
+	modelen = BYTESIZ;
 	sdata(modelen);
 }
 

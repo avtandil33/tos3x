@@ -57,6 +57,7 @@ PD *slr;
 
 /* 306de: 00e1b8ea */
 /* 104de: 00fde286 */
+/* 404: 00e21ad8 */
 BOOLEAN forkq(P(FCODE) fcode, P(int32_t) fdata)
 PP(FCODE fcode;)
 PP(int32_t fdata;)
@@ -96,6 +97,7 @@ PP(int32_t fdata;)
 
 /* 306de: 00e1b94a */
 /* 104de: 00fde2de */
+/* 404: 00e21b48 */
 VOID disp_act(P(PD *) p)
 PP(register PD *p;)
 {
@@ -117,6 +119,7 @@ PP(register PD *p;)
  * Suspend the process
  */
 /* 306de: 00e1b982 */
+/* 404: 00e21b82 */
 VOID suspend_act(P(PD *) p)
 PP(register PD *p;)
 {
@@ -130,6 +133,7 @@ PP(register PD *p;)
 
 
 /* 306de: 00e1b9aa */
+/* 404: 00e21baa */
 VOID forker(NOTHING)
 {
 	register FPD *f;
@@ -185,6 +189,7 @@ VOID forker(NOTHING)
 
 
 /* 306de: 00e1bac6 */
+/* 404: 00e21ce6 */
 VOID chkkbd(NOTHING)
 {
 	register int16_t achar, kstat;
@@ -244,6 +249,7 @@ VOID chkkbd(NOTHING)
  ****************************************************************/
 
 /* 306de: 00e1bb66 */
+/* 404: 00e21d90 */
 VOID disp(NOTHING)
 {
 	register PD *p;

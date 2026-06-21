@@ -477,11 +477,34 @@ static VOID opf5(NOTHING)
 	{
 		ins[0] |= f5mode[modelen];		/* was pumode */
 		ckbytea();
+		ins[0] |= (opnd[1].ea & 7) << 9 | opnd[0].ea;
 	} else if (!dataea(&opnd[0]))
 	{
 		uerr(20); /* illegal addressing mode */
+		ins[0] |= (opnd[1].ea & 7) << 9 | opnd[0].ea;
+	} else
+	{
+		if (modelen == LONGSIZ)
+		{
+			/* mulu: 0xc0c0 -> 0x4c00 0x0000 */
+			/* muls: 0xc1c0 -> 0x4c00 0x0800 */
+			/* divu: 0x80c0 -> 0x4c40 0x0000 */
+			/* divs: 0x81c0 -> 0x4c40 0x0800 */
+			ins[1] = (ins[0] & 0x100) << 3;
+			ins[0] = (ins[0] & 0x4000) ? 0x4c00 : 0x4c40;
+			ins[0] |= opnd[0].ea;
+			if (ins[0] & 0x0040)
+				ins[1] |= (opnd[1].ea & 7);
+			ins[1] |= (opnd[1].ea & 7) << 12;
+			pins = &ins[2];
+			prlb = &rlbits[1];
+			*prlb++ = DABS;
+			instrlen += 2;
+		} else
+		{
+			ins[0] |= (opnd[1].ea & 7) << 9 | opnd[0].ea;
+		}
 	}
-	ins[0] |= (opnd[1].ea & 7) << 9 | opnd[0].ea;
 	doea(&opnd[0]);
 }
 
@@ -506,9 +529,9 @@ static VOID opf7(NOTHING)
 		ins[0] |= 04000;
 		dodisp(&opnd[0]);
 	}
-	if (modelen == 1 && !(memea(&opnd[1])))
+	if (modelen == BYTESIZ && !(memea(&opnd[1])))
 		uerr(20); /* illegal addressing mode */
-	else if (!(ckdreg(&opnd[1])) && modelen == 4)
+	else if (!(ckdreg(&opnd[1])) && modelen == LONGSIZ)
 		uerr(20); /* illegal addressing mode */
 	ins[0] |= opnd[1].ea;
 	doea(&opnd[1]);
@@ -552,7 +575,7 @@ static VOID opf8(NOTHING)
 		i = (ins[0] & 077) << 6;
 		ins[0] &= 0177700;
 		ins[0] |= 0300 | i | opnd[0].ea;
-		if (!memalt(&opnd[0]) || pcea(&opnd[0]) || modelen != 2)
+		if (!memalt(&opnd[0]) || pcea(&opnd[0]) || modelen != WORDSIZ)
 			uerr(20); /* illegal addressing mode */
 		doea(&opnd[0]);
 		return;
@@ -619,7 +642,7 @@ static VOID opf9(NOTHING)
 	{									/* stop */
 		if (ins[0] == RTD && !m68010)
 			uerr(8); /* opcode for 68010 only */
-		if (modelen != 2 || opnd[0].ea != IMM)
+		if (modelen != WORDSIZ || opnd[0].ea != IMM)
 			uerr(20); /* illegal addressing mode */
 		doea(&opnd[0]);
 		return;
@@ -773,7 +796,7 @@ static VOID opf17(NOTHING)
 		uerr(20); /* illegal addressing mode */
 	if (opnd[0].con <= 0 || opnd[0].con > 8)
 		uerr(15); /* illegal constant */
-	if (modelen == 1 && !dataea(&opnd[1]))
+	if (modelen == BYTESIZ && !dataea(&opnd[1]))
 		uerr(34); /* illegal size */
 	ins[0] |= f1mode[modelen] | (((short)opnd[0].con & 7) << 9) | opnd[1].ea;
 	doea(&opnd[1]);
@@ -886,7 +909,7 @@ static VOID opf20(NOTHING)
 	i = opnd[0].ea & 070;
 	if (!controlea(&opnd[0]) && i != INDINC && i != DECIND)
 		uerr(20); /* illegal addressing mode */
-	if (modelen == 4)					/* long */
+	if (modelen == LONGSIZ)				/* long */
 		ins[0] |= 0100;
 	ins[0] |= opnd[0].ea | dr;
 	*pins++ = j;						/* reg mask */
@@ -929,7 +952,7 @@ static VOID opf21(NOTHING)
 	}
 	if ((p->ea & 070) != INDDISP)
 		uerr(20); /* illegal addressing mode */
-	if (modelen == 4)
+	if (modelen == LONGSIZ)
 		m |= 0100;
 	ins[0] |= (d << 9) | m | (p->ea & 7);
 	*pins++ = (short)p->con;
@@ -1066,7 +1089,7 @@ static adirect const opfary[] = {
 	opf23,	/* 23 FORMAT_EOR */
 	opf9,	/* 24 FORMAT_CLR */
 	opf9,	/* 25 FORMAT_SCC */
-	opf5,	/* 26 FORMAT_CMP */		/* cmp, chk, extention verification */
+	opf5,	/* 26 FORMAT_CMP */		/* cmp, chk, extension verification */
 	opf4,	/* 27 FORMAT_ADDX */	/* addx, subx, extension verification */
 	opf13,	/* 28 FORMAT_SWAP */	/* swap, extension verification */
 	opf9,	/* 29 FORMAT_PEA */		/* pea, extention verification */

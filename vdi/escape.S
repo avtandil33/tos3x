@@ -204,6 +204,7 @@ v_offset:
 /* 306de: 00e07292 */
 /* 206de: 00e06100 */
 /* 104de: 00fca358 */
+/* 404: 00e08d40 */
 	xdef	_asc_out
 _asc_out: ds.b 0
 /*
@@ -229,6 +230,7 @@ conout: ds.b 0
 /* 306de: 00e0729e */
 /* 206de: 00e0610c */
 /* 104de: 00fca364 */
+/* 404: 00e08d4c */
 	xdef _bcon2out
 _bcon2out: ds.b 0
 
@@ -1128,6 +1130,7 @@ ascii_lf:
 /* 306de: 00e0761a */
 /* 206de: 00e06496 */
 /* 104de: 00fca6ee */
+/* 404: 00e090f2 */
 	xdef blink
 blink:	PIXL6(a4)
 
@@ -1167,6 +1170,7 @@ bl_exit:
 /* 306de: 00e0764c */
 /* 206de: 00e064c8 */
 /* 104de: 00fca720 */
+/* 404: 00e0912a */
 	xdef _cursconf
 _cursconf:
 	PIXL6(a4)

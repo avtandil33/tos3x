@@ -14,6 +14,7 @@
 /* 306de: 00e02160 */
 /* 206de: 00e01e86 */
 /* 104de: 00fc315e */
+/* 404: 00e0225c */
 	xdef _clockvec
 _clockvec:
 #if TOSVERSION < 0x200
@@ -49,6 +50,7 @@ _clockvec:
 /* 306de: 00e021a4 */
 /* 206de: 00e01eca */
 /* 104de: 00fc31a8 */
+/* 404: 00e022a0 */
 	xdef igetdt
 igetdt:
         move.b    #-1,ABSW(iclk_ready)
@@ -69,6 +71,7 @@ igetdt2:
 /* 306de: 00e021ce */
 /* 206de: 00e01ef4 */
 /* 104de: 00fc31d2 */
+/* 404: 00e022ca */
 	xdef isetdt
 isetdt:
         move.l    4(a7),ABSW(iclkwtime)

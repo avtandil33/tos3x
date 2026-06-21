@@ -257,7 +257,7 @@ PP(int type;)								/* should not get a bit field here..... */
 		(datasize == LONGSIZE && BTYPE(type) == LONG))
 	{
 		datasize = 0;
-		maxsize = 0x7fff;				/* max 32 bit positive value */
+		maxsize = 0xffffL;				/* max 32 bit positive value */
 #ifdef DEBUG
 		if (initdebug)
 			fprintf(stderr, "undimensioned type %d datasize %ld\n", type, (long)datasize);

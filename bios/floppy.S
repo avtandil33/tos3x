@@ -4,13 +4,18 @@
 #include "biosdefs.h"
 
 
+/* max addr where ACSI DMA works */
+#if TOSVERSION >= 0x400
+FRB_THRESHOLD equ $00E00000 /* max addr for Sparrow: 14MB. */
+#else
 #if TOSVERSION >= 0x300
-FRB_THRESHOLD equ $00A00000
+FRB_THRESHOLD equ $00A00000 /* max addr for TT: 10MB. */
 #else
 #if TP_63 /* MAGNUM */
 FRB_THRESHOLD equ $00100000
 #else
 FRB_THRESHOLD equ $00400000
+#endif
 #endif
 #endif
 
@@ -23,6 +28,11 @@ FRB_THRESHOLD equ $00400000
 
 
 #if HD_SUPPORT
+/*
+ * density bits (WRITE ONLY)
+ * (and don't touch at all if _iamanst)
+ */
+#define denselect  $ffff860e
 /*
  * struct dsb {
  *    uint8_t drivetype;    == 8 for HD
@@ -77,6 +87,9 @@ dsb_sizeof equ 4
 #include "hadflopp.S"
 #else /* rest of file */
 
+/*------ Floppy state variables in DSB: */
+recal           equ     $ff00           /* recalibrate flag (in fd_curtrack) */
+
         text
 
 /*
@@ -89,6 +102,7 @@ dsb_sizeof equ 4
 /* 306de: 00e03ba8 */
 /* 206de: 00e037c6 */
 /* 104de: 00fc0ef0 */
+/* 404: 00e03d5a */
         xdef _flopini
 _flopini:
 #if TOSVERSION >= 0x200
@@ -111,8 +125,8 @@ flopini1:
         clr.w     fd_curtrack(a1)               /* fake clean drive */
 #if TOSVERSION >= 0x200
         clr.w     fd_cscnt
-#if TOSVERSION < 0x300
-        move.w    #$FF00,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
+#if TOSVERSION < 0x300) | (TOSVERSION >= 0x400)
+        move.w    #recal,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
 #endif
 #endif
 #if STBOOK
@@ -121,8 +135,8 @@ flopini1:
 #endif
         bsr       floplock                      /* setup parameters */
         bsr       select                        /* select drive and side */
-#if (TOSVERSION >= 0x300) | (TOSVERSION < 0x200)
-        move.w    #$FF00,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
+#if ((TOSVERSION >= 0x300 & (TOSVERSION < 0x400)) | (TOSVERSION < 0x200)
+        move.w    #recal,fd_curtrack(a1)        /* default = recal drive (it's dirty) */
 #endif
         bsr       restore                       /* attempt restore */
 #if MEDUSA & (TOSVERSION < 0x300)
@@ -141,7 +155,7 @@ flopini3:
         bra       flopfail                      /* return failure */
 
 #if STBOOK
-fi_ndrv:    move.w    #$0202,ABSW(_drivechange) /* both drives are "unsure" */
+fi_ndrv:    move.w    #$0202,ABSW3(_drivechange) /* both drives are "unsure" */
             moveq     #0,d0
             tst.w     ABSW(_nflops)             /* any floppy drives installed? */
             beq.s     fi_ret                    /* (no, return NO_ERROR) */
@@ -212,6 +226,7 @@ checkfd2:   movem.l   (sp)+,d0-d7/a6
 /* 306de: 00e03c10 */
 /* 206de: 00e03820 */
 /* 104de: 00fc0f38 */
+/* 404: 00e03db4 */
         xdef _floprd
 _floprd:
 #if STBOOK
@@ -244,6 +259,7 @@ floprd1:
 floprd2:
         move.w    #-1,fd_curerr                 /* set general error# E_ERR */
 #if TOSVERSION >= 0x200
+/* reset ACSI chip (see notes) */
         move.w    #$0190,(a6)                   /* toggle DMA data direction, */
         tst.b     ABSW(MFP_GPIP)
         tst.b     ABSW(MFP_GPIP)                /* delay for 1 microsec */
@@ -359,6 +375,7 @@ fdcerr1:
 /* 206de: 00e0391c */
 /* 104de: 00fc100a */
 /* 106de: 00e011b2 */
+/* 404: 00e03eb0 */
         xdef _flopwrt
 _flopwrt:
 #if STBOOK
@@ -492,6 +509,7 @@ flopwrt7:
 /* 206de: 00e03a04 */
 /* 104de: 00fc10c6 */
 /* 106de: 00e0127a */
+/* 404: 00e03fa0 */
         xdef _flopfmt
 _flopfmt:
         cmpi.l    #$87654321,22(a7)             /* check for magic# on stack */
@@ -544,7 +562,7 @@ flopfmt1:
         nop
         nop
 #else
-        move.w    d0,ABSW($FFFF860E)
+        move.w    d0,ABSW(denselect)
 #endif
 #endif /* STBOOK */
 flopfmt2:
@@ -792,6 +810,7 @@ wmult:
 /* 306de: 00e03ffe */
 /* 206de: 00e03bfe */
 /* 104de: 00fc1286 */
+/* 404: 00e0419a */
         xdef _flopver
 _flopver:
 #if STBOOK
@@ -934,6 +953,7 @@ verify8:
 /* 306de: 00e04106 */
 /* 206de: 00e03cfe */
 /* 104de: 00fc1360 */
+/* 404: 00e0429a */
         xdef _flopvbl
 _flopvbl:
         SETBASEREG
@@ -1022,6 +1042,7 @@ flopvbl5:
 /* 306de: 00e04196 */
 /* 206de: 00e03d86 */
 /* 104de: 00fc13dc */
+/* 404: 00e04322 */
 floplock:
         movem.l   d3-d7/a3-a6,flopsregs         /* save C registers */
         SETBASEREG
@@ -1069,7 +1090,7 @@ floploc1:
         bsr       restore                       /* attempt restore again */
         beq.s     floploc3                      /* (it won) */
 floploc2:
-        move.w    #$FF00,fd_curtrack(a1)        /* complete failure (what can we do?) */
+        move.w    #recal,fd_curtrack(a1)        /* complete failure (what can we do?) */
 floploc3:
         rts
 
@@ -1079,6 +1100,7 @@ floploc3:
 /* 306de: 00e04216 */
 /* 206de: 00e03e06 */
 /* 104de: 00fc145c */
+/* 404: 00e043a2 */
 flopfail:
         moveq.l   #MEDIAMAYCHANGE,d0            /* disk change mode = unsure */
         bsr       setdchg                       /* set media change mode */
@@ -1224,14 +1246,14 @@ go2trac2:
         move.w    d0,fd_density(a1)
         tst.b     STEFlag                       /* no STE hardware available? */
         bne.s     go2trc2b                      /* (correct) */
-        move.w    d0,ABSW($FFFF860E)
+        move.w    d0,ABSW(denselect)
 go2trc2b:
 #else
 #if MEDUSA & (TOSVERSION >= 0x300)
         nop
         nop
 #else
-        move.w    d0,ABSW($FFFF860E)
+        move.w    d0,ABSW(denselect)
 #endif
         move.w    d0,fd_density(a1)
 #endif
@@ -1321,7 +1343,7 @@ flopcms1:
         nop
         nop
 #else
-        move.w    fd_density(a1),ABSW($FFFF860E)
+        move.w    fd_density(a1),ABSW(denselect)
 #endif
 #endif
 #endif /* TP_41 */
@@ -1442,6 +1464,7 @@ r1770a:
  */
 /* 306de: 00e043c4 */
 /* 206de: 00e03fcc */
+/* 404: 00e0455a */
 select:
             clr.w     ABSW(fd_desel)            /* floppies NOT deselected */
             move.w    ABSW(fd_dev),d0           /* get device number */
@@ -1480,14 +1503,24 @@ select1:
  */
 /* 306de: 00e04406 */
 /* 206de: 00e0400e */
+/* 404: 00e0459c */
 setporta:
             move.w    sr,-(a7)                  /* save our IPL */
             ori.w     #$0700,sr                 /* start critical section */
             move.b    #14,ABSW2(psgsel)         /* select port on GI chip */
             move.b    ABSW2(psgrd),d1           /* get current bits */
             move.b    d1,d2                     /* save old bits for caller */
+#if TOSVERSION >= 0x400
+            and.b     #$fc,d1                   /* zero low two bits of current value */
+            and.b     #$3,d0                    /* zero all but two bits of new value */
+#else
             and.b     #$F8,d1                   /* strip low three bits there */
+/*        and.b   #$7,d0                  zero all but three bits of new value */
+#endif
             or.b      d0,d1                     /* or-in our new bits */
+#if TOSVERSION >= 0x400
+            move.b  #14,ABSW2(psgsel)       /* re-select port A (AKP 5/92) */
+#endif
             move.b    d1,ABSW2(psgwr)           /* and write 'em back out there */
             move.w    (a7)+,sr                  /* restore IPL to terminate CS, return */
             rts
@@ -1503,6 +1536,7 @@ setporta:
 /* write d6 to selected FDC register */
 /* 306de: 00e04426 */
 /* 206de: 00e0402e */
+/* 404: 00e045d0 */
 wrfdcd6:
             bsr.s     rwdelay                   /* delay */
             move.w    d6,ABSW2(DMA_DATA)        /* write d6 to diskctl */
@@ -1515,6 +1549,7 @@ wrfdcd6:
 /* write d7 to selected FDC register */
 /* 306de: 00e0442e */
 /* 206de: 00e04036 */
+/* 404: 00e045d8 */
 wrfdcd7:
             bsr.s     rwdelay                   /* delay */
             move.w    d7,ABSW2(DMA_DATA)        /* write d7 to diskctl */
@@ -1527,6 +1562,7 @@ wrfdcd7:
 /* read selected FDC register into d7 */
 /* 306de: 00e04436 */
 /* 206de: 00e0403e */
+/* 404: 00e045e0 */
 rdfdcd7:
             bsr.s     rwdelay                   /* delay */
             move.w    ABSW2(DMA_DATA),d7        /* read diskctl into d7 */
@@ -1539,6 +1575,7 @@ rdfdcd7:
 /* read selected FDC register into d0 */
 /* 306de: 00e0443e */
 /* 206de: 00e04046 */
+/* 404: 00e045e8 */
 rdfdcd0:
             bsr.s     rwdelay                   /* delay */
             move.w    ABSW2(DMA_DATA),d0        /* read diskctl into d0 */
@@ -1595,6 +1632,7 @@ rwdly1:     dbf       d7,rwdly1
 /* 306de: 00e04454 */
 /* 206de: 00e0406a */
 /* 104de: 00fc1640 */
+/* 404: 00e0460c */
 fdchange:
             cmpi.w    #1,_nflops                /* if there are zero or two floppies */
             bne.s     fdchang2                  /* then do nothing (return OK) */
@@ -1622,7 +1660,7 @@ fdchang2:
  * Uses:           a0
  */
 setdchg:
-            lea.l     ABSW(_drivechange),a0     /* a0 -> disk mode table */
+            lea.l     ABSW3(_drivechange),a0    /* a0 -> disk mode table */
             move.b    d0,-(a7)                  /* (save mode) */
             move.w    ABSW(fd_dev),d0           /* d0.w = drive# (index into table) */
 #if TOSVERSION >= 0x200
@@ -1649,6 +1687,7 @@ setdchg1:
 /* 306de: 00e044b6 */
 /* 206de: 00e040cc */
 /* 104de: 00fc1692 */
+/* 404: 00e04670 */
         xdef _floprate
 _floprate:
 /* --- pick a DSB */
@@ -1714,6 +1753,7 @@ floprat5:
  */
 /* 306de: 00e04508 */
 /* 206de: 00e0411e */
+/* 404: 00e046c2 */
 frbbackcopy:
             move.w    fd_cscnt,d1               /* sectors to copy back into memory? */
             beq.s     frbback2                  /* (no, punt) */

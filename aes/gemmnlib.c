@@ -94,6 +94,7 @@ PP(int16_t x;)
 /* 306de: 00e1ec3a */
 /* 104de: 00fe1f60 */
 /* 106de: 00e23ecc */
+/* 404: 00e25f14 */
 uint16_t do_chg(P(LPTREE) tree, P(int16_t) iitem, P(uint16_t) chgvalue, P(int16_t) dochg, P(int16_t) dodraw, P(int16_t) chkdisabled)
 PP(register LPTREE tree;)						/* tree that holds item */
 PP(int16_t iitem;)								/* item to affect   */
@@ -354,6 +355,7 @@ PP(int16_t *pitem;)
 /* 306de: 00e1f098 */
 /* 104de: 00fe2348 */
 /* 106de: 00e2432a */ 
+/* 404: 00e25f9c */
 VOID mn_bar(P(LPTREE) tree, P(int16_t) showit)
 PP(register LPTREE tree;)
 PP(int16_t showit;)
@@ -374,7 +376,7 @@ PP(int16_t showit;)
 
 		rc_copy(&gl_rmnactv, (GRECT *)&gl_ctwait.m_x);
 		/*
-		 * BUG: gl_mnpid delcared as long but accessed as short;
+		 * BUG: gl_mnpid declared as long but accessed as short;
 		 * this will be sign-extended here, causing users to always
 		 * use 0 as menu owner
 		 */

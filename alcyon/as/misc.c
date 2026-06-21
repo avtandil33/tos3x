@@ -808,20 +808,31 @@ PP(struct op *apea;)
 					{
 						p->con -= (loctr + instrlen);
 						p->con += couthd.ch_tsize;
+						p->drlc = ABS;
 					} else if (rlflg == TEXT && p->drlc == BSS && p->ext == -1)
 					{
 						p->con -= (loctr + instrlen);
 						p->con += couthd.ch_tsize;
 						p->con += couthd.ch_dsize;
+						p->drlc = ABS;
 					} else
 					{
-						uerr(27); /* relocation error */
+						if (p->drlc != EXTRN)
+						{
+							uerr(27); /* relocation error */
+							p->drlc = ABS;
+						} else
+						{
+							p->drlc = (p->ext << 3) | EXTREL;
+							p->ext = -1;
+							/* p->con -= (loctr + instrlen); */
+						}
 					}
 				} else
 				{
 					p->con -= (loctr + instrlen);
+					p->drlc = ABS;
 				}
-				p->drlc = ABS;
 				if (p->con < -32768L || p->con > 32767L ||
 					((p->ea & 7) == 3 &&
 					 (p->con < -128L || p->con > 127L)))

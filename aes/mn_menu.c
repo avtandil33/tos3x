@@ -83,7 +83,7 @@ int16_t FindNewMenuID PROTO((NOTHING));
 VOID SetMenuHeight PROTO((MENU_PTR MenuPtr, int16_t start_obj, BOOLEAN adjust_flag));
 VOID PushArrowText PROTO((MENU_PTR MenuPtr));
 VOID PopArrowText PROTO((MENU_PTR MenuPtr));
-VOID AdjustMenuPositio PROTO((MENU_PTR MenuPtr, int16_t xpos, int16_t ypos, GRECT *rect, BOOLEAN Horizontal_Flag, BOOLEAN Vertical_Flag));
+VOID AdjustMenuPosition PROTO((MENU_PTR MenuPtr, int16_t xpos, int16_t ypos, GRECT *rect, BOOLEAN Horizontal_Flag, BOOLEAN Vertical_Flag));
 
 
 
@@ -660,7 +660,7 @@ PP(register MENU_PTR MenuPtr;)					/* ptr to the menu node... */
  *	      The menu is adjusted downwards if it exceeds the top 
  * 	      of the screen.
  */
-VOID AdjustMenuPositio(P(MENU_PTR) MenuPtr, P(int16_t) xpos, P(int16_t) ypos, P(GRECT *) rect, P(BOOLEAN) Horizontal_Flag, P(BOOLEAN) Vertical_Flag)
+VOID AdjustMenuPosition(P(MENU_PTR) MenuPtr, P(int16_t) xpos, P(int16_t) ypos, P(GRECT *) rect, P(BOOLEAN) Horizontal_Flag, P(BOOLEAN) Vertical_Flag)
 PP(register MENU_PTR MenuPtr;)					/* ptr to the Menu Node         */
 PP(int16_t xpos;)								/* xpos that we originally want */
 PP(int16_t ypos;)								/* ypos that we originally want */

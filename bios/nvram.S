@@ -28,6 +28,7 @@ rtc_sec         equ $fffffc20
 
 
 /* 306de: 00e01ef0 */
+/* 404: 00e01fa4 */
 #if NVRAM_SUPPORT
 ngetdt:
         bsr       checkRTC
@@ -52,6 +53,7 @@ inittc2:
  * and updates GEMDOS variables from it
  */
 /* 306de: 00e01f20 */
+/* 404: 00e01fd4 */
 readRTCTime:
         bsr       checkRTC
         bcs.s     inittc2
@@ -103,6 +105,7 @@ rdttc2:
  * write date & time to TT clock
  */
 /* 306de: 00e01fc6 */
+/* 404: 00e0207a */
 writeRTCTime:
         bsr       checkRTC
         bcs       inittc2
@@ -138,6 +141,7 @@ writeRTCTime:
         rts
 
 /* 306de: 00e0205e */
+/* 404: 00e02112 */
 checkRTC:
         movea.l   a7,a0
         movea.l   ABSW(_buserror),a1
@@ -157,6 +161,7 @@ nvramfail:
  * XBIOS #46 - NVMaccess
  */
 /* 306de: 00e0208c */
+/* 404: 00e0216c */
         xdef _nvmaccess
 _nvmaccess:
         moveq.l   #-5,d0       /* return E_BADRQ in case of error */
@@ -301,6 +306,7 @@ checkRTC:
 #else
 /* 206de: 00e01aa8 */
 /* 104de: 00fc1f70 */
+/* 404: 00e02112 */
 checkRTC:
 			SETBASEREG
 			movea.w   #rtc_sec,a0
@@ -559,6 +565,7 @@ daysOffsetToMonths:DC.W $0000,$001f,$003b,$005a
  * XBIOS #47 - Waketime
  */
 /* 206de: 00e01d0a */
+/* 404: 00e02140 */
         xdef _waketime
 _waketime:  move.l    4(sp),d0
             beq       clrwtim

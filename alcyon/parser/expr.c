@@ -591,6 +591,11 @@ int32_t cexpr(NOTHING)
 	exprp = opap;
 	commastop++;
 	tp = (struct lconode *) expr(0);
+	if (tp == NULL)
+	{
+		error(_("constant required"));
+		return 0;
+	}
 	op = tp->t_op;
 	if (op != CINT && op != CLONG)
 		error(_("constant required"));

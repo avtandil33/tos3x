@@ -34,6 +34,8 @@
 
 #define STBOOK ((TOSVERSION >= 0x207) & (TOSVERSION <= 0x208))
 
+#define SPARROW (TOSVERSION >= 0x400)
+
 #define MSTECLK (((TOSVERSION >= 0x104) & (TOSVERSION < 0x300)) | TP_50)
 
 /*
@@ -56,6 +58,10 @@
  */
 #ifndef BINEXACT
 #define BINEXACT 1
+#endif
+
+#ifndef MULTILANG_SUPPORT
+#define MULTILANG_SUPPORT (OS_COUNTRY == OS_CONF_MULTILANG)
 #endif
 
 

@@ -127,6 +127,12 @@
 #	define ABSW2(x) (x).w
 #   define SETBASEREG
 #endif
+/* for accessing BIOS variables in TOS 4.x: some of them are no longer in first 32K */
+#if TOSVERSION >= 0x400
+#	define ABSW3(x) (x)
+#else
+#	define ABSW3(x) (x).w
+#endif
 
 #if BINEXACT
 /*

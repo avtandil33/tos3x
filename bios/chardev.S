@@ -2,6 +2,7 @@
 #include "asmdefs.h"
 #include "tosvars.inc"
 #include "biosdefs.h"
+#include "keytbl.h"
 
 #define ACIA_IKBD_BASE $fffffc00
 #define ACIA_MIDI_BASE $fffffc04
@@ -97,6 +98,7 @@ BCONMAP_START_HANDLE equ 6
 /* 306de: 00e02266 */
 /* 206de: 00e01f8c */
 /* 104de: 00fc326a */
+/* 404: 00e02362 */
 	xdef _bco3stat
 _bco3stat:
         moveq.l   #-1,d0
@@ -119,6 +121,7 @@ bco3sret:
  **************************************************************************/
 /* 306de: 00e02276 */
 /* 206de: 00e01f9c */
+/* 404: 00e02372 */
 	xdef _bcon3out
 _bcon3out:
         move.w    6(a7),d1
@@ -149,6 +152,7 @@ bcon3o2:
  **************************************************************************/
 /* 306de: 00e0228c */
 /* 206de: 00e01fb2 */
+/* 404: 00e02388 */
 		xdef _midiws
 _midiws:
         moveq.l   #0,d3
@@ -173,6 +177,7 @@ midiws1:
  **************************************************************************/
 /* 306de: 00e022a0 */
 /* 206de: 00e01fc6 */
+/* 404: 00e0239c */
 	xdef _bcon3stat
 _bcon3stat:
         lea.l     ABSW(midiiorec),a0            /* point to midi i/o bufrec */
@@ -205,6 +210,7 @@ bcon3s1:
  **************************************************************************/
 /* 306de: 00e022ba */
 /* 206de: 00e01fe0 */
+/* 404: 00e023b6 */
 /* assume that a0/a1 are inited by the midstat call for the rest of */
 /* this routine. */
 	xdef _bcon3in
@@ -225,8 +231,8 @@ _bcon3in:
 bcon3i1:
         movea.l   buf(a0),a1                    /* get base address of buffer */
         and.l     #$0000FFFF,d1
-#if ((TOSVERSION >= 0x200) & (TOSVERSION < 0x300)) | !BINEXACT
-        moveq     #0,d0
+#if ((TOSVERSION >= 0x200) & (TOSVERSION < 0x300)) | !BINEXACT | (TOSVERSION >= 0x400)
+        moveq     #0,d0							/* Sadly this didn't make it into 3.06 */
 #endif
         move.b    0(a1,d1.l),d0                 /* get character */
         move.w    d1,head(a0)                   /* store new head pointer to buffer record */
@@ -256,6 +262,7 @@ bcon3i2:
 /* 306de: 00e022ee */
 /* 206de: 00e02016 */
 /* 104de: 00fc32f6 */
+/* 404: 00e023ec */
 	xdef _bcon0out
 _bcon0out:
 #if BINEXACT
@@ -330,6 +337,7 @@ strobeon:
 /* 306de: 00e02372 */
 /* 206de: 00e0209a */
 /* 104de: 00fc3372 */
+/* 404: 00e02470 */
 	xdef _bcon0in
 _bcon0in:
         moveq.l   #7,d1                         /* get current io enable register contents */
@@ -358,6 +366,7 @@ bcon0in1:
 /* 306de: 00e02394 */
 /* 206de: 00e020bc */
 /* 104de: 00fc3392 */
+/* 404: 00e02492 */
 	xdef _bco0stat
 _bco0stat:
 #if !BINEXACT
@@ -387,6 +396,7 @@ bco0st1:
 /* 306de: 00e023a4 */
 /* 206de: 00e020cc */
 /* 104de: 00fc33a6 */
+/* 404: 00e024a2 */
 	xdef _bcon6stat
 _bcon6stat:
         lea.l     ABSW2(rs232iorec),a0            /* point to rs-232 buffer record */
@@ -408,6 +418,7 @@ bcon6st2:
 /* 306de: 00e023ba */
 /* 206de: 00e020e2 */
 /* 104de: 00fc33be */
+/* 404: 00e024b8 */
 	xdef _bcon6in
 _bcon6in:
         lea.l     ABSW2(rs232iorec),a0          /* point to rs-232 buffer record */
@@ -463,6 +474,7 @@ rs232co1:
 /* 306de: 00e02406 */
 /* 206de: 00e0212e */
 /* 104de: 00fc3408 */
+/* 404: 00e02504 */
 	xdef _bco6stat
 _bco6stat:
         lea.l     ABSW2(rs232iorec+IOREC_SIZE),a0  /* point to rs-232 output buffer record */
@@ -485,6 +497,7 @@ _bco6sret:
 /* 306de: 00e0241e */
 /* 206de: 00e02146 */
 /* 104de: 00fc3422 */
+/* 404: 00e0251c */
 	xdef _bcon6out
 _bcon6out:
         move.w    6(a7),d0
@@ -520,6 +533,7 @@ bcon6o2:
 /* 306de: 00e02446 */
 /* 206de: 00e0216e */
 /* 104de: 00fc344a */
+/* 404: 00e02544 */
 	xdef _bco4stat
 _bco4stat:
         moveq.l   #-1,d0
@@ -543,6 +557,7 @@ bco4st1:
 /* 306de: 00e02456 */
 /* 206de: 00e0217e */
 /* 104de: 00fc345c */
+/* 404: 00e02554 */
 	xdef _bcon4out
 _bcon4out:
         move.w    6(a7),d1
@@ -591,6 +606,7 @@ ikbd_wr3:
 /* 306de: 00e02474 */
 /* 206de: 00e021a6 */
 /* 104de: 00fc3480 */
+/* 404: 00e0257c */
 		xdef _ikbdws
 _ikbdws:
 #if (TOSVERSION >= 0x300) | (TOSVERSION < 0x200)
@@ -659,6 +675,7 @@ bcon2in2:
  */
 /* 306de: 00e024d2 */
 /* 206de: 00e02202 */
+/* 404: 00e025d8 */
 	xdef _bco2stat
 _bco2stat:
         moveq.l   #-1,d0
@@ -702,6 +719,7 @@ soundir8:
 /* 306de: 00e024d6 */
 /* 206de: 00e02206 */
 /* 104de: 00fc34fc */
+/* 404: 00e025dc */
 	xdef initmfp
 initmfp:
         lea.l     ABSW2(MFP_REGS),a0            /* init mfp address pointer */
@@ -912,6 +930,7 @@ dummyrts:
 
 /* 306de: 00e026b2 */
 /* 206de: 00e0237c */
+/* 404: 00e02752 */
 copymem:
         move.b    (a1)+,(a0)+
         dbf       d0,copymem
@@ -990,6 +1009,7 @@ mfpvectr:
 /* 306de: 00e0270a */
 /* 206de: 00e023d4 */
 /* 104de: 00fc36ac */
+/* 404: 00e027aa */
 settimer:
         movem.l   d0-d4/a0-a3,-(a7)             /* save all registers to be messed with!! */
 #if (TOSVERSION >= 0x200) | !BINEXACT
@@ -1084,6 +1104,7 @@ tdrtab:  dc.b $1e,$20,$22,$24
 /* 306de: 00e027b0 */
 /* 206de: 00e0247a */
 /* 104de: 00fc3754 */
+/* 404: 00e02850 */
 	xdef _mfpint
 _mfpint:
         move.w    4(a7),d0
@@ -1132,6 +1153,7 @@ initint:
 /* 306de: 00e027da */
 /* 206de: 00e024a4 */
 /* 104de: 00fc377e */
+/* 404: 00e0287a */
 	xdef _jdisint
 _jdisint:
         move.w    4(a7),d0
@@ -1179,6 +1201,7 @@ jdisint1:
 /* 306de: 00e02810 */
 /* 206de: 00e024da */
 /* 104de: 00fc37b8 */
+/* 404: 00e028b0 */
 	xdef _jenabint
 _jenabint:
         move.w    4(a7),d0
@@ -1233,6 +1256,7 @@ bselect1:
 /* 306de: 00e02848 */
 /* 205de: 00e02512 */
 /* 104de: 00fc37f2 */
+/* 404: 00e028e8 */
 rcvrint:
         movem.l   d0-d1/a0-a2,-(a7)             /* save affected registers */
         lea.l     ABSW2(rs232iorec),a0          /* point to current output buffer record */
@@ -1300,6 +1324,7 @@ rcvrint7:
 /* 306de: 00e028e2 */
 /* 205de: 00e025ac */
 /* 104de: 00fc3890 */
+/* 404: 00e02982 */
 txrint:
         movem.l   d0-d1/a0-a2,-(a7)             /* save affected registers */
         lea.l     ABSW2(MFP_REGS),a2            /* set mfp chip address pointer */
@@ -1324,6 +1349,7 @@ txrint1:
 /* 306de: 00e028fe */
 /* 206de: 00e025c8 */
 /* 104de: 00fc38aa */
+/* 404: 00e0299e */
 ctsint:
         movem.l   d0-d1/a0-a2,-(a7)             /* save affected registers */
         lea.l     ABSW2(rs232iorec),a0          /* point to current output buffer record */
@@ -1362,6 +1388,7 @@ ctsint2:
 /* 306de: 00e02944 */
 /* 206de: 00e0260e */
 /* 104de: 00fc38f6 */
+/* 404: 00e029e4 */
 rxerror:
         movem.l   d0/a0,-(a7)                   /* save all registers */
         lea.l     ABSW2(MFP_REGS),a0            /* set mfp chip address pointer */
@@ -1379,6 +1406,7 @@ rxerror1:
 /* 306de: 00e02964 */
 /* 206de: 00e0262e */
 /* 104de: 00fc3918 */
+/* 404: 00e02a04 */
 txerror:
         move.l    a0,-(a7)
         lea.l     ABSW2(MFP_REGS),a0            /* set mfp chip address pointer */
@@ -1401,6 +1429,7 @@ txerror1:
 /* 306de: 00e02980 */
 /* 206de: 00e0264a */
 /* 104de: 00fc3932 */
+/* 404: 00e02a20 */
 iorecout:
 #if (TOSVERSION >= 0x200)
         move.l    a0,-(a7)                      /* save all registers */
@@ -1445,6 +1474,7 @@ ioreco3:
  *************************************************************************/
 /* 306de: 00e029be */
 /* 206de: 00e02688 */
+/* 404: 00e02a5e */
 iorecput:
         move.w    tail(a0),d1
         bsr.s     wrapin
@@ -1462,6 +1492,7 @@ iorecp1:
  *************************************************************************/
 /* 306de: 00e029dc */
 /* 206de: 00e026a6 */
+/* 404: 00e02a7c */
 iorecget:
         move.w    head(a0),d1
         cmp.w     tail(a0),d1                   /* head-index = tail-index? */
@@ -1480,6 +1511,7 @@ iorecget:
 /* 306de: 00e029fc */
 /* 206de: 00e026c6 */
 /* 104de: 00fc39b6 */
+/* 404: 00e02a9c */
 rtson:
         lea.l     ABSW2(psgsel),a1
         move.w    sr,-(a7)
@@ -1497,6 +1529,7 @@ rtson:
 /* 306de: 00e02a18 */
 /* 206de: 00e026e2 */
 /* 104de: 00fc39d4 */
+/* 404: 00e02ab8 */
 rtsoff:
         lea.l     ABSW2(psgsel),a1
         move.w    sr,-(a7)
@@ -1526,6 +1559,7 @@ wrapin1:
 /* 306de: 00e02a40 */
 /* 206de: 00e0270a */
 /* 104de: 00fc39fe */
+/* 404: 00e02ae0 */
 	xdef _iorec
 _iorec:
         move.w    4(a7),d1             /* device number */
@@ -1562,6 +1596,7 @@ iorectab:
 /* 306de: 00e02a60 */
 /* 206de: 00e0272a */
 /* 104de: 00fc3a16 */
+/* 404: 00e02b00 */
 	xdef _rsconf
 _rsconf:
 #if TOSVERSION >= 0x200
@@ -1727,6 +1762,7 @@ bauddata: dc.b $01,$02,$04,$05,$08,$0a,$0b,$10,$20,$40,$60,$80,$8f,$af,$40,$60
  */
 /* 306de: 00e02b4a */
 /* 206de: 00e02814 */
+/* 404: 00e02bea */
 bcondevs:
         dc.l      _bcon6stat                    /* Dev 6: "Modem 1" - ST MFP */
         dc.l      _bcon6in
@@ -1762,6 +1798,7 @@ bcondevs:
  * XBIOS #44 - Bconmap - Select a default port.
  */
 /* 306de: 00e02baa */
+/* 404: 00e02c32 */
 	xdef _bconmap
 _bconmap:
         moveq.l   #0,d0
@@ -1818,6 +1855,7 @@ bconmap1:
 #if TOSVERSION >= 0x200
 /* 306de: 00e02c38 */
 /* 206de: 00e028ea */
+/* 404: 00e02cc0 */
 initdevstables:
         lea.l     ABSW(bcmap_devs),a0
         move.l    a0,ABSW(bcmap_root+0)     /* bcmap_root.maptab */
@@ -1949,6 +1987,7 @@ _rs8conf:
 
 #if TOSVERSION >= 0x200
 /* 206de: 00e02950 */
+/* 404: 00e02d26 */
 sccinit:
         move.b    (a1)+,d0                      /* SCC register number */
         bmi.s     sccinit1                      /* end of the register list? => exit */
@@ -1989,7 +2028,13 @@ scctbl:
         dc.b $ff,$00            /* end of table */
 
 
-/* disconnect LAN from port a */
+#if TOSVERSION < 0x400
+/**********************************************************************
+ *
+ * set the PSG bit which selects LAN vs NOT LAN to the NOT LAN position.
+ *
+ * On Falcon, this bit is IDE reset.
+ */
 nolan:
         move.w    sr,d1
         ori.w     #$0700,sr
@@ -2000,9 +2045,11 @@ nolan:
         move.b    d0,ABSW(psgwr)
         move.w    d1,sr
         rts
+#endif
 
 /* 306de: 00e02d4c */
 /* 206de: 00e029aa */
+/* 404: 00e02d5e */
 initscc:
         movea.l   ABSW(_buserror),a0
         movea.l   a7,a1
@@ -2015,10 +2062,12 @@ initscc:
 initscc1:
         move.l    (a1)+,(a0)+
         dbf       d0,initscc1
-#if TOSVERSION >= 0x300 & !TP_50 /* PAK: MSTE does not have SCCDMA */
+#if (TOSVERSION >= 0x300) & (TOSVERSION < 0x400) & !TP_50 /* PAK: MSTE does not have SCCDMA */
         clr.w     ABSW($FFFF8C14)
 #endif
+#if TOSVERSION < 0x400
         bsr.s     nolan
+#endif
         lea.l     ABSW(mdm4iorec),a0
         lea.l     mdm2table(pc),a1
         moveq.l   #EXTIOREC_SIZE+1,d0 /* BUG: should be -1; overwrites first 2 bytes of mdm2ibuf */
@@ -2130,6 +2179,7 @@ sccarxerr:
  *************************************************************************/
 /* 306de: 00e02e62 */
 /* 206de: 00e02abc */
+/* 404: 00e02e68 */
 sccrxint:
         move.b    #$08,(a2)                     /* select scc register #8 */
         move.b    (a2),d0                       /* read "Receive Data register" */
@@ -2203,6 +2253,7 @@ sccrxerr:
  *************************************************************************/
 /* 306de: 00e02f1a */
 /* 206de: 00e02b74 */
+/* 404: 00e02f20 */
 sccout:
         move.l    a0,-(a7)
         tst.b     xonoffc(a0)
@@ -2233,7 +2284,7 @@ sccout1:
         clr.b     xonoffc(a0)
         bra.s     sccout3
 sccout2:
-        adda.w    #$000E,a0
+        adda.w    #IOREC_SIZE,a0                /* advance to output iorec */
         move.w    head(a0),d0
         cmp.w     tail(a0),d0
         beq.s     sccout4
@@ -2250,6 +2301,7 @@ sccout4:
  *************************************************************************/
 /* 306de: 00e02f60 */
 /* 206de: 00e02bba */
+/* 404: 00e02f7e */
 sccempty:
         move.b    #$00,(a2)                     /* select scc register #0 */
         move.b    #$28,(a2)                     /* write "Reset Tx Int Pending" */
@@ -2264,6 +2316,7 @@ sccempty:
  *************************************************************************/
 /* 306de: 00e02f78 */
 /* 206de: 00e02bd2 */
+/* 404: 00e02f96 */
 sccstat:
         btst      #1,ctr(a0)
         beq.s     sccstat1
@@ -2295,6 +2348,7 @@ sccstat1:
  */
 /* 306de: 00e02fa8 */
 /* 206de: 00e02c02 */
+/* 404: 00e02fc8 */
 _bcon7stat:
         lea.l     ABSW(mdm2iorec),a0
         lea.l     ABSW(SCCB_BASE),a2
@@ -2305,6 +2359,7 @@ _bcon7stat:
  */
 /* 306de: 00e02fb2 */
 /* 206de: 00e02c0c */
+/* 404: 00e02fd2 */
 _bcon7in:
         lea.l     ABSW(mdm2iorec),a0
         lea.l     ABSW(SCCB_BASE),a2
@@ -2315,6 +2370,7 @@ _bcon7in:
  */
 /* 306de: 00e02fbc */
 /* 206de: 00e02c16 */
+/* 404: 00e02fdc */
 _bco7stat:
         lea.l     ABSW(mdm2iorec),a0
         lea.l     ABSW(SCCB_BASE),a2
@@ -2325,6 +2381,7 @@ _bco7stat:
  */
 /* 306de: 00e02fc6 */
 /* 206de: 00e02c20 */
+/* 404: 00e02fe6 */
 _bcon7out:
         lea.l     ABSW(mdm2iorec),a0
         lea.l     ABSW(SCCB_BASE),a2
@@ -2335,6 +2392,7 @@ _bcon7out:
  */
 /* 306de: 00e02fd2 */
 /* 206de: 00e02c2c */
+/* 404: 00e02ff2 */
 _bcon9stat:
         lea.l     ABSW(mdm4iorec),a0
         lea.l     ABSW(SCCA_BASE),a2
@@ -2345,6 +2403,7 @@ _bcon9stat:
  */
 /* 306de: 00e02fdc */
 /* 206de: 00e02c36 */
+/* 404: 00e02ffc */
 _bcon9in:
         lea.l     ABSW(mdm4iorec),a0
         lea.l     ABSW(SCCA_BASE),a2
@@ -2355,6 +2414,7 @@ _bcon9in:
  */
 /* 306de: 00e02fe6 */
 /* 206de: 00e02c40 */
+/* 404: 00e03006 */
 _bco9stat:
         lea.l     ABSW(mdm4iorec),a0
         lea.l     ABSW(SCCA_BASE),a2
@@ -2365,6 +2425,7 @@ _bco9stat:
  */
 /* 306de: 00e02ff0 */
 /* 206de: 00e02c4a */
+/* 404: 00e03010 */
 _bcon9out:
         lea.l     ABSW(mdm4iorec),a0
         lea.l     ABSW(SCCA_BASE),a2
@@ -2377,6 +2438,7 @@ _bcon9out:
  **************************************************************************/
 /* 306de: 00e02ffa */
 /* 206de: 00e02c52 */
+/* 404: 00e0301a */
 sccistat:
         moveq.l   #0,d0                         /* set result to false */
         lea.l     head(a0),a1
@@ -2394,6 +2456,7 @@ sccist1:
  **************************************************************************/
 /* 306de: 00e0300c */
 /* 206de: 00e02c66 */
+/* 404: 00e0302c */
 sccostat:
         move.w    tail(a0),d1
         bsr       wrapin
@@ -2412,6 +2475,7 @@ sccost1:
  **************************************************************************/
 /* 306de: 00e03022 */
 /* 206de: 00e02c7c */
+/* 404: 00e03042 */
 sccin:
         bsr       iorecget
         move.w    d0,-(a7)
@@ -2452,6 +2516,7 @@ scccont1:
  **************************************************************************/
 /* 306de: 00e03076 */
 /* 206de: 00e02cd0 */
+/* 404: 00e03096 */
 sccxout:
         move.w    6(a7),d0                      /* get data */
         adda.w    #IOREC_SIZE,a0                /* switch to output buffer */
@@ -2480,6 +2545,7 @@ sccxout1:
  */
 /* 306de: 00e030a0 */
 /* 206de: 00e02cfa */
+/* 404: 00e030c0 */
 _rs9conf:
         lea.l     ABSW(mdm4iorec),a0            /* point to current output buffer record */
         lea.l     ABSW(SCCA_BASE),a2
@@ -2490,6 +2556,7 @@ _rs9conf:
  */
 /* 306de: 00e030aa */
 /* 206de: 00e02d04 */
+/* 404: 00e030ca */
 _rs7conf:
         lea.l     ABSW(mdm2iorec),a0            /* point to current output buffer record */
         lea.l     ABSW(SCCB_BASE),a2
@@ -2616,6 +2683,7 @@ scccon13:
 
 /* 306de: 00e031e4 */
 /* 206de: 00e02e3e */
+/* 404: 00e03204 */
 sccbaudtab:
 #if HADES
 	dc.w	22	/* 0=19200 baud */
@@ -2682,6 +2750,7 @@ mdm2table:
 /* 104de: 00fc3aec */
 /* 106de: 00e03ca0 */
 /* 162de: 00e03ca0 */
+/* 404: 00e03288 */
 _int_acia:
 #if TOSVERSION >= 0x200
         movem.l   d0-d3/a0-a3,-(a7)
@@ -2768,6 +2837,7 @@ aciasys2:
 /* 104de: 00fc3b56 */
 /* 106de: 00e03d0a */
 /* 162de: 00e03d0a */
+/* 404: 00e032ec */
 aciaread:
         move.b    ACIA_DATA(a1),d0      /* read data byte */
         cmpa.l    #ikbdiorec,a0
@@ -2861,6 +2931,7 @@ kbd_joy:
 /* 306de: 00e033ea */
 /* 206de: 00e03044 */
 /* 104de: 00fc3c70 */
+/* 404: 00e0340a */
 _kbdvec:
         move.b    ABSW(_shifty),d1              /* get current shift state */
         cmpi.b    #$2A,d0                       /* left shift pressed? */
@@ -3061,14 +3132,14 @@ kbdvec27:
         beq       kbdvec42
 #if TOSVERSION >= 0x200
         cmp.b     #$67,d1                       /* keypad key 0 - 9? */
-        bcs.s     kbdvec29                      /* no */
+        bcs.s     notaltkp                      /* no */
         cmp.b     #$70,d1
-        bhi.s     kbdvec29                      /* no */
+        bhi.s     notaltkp                      /* no */
         move.w    kb_altnum,d0
         bpl.s     kbdvec28
         moveq.l   #0,d0
 kbdvec28:
-        mulu.w    #$000A,d0
+        mulu.w    #10,d0
         ext.w     d1
         move.b    0(a0,d1.w),d1                 /* get ascii code of keypad key */
         sub.b     #$30,d1
@@ -3076,8 +3147,11 @@ kbdvec28:
         move.w    d0,kb_altnum                  /* store as new number code */
         movea.l   (a7)+,a0
         rts
-kbdvec29:
+notaltkp: ds.b 0
+/* no, it wasn't ALT plus a keypad number key */
 #endif
+
+
 
 /*
  * Country-dependent key translations
@@ -3088,6 +3162,7 @@ kbdvec29:
 /* 104any: 00fc3e10 */
 /* 106any: 00e03fc4 */
 /* 162any: 00e03fc4 */
+/* 404: 00e03600 */
 #if OS_COUNTRY == CTRY_US
 /* nothing to do */
 #endif
@@ -3112,14 +3187,13 @@ kbdde1:
         bra       kbdvec42
 kbdde2:
         cmpi.b    #$28,d1                       /* convert ALT-adiaresis to ] or } */
-        bne.s     kbdde3
+        bne.s     outside
         move.b    #$5D,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7D,d0
         bra       kbdvec42
-kbdde3:
 #endif
 
 #if OS_COUNTRY == CTRY_SF
@@ -3156,14 +3230,13 @@ kbdsf3:
         bra       kbdvec42
 kbdsf4:
         cmpi.b    #$2b,d1                       /* convert ALT-? to tilde or | */
-        bne.s     kbdsf5
+        bne.s     outside
         move.b    #$7e,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7c,d0
         bra       kbdvec42
-kbdsf5:
 #endif
 
 #if OS_COUNTRY == CTRY_SG
@@ -3200,14 +3273,13 @@ kbdsg3:
         bra       kbdvec42
 kbdsg4:
         cmpi.b    #$2b,d1                       /* convert ALT-? to tilde or | */
-        bne.s     kbdsg5
+        bne.s     outside
         move.b    #$7e,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7c,d0
         bra       kbdvec42
-kbdsg5:
 #endif
 
 #if OS_COUNTRY == CTRY_FR
@@ -3239,14 +3311,13 @@ kbdfr2:
         bra       kbdvec42
 kbdfr3:
         cmpi.b    #$2B,d1                       /* convert ALT-# to @ or tilde */
-        bne.s     kbdfr4
+        bne.s     outside
         move.b    #$40,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7E,d0
         bra       kbdvec42
-kbdfr4:
 #endif
 
 #if OS_COUNTRY == CTRY_UK
@@ -3291,10 +3362,9 @@ kbdes3:
         bra       kbdvec42
 kbdes4:
         cmpi.b    #$27,d1                       /* convert ALT-n to 0 */
-        bne.s     kbdes5
+        bne.s     outside
         move.b    #$00,d0
         bra       kbdvec42
-kbdes5:
 #endif
 
 #if OS_COUNTRY == CTRY_IT
@@ -3326,13 +3396,12 @@ kbdit2:
         bra       kbdvec42
 kbdit3:
         cmpi.b    #$60,d1
-        bne.s     kbdit4
+        bne.s     outside
         move.b    #$60,d0
         bra       kbdvec42
-kbdit4:
 #endif
 
-#if OS_COUNTRY == CTRY_SE
+#if (OS_COUNTRY == CTRY_SE) | (OS_COUNTRY == CTRY_NO)
         cmpi.b    #$1A,d1                       /* convert ALT-a to [ or { */
         bne.s     kbdsv1
         move.b    #$5B,d0
@@ -3361,14 +3430,13 @@ kbdsv2:
         bra       kbdvec42
 kbdsv3:
         cmpi.b    #$2B,d1                       /* convert ALT-\ to ^ or @ */
-        bne.s     kbdsv4
+        bne.s     outside
         move.b    #$5E,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$40,d0
         bra       kbdvec42
-kbdsv4:
 #endif
 
 #if OS_COUNTRY == CTRY_PL
@@ -3391,14 +3459,13 @@ kbdpl1:
         bra       kbdvec42
 kbdpl2:
         cmpi.b    #$28,d1                       /* convert ALT-adiaresis to ] or } */
-        bne.s     kbdpl3
+        bne.s     outside
         move.b    #$5D,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7D,d0
         bra       kbdvec42
-kbdpl3:
 #endif
 
 #if OS_COUNTRY == CTRY_CZ
@@ -3421,19 +3488,116 @@ kbdcz1:
         bra       kbdvec42
 kbdcz2:
         cmpi.b    #$28,d1                       /* convert ALT-adiaresis to ] or } */
-        bne.s     kbdcz3
+        bne.s     outside
         move.b    #$5D,d0
         move.b    ABSW(_shifty),d2
         andi.b    #$03,d2
         beq       kbdvec42
         move.b    #$7D,d0
         bra       kbdvec42
-kbdcz3:
 #endif
+
 
 #if OS_COUNTRY == CTRY_RU
 /* nothing to do */
 #endif
+
+
+#if OS_COUNTRY == CTRY_TR
+	cmpi.b	#$1a,d1		/* is it a ALT-umlaut? */
+	bne.s	kbdtr1		/* no... */
+	move.b	#$5b,d0		/* put in '[', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7b,d0		/* put in '{', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+kbdtr1:
+	cmpi.b	#$27,d1		/* is it a ALT-O with two .. on top */
+	bne.s	kbdtr2		/* no... */
+	move.b	#$23,d0		/* put in '#', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$26,d0		/* put in '&', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+kbdtr2:
+	cmpi.b	#$28,d1		/* is it a ALT-A with two .. on top */
+	bne.s	kbdtr3		/* no... */
+	move.b	#$40,d0		/* put in '@', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7e,d0		/* put in '~', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+kbdtr3:
+	cmpi.b	#$1b,d1		/* is it a ALT-! */
+	bne.s	kbdtr4		/* no... */
+	move.b	#$5d,d0		/* put in ']', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7d,d0		/* put in '}', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+kbdtr4:
+	cmpi.b	#$2b,d1		/* is it a ALT-$? */
+	bne.s	kbdtr5		/* no... */
+	move.b	#$5c,d0		/* put in '\', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7c,d0		/* put in '|', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+kbdtr5:
+	cmpi.b	#$35,d1		/* is it a ALT-$? */
+	bne.s	outside		/* no... */
+	move.b	#$3c,d0		/* put in '<', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$3e,d0		/* put in '>', instead...it's a alt-shift umlaut! */
+	bra	kbdvec42		/* process it */
+#endif
+
+#if OS_COUNTRY == CTRY_DK
+	cmpi.b	#$1a,d1		/* is it a ALT-^? */
+	bne.s	altden1		/* no... */
+	move.b	#$5b,d0		/* put in '[', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7b,d0		/* put in '{', instead...it's a alt-shift ^ */
+	bra	kbdvec42		/* process it */
+altden1:
+	cmpi.b	#$1b,d1		/* is it a ALT-$? */
+	bne.s	altden2		/* no... */
+	move.b	#$5d,d0		/* put in ']', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7d,d0		/* put in '}', instead...it's a alt-shift $ */
+	bra	kbdvec42		/* process it */
+altden2:
+	cmpi.b	#$28,d1		/* is it a ALT- */
+	bne.s	altden3		/* no... */
+	move.b	#$5c,d0		/* put in '\', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$7c,d0		/* put in '|',instead...it's a alt-shift */
+	bra	kbdvec42		/* process it */
+altden3:
+	cmpi.b	#$2b,d1		/* is it a ALT-#? */
+	bne.s	outside		/* no... */
+	move.b	#$40,d0		/* put in '@', then check the shift keys */
+	move.b	ABSW(_shifty),d2	/* grab current setting */
+	andi.b	#$3,d2		/* KBRSH+KBLSH bits */
+	beq	kbdvec42		/* process it as unshifted */
+	move.b	#$27,d0		/* put in <'>, instead...it's a alt-shift # */
+	bra	kbdvec42		/* process it */
+#endif
+
+
 
 /* 206de: 00e03294 */
 /* 306de: 00e0363a */
@@ -3443,6 +3607,7 @@ kbdcz3:
  * end of country specific key handling
  */
 
+outside:
         cmpi.b    #$62,d1                       /* is it an "alt help" signal to dump the screen? */
         bne.s     kbdvec33
         addq.w    #1,ABSW(_dumpflg)
@@ -3572,6 +3737,7 @@ kbdvec47:
  */
 /* 306de: 00e0378a */
 /* 206de: 00e033e4 */
+/* 404: 00e0390a */
 	xdef _do_keyclick
 _do_keyclick:
         move.l    #_clicksnd,ABSW(_sndtable)
@@ -3589,6 +3755,7 @@ midiread:
 /* 104de: 00fc3fc4 */
 /* 106de: 00e04188 */
 /* 162de: 00e04188 */
+/* 404: 00e03920 */
 _midivec:
         move.w    tail(a0),d1                   /* get current tail pointer offset */
         addq.w    #1,d1                         /* index = tail + 1 */
@@ -3608,6 +3775,7 @@ midivec2:
 
 /* 306de: 00e037c6 */
 /* 206de: 00e03420 */
+/* 404: 00e03946 */
 keymouse:
         moveq.l   #5,d3                         /* pre-init to "keyboard" right mouse button */
         btst      #4,d1                         /* see if it is a left or right button... */
@@ -3776,7 +3944,9 @@ no020_2:
 #if TP_50
 /*
  * SE: (26.10.93)
- * Das gleiche Prozessorunabh�ngig:
+
+ * Das gleiche Prozessorunabhaengig:
+
  * MMU-Deinitialisierung vor Kaltstart.
  */
         lea       coldboo0(pc),a0
@@ -3886,6 +4056,7 @@ zero2:  dc.l 0
 /* 306de: 00e0387e */
 /* 206de: 00e03498 */
 /* 104de: 00fc407e */
+/* 404: 00e039da */
 	xdef _giaccess
 _giaccess:
         move.w    4(a7),d0
@@ -3937,6 +4108,7 @@ dtron:
 /* 306de: 00e038b6 */
 /* 206de: 00e034d0 */
 /* 104de: 00fc40b6 */
+/* 404: 00e03a12 */
 	xdef _ongibit
 _ongibit:
         moveq.l   #0,d2
@@ -3978,6 +4150,7 @@ onbit:
 /* 306de: 00e038de */
 /* 206de: 00e034f8 */
 /* 104de: 00fc40dc */
+/* 404: 00e03a3a */
 	xdef _offgibit
 _offgibit:
         moveq.l   #0,d2
@@ -4043,6 +4216,7 @@ offbit:
 /* 306de: 00e03906 */
 /* 206de: 00e03520 */
 /* 104de: 00fc4102 */
+/* 404: 00e03a62 */
 /* first we determine if the init is for a absolute, relative or keycode */
 /* mouse action. */
 	xdef _initmouse
@@ -4158,6 +4332,7 @@ setmouse:
 /* 306de: 00e039ce */
 /* 206de: 00e035e8 */
 /* 104de: 00fc41cc */
+/* 404: 00e03b2a */
 	xdef _xbtimer
 _xbtimer:
         moveq.l   #0,d0
@@ -4238,14 +4413,15 @@ _keytbl3:
 /* 306de: 00e03a08 */
 /* 206de: 00e0364e */
 /* 104de: 00fc4232 */
+/* 404: 00e03b90 */
 	xdef _bioskeys
-_bioskeys:
-#if TOSVERSION < 0x400
+_bioskeys: ds.b 0
+#if !MULTILANG_SUPPORT
         move.l    #_keytblnorm,ABSW(_curkeytbl)
         move.l    #_keytblshift,ABSW(_curkeytbl+4)
         move.l    #_keytblcaps,ABSW(_curkeytbl+8)
-#if (TOSVERSION >= 0x200) & (TOSVERSION < 0x300)
-		clr.b     ABSW(kb_key_last)
+#if ((TOSVERSION >= 0x200) & (TOSVERSION < 0x300)) | !BINEXACT | (TOSVERSION >= 0x400)
+		clr.b     ABSW(kb_key_last)							/* Sadly this didn't make it into 3.06 */
 #endif
         rts
 #else
@@ -4266,6 +4442,7 @@ _bioskeys:
 /* 306de: 00e03a4e */
 /* 206de: 00e0366c */
 /* 104de: 00fc424c */
+/* 404: 00e03c00 */
 	xdef _dosound
 _dosound:
         move.l    ABSW(_sndtable),d0            /* return current status in D0.L */
@@ -4293,6 +4470,7 @@ dosound1:
 /* 306de: 00e03a62 */
 /* 206de: 00e03680 */
 /* 104de: 00fc4260 */
+/* 404: 00e03c14 */
 	xdef _setprt
 _setprt:
         move.w    ABSW(_prtconfig),d0           /* get current config word before we change it */
@@ -4322,6 +4500,7 @@ setprt1:
 /* 306de: 00e03a74 */
 /* 206de: 00e03692 */
 /* 104de: 00fc4272 */
+/* 404: 00e03c26 */
 	xdef _kbrate
 _kbrate:
         move.w    ABSW(kb_initial),d0           /* get current initial/repeat values */
@@ -4370,6 +4549,7 @@ kbrate1:
 /* 306de: 00e03a96 */
 /* 206de: 00e036b4 */
 /* 104de: 00fc4294 */
+/* 404: 00e03c48 */
 	xdef _kbdvbase
 _kbdvbase:
         move.l    #midivec,d0
@@ -4396,6 +4576,7 @@ _kbdvbase:
 /* 306de: 00e03a9e */
 /* 206de: 00e036bc */
 /* 104de: 00fc429c */
+/* 404: 00e03c50 */
 timercint:
         addq.l    #1,_hz_200                    /* increment raw tick counter */
         rol.w     _tim_c_sieve                  /* rotate divisor bits */
@@ -4539,6 +4720,7 @@ soundir7:
  *********************************************************/
 /* 306de: 00e03b86 */
 /* 206de: 00e037a4 */
+/* 404: 00e03d38 */
 		xdef ringbell
 ringbell:
         btst      #2,ABSW(_conterm)             /* console bell enabled? */
@@ -4552,6 +4734,7 @@ ringbell:
  */
 /* 306de: 00e03b98 */
 /* 206de: 00e037b6 */
+/* 404: 00e03d4a */
 	xdef _do_bell
 _do_bell:
         move.l    #_bellsnd,ABSW(_sndtable)     /* sound data for console bell */

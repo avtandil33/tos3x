@@ -2,6 +2,7 @@
 
 /* 306de: 00e05f48 */
 /* 104de: 00fc1e84 */
+/* 404: 00e078da */
 		xdef _plststat
 _plststat:
         movem.l   d3-d7/a3-a6,-(a7)
@@ -13,6 +14,7 @@ _plststat:
 
 /* 306de: 00e05f5a */
 /* 104de: 00fc1e96 */
+/* 404: 00e078ec */
 		xdef _prtlst
 _prtlst:
         move.w    6(a7),d0
@@ -28,6 +30,7 @@ _prtlst:
 
 /* 306de: 00e05f76 */
 /* 104de: 00fc1eb2 */
+/* 404: 00e07908 */
 		xdef _pauxstat
 _pauxstat:
         movem.l   d3-d7/a3-a6,-(a7)
@@ -39,6 +42,7 @@ _pauxstat:
 
 /* 306de: 00e05f88 */
 /* 104de: 00fc1ec4 */
+/* 404: 00e0791a */
 		xdef _prtaux
 _prtaux:
         move.w    6(a7),d0

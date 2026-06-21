@@ -1350,6 +1350,7 @@ PP(int16_t *pflag;)
 /* 306de: 00e23fea */
 /* 104de: 00fe3826 */
 /* 106de: 00e25a7c */
+/* 404: 00e2d9b6 */
 VOID ob_actxywh(P(LPTREE) tree, P(int16_t) obj, P(GRECT *) pt)
 PP(register LPTREE tree;)
 PP(register int16_t obj;)

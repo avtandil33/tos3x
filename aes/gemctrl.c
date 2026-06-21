@@ -593,6 +593,7 @@ PP(register int16_t my;)
 
 
 /* 306de: 00e1b5b6 */
+/* 404: 00e21622 */
 VOID hctl_rect(P(int16_t) mx, P(int16_t) my)
 PP(int16_t mx;)
 PP(int16_t my;)
@@ -728,6 +729,7 @@ PP(int16_t h;)
  *	Doing the control rectangle first is important.
  */
 /* 306de: 00e1b67a */
+/* 404: 00e2183c */
 VOID ct_chgown(P(PD *) ppd, P(GRECT *) pr)
 PP(PD *ppd;)
 PP(GRECT *pr;)
@@ -757,6 +759,7 @@ PP(GRECT *pr;)
  *	the system.
  */
 /* 306de: 00e1b6de */
+/* 404: 00e21888 */
 VOID ctlmgr(NOTHING)
 {
 	register int16_t ev_which;
@@ -826,6 +829,7 @@ VOID ctlmgr(NOTHING)
  *	Also zero out the desk accessory count.
  */
 /* 306de: 00e1b770 */
+/* 404: 00e2193e */
 PD *ictlmgr(P(int16_t) pid)
 PP(int16_t pid;)
 {
@@ -847,6 +851,7 @@ PP(int16_t pid;)
  * the menu bar or there is an alert box	3/05/86
  */
 /* 306de: 00e1b7aa */
+/* 404: 00e2197c */
 VOID ctlmouse(P(BOOLEAN) mon)
 PP(BOOLEAN mon;)
 {
@@ -900,6 +905,7 @@ PP(BOOLEAN mon;)
 /*	1 = mouse control	*/
 
 /* 306de: 00e1b846 */
+/* 404: 00e21a24 */
 VOID take_ownership(P(BOOLEAN) beg_ownit)
 PP(BOOLEAN beg_ownit;)
 {

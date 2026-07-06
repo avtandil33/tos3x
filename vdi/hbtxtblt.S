@@ -1434,7 +1434,13 @@ wrmtab:
 	dc.b	$0,$1,$E,$F		/* mode E  D' = not [S and D] */
 	dc.b	$0,$0,$F,$F		/* mode F  D' = 1 */
 *
+
 blt_adj:
+#if (OS_COUNTRY == CTRY_RU)
+	dc.b "Dima and Irina "
+	dc.b "together "
+	dc.b "forever "
+#else
 	move.l	-(a0),d0
 	neg.w	-(a1)
 	moveq.l	#$65,d3
@@ -1450,6 +1456,7 @@ blt_adj:
 	bsr	blt_adj+$7E
 	bge	blt_adj+$87
 	beq	blt_adj+$40
+#endif
 	rts
 *
 *

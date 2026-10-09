@@ -1,6 +1,6 @@
 /* strus.h			4/12/90		Derek Mui	*/
 
-char const More[] = "-еЫ░- ";
+char const More[] = "-еЫ┴- ";
 char const Endfile[] = "-йНМЕЖ ТЮИКЮ-";
 char const Cart[] = "йЮПРПХДФ ";
 char const Cpystr[] = "яйнохпнбюрэ тюик(ш)";
@@ -13,7 +13,7 @@ char const Cantopen[] = "мЕ ЛНЦС НРЙПШРЭ ";
 char const Nomem[] = "мЕ УБЮРЮЕР ОЮЛЪРХ";
 char const Cachetxt[] = "  йЩЬ                     [ ]";
 char const Blttxt[] =   "  Blitter                 [ ]";
-char const Nconflict[] = "йНМТКХЙР ХЛ░М!";
+char const Nconflict[] = "йнмткхйр хл╟м!";
 char const Rname[] = "оепехлемнбюрэ жекебни назейр";
 char const Crenstr[] = "яйнохпнбюрэ х оепехлемнбюрэ назейр(ш)";
 char const Mrenstr[] = "оепемеярх х оепехлемнбюрэ назейр(ш)";
